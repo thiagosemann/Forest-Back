@@ -108,6 +108,11 @@ const updateUser = async (id, user) => {
   }
 };
 
+const getUsersByBuilding = async (building_id) => {
+  const query = 'SELECT * FROM users WHERE predio_id = ?';
+  const [users] = await connection.execute(query, [building_id]);
+  return users;
+};
 
 const deleteUser = async (id) => {
   // Check if the user exists
@@ -135,5 +140,6 @@ module.exports = {
   loginUser,
   getUser,
   updateUser,
-  deleteUser
+  deleteUser,
+  getUsersByBuilding
 };
