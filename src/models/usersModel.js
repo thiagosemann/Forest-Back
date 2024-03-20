@@ -12,7 +12,7 @@ const getAllUsers = async () => {
 const saltRounds = 10;
 
 const createUser = async (user) => {
-  const { first_name, last_name, cpf, email, password, role } = user;
+  const { first_name, last_name, cpf, email, password, role, predio_id } = user;
 
   // Gere o hash da senha
   const hashedPassword = await bcrypt.hash(password, saltRounds);
@@ -27,8 +27,8 @@ const createUser = async (user) => {
     throw new Error(`Usuário com esse ${conflictField} já existe.`);
   }
 
-  const insertUserQuery = 'INSERT INTO users (first_name, last_name, cpf, email, password, role) VALUES (?, ?, ?, ?, ?, ?)';
-  const values = [first_name, last_name, cpf, email, hashedPassword, role];
+  const insertUserQuery = 'INSERT INTO users (first_name, last_name, cpf, email, password, role, predio_id) VALUES (?, ?, ?, ?, ?, ?, ?)';
+  const values = [first_name, last_name, cpf, email, hashedPassword, role, predio_id];
 
   try {
     const [result] = await connection.execute(insertUserQuery, values);

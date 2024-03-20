@@ -7,7 +7,7 @@ const getAllBuildings = async () => {
 
 const createBuilding = async (building) => {
   const { nome, CNPJ, sindico, email, qnt_Apartamentos, sindico_id } = building;
-
+  console.log("building",building)
   const insertBuildingQuery = 'INSERT INTO predios (nome, CNPJ, sindico, email, qnt_Apartamentos, sindico_id) VALUES (?, ?, ?, ?, ?, ?)';
   const values = [nome, CNPJ, sindico, email, qnt_Apartamentos, sindico_id];
 
