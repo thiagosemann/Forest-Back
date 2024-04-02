@@ -5,6 +5,7 @@ const verifyToken = require('./middlewares/authMiddleware');
 
 const usersController = require('./controllers/usersController');
 const buildingsController = require('./controllers/buildingsController');
+const commonExpensesController = require('./controllers/gastosComunController');
 
 
 // User routes
@@ -23,6 +24,14 @@ router.get('/buildings/:id', verifyToken, buildingsController.getBuilding);
 router.post('/buildings', verifyToken, buildingsController.createBuilding);
 router.put('/buildings/:id', verifyToken, buildingsController.updateBuilding);
 router.delete('/buildings/:id', verifyToken, buildingsController.deleteBuilding);
+
+
+// Common expenses routes
+router.get('/commonexpenses', verifyToken, commonExpensesController.getAllCommonExpenses);
+router.get('/commonexpenses/:id', verifyToken, commonExpensesController.getCommonExpense);
+router.post('/commonexpenses', verifyToken, commonExpensesController.createCommonExpense);
+router.put('/commonexpenses/:id', verifyToken, commonExpensesController.updateCommonExpense);
+router.delete('/commonexpenses/:id', verifyToken, commonExpensesController.deleteCommonExpense);
 
 
 
