@@ -36,6 +36,22 @@ const getCommonExpense = async (request, response) => {
   }
 };
 
+const getExpensesByBuildingAndMonth = async (request, response) => {
+  try {
+    const { predio_id, month, year } = request.params;
+    const expenses = await commonExpensesModel.getExpensesByBuildingAndMonth(predio_id, month, year);
+
+    if (expenses.length > 0) {
+      return response.status(200).json(expenses);
+    } else {
+      return response.status(404).json({ message: 'Nenhum gasto encontrado para o prédio, mês e ano especificados' });
+    }
+  } catch (error) {
+    console.error('Erro ao obter gastos por prédio e mês:', error);
+    return response.status(500).json({ error: 'Erro ao obter gastos por prédio e mês' });
+  }
+};
+
 const updateCommonExpense = async (request, response) => {
   try {
     const { id } = request.params;
@@ -67,5 +83,6 @@ module.exports = {
   createCommonExpense,
   getCommonExpense,
   updateCommonExpense,
-  deleteCommonExpense
+  deleteCommonExpense,
+  getExpensesByBuildingAndMonth
 };

@@ -32,6 +32,7 @@ router.get('/commonexpenses/:id', verifyToken, commonExpensesController.getCommo
 router.post('/commonexpenses', verifyToken, commonExpensesController.createCommonExpense);
 router.put('/commonexpenses/:id', verifyToken, commonExpensesController.updateCommonExpense);
 router.delete('/commonexpenses/:id', verifyToken, commonExpensesController.deleteCommonExpense);
+router.get('/commonexpenses/building/:predio_id/month/:month/year/:year', verifyToken, commonExpensesController.getExpensesByBuildingAndMonth);
 
 
 

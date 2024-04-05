@@ -80,10 +80,29 @@ const deleteCommonExpense = async (id) => {
   }
 };
 
+const getExpensesByBuildingAndMonth = async (predio_id, month, year) => {
+  const query = `
+    SELECT * FROM Gastos_Comuns
+    WHERE predio_id = ? 
+    AND YEAR(data_gasto) = ?
+    AND MONTH(data_gasto) = ?;
+  `;
+  try {
+    const [expenses] = await connection.execute(query, [predio_id, year, month]);
+    return expenses;
+  } catch (error) {
+    console.error('Erro ao buscar gastos por prédio e mês:', error);
+    throw error;
+  }
+};
+
+
+
 module.exports = {
   getAllCommonExpenses,
   createCommonExpense,
   getCommonExpense,
   updateCommonExpense,
-  deleteCommonExpense
+  deleteCommonExpense,
+  getExpensesByBuildingAndMonth
 };
