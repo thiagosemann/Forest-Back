@@ -20,6 +20,17 @@ const createCommonExpense = async (request, response) => {
   }
 };
 
+const createCommonExpenses = async (request, response) => {
+  try {
+    const commonExpenses = request.body;
+    const createdExpenses = await Promise.all(commonExpenses.map(expense => commonExpensesModel.createCommonExpense(expense)));
+    return response.status(201).json(createdExpenses);
+  } catch (error) {
+    console.error('Erro ao criar gastos comuns:', error);
+    return response.status(409).json({ error: error.message });
+  }
+};
+
 const getCommonExpense = async (request, response) => {
   try {
     const { id } = request.params;
@@ -81,6 +92,7 @@ const deleteCommonExpense = async (request, response) => {
 module.exports = {
   getAllCommonExpenses,
   createCommonExpense,
+  createCommonExpenses,
   getCommonExpense,
   updateCommonExpense,
   deleteCommonExpense,
