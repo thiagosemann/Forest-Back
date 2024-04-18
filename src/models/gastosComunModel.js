@@ -42,7 +42,7 @@ const createCommonExpense = async (expense) => {
 
 
 const getCommonExpense = async (id) => {
-  const query = 'SELECT * FROM Gastos_Comuns WHERE ID = ?';
+  const query = 'SELECT * FROM Gastos_Comuns WHERE id = ?';
   const [expenses] = await connection.execute(query, [id]);
 
   if (expenses.length > 0) {
@@ -55,7 +55,7 @@ const getCommonExpense = async (id) => {
 const updateCommonExpense = async (id, expense) => {
   const { data_gasto, detalhes, valor, tipo, parcela, total_parcelas, predio_id } = expense;
 
-  const getExpenseQuery = 'SELECT * FROM Gastos_Comuns WHERE ID = ?';
+  const getExpenseQuery = 'SELECT * FROM Gastos_Comuns WHERE id = ?';
   const [existingExpenses] = await connection.execute(getExpenseQuery, [id]);
 
   if (existingExpenses.length === 0) {
@@ -65,7 +65,7 @@ const updateCommonExpense = async (id, expense) => {
   const updateExpenseQuery = `
     UPDATE Gastos_Comuns 
     SET data_gasto = ?, detalhes = ?, valor = ?, tipo = ?, parcela = ?, total_parcelas = ?, predio_id = ?
-    WHERE ID = ?
+    WHERE id = ?
   `;
 
   const values = [data_gasto, detalhes, valor, tipo, parcela, total_parcelas, predio_id, id];
@@ -80,14 +80,14 @@ const updateCommonExpense = async (id, expense) => {
 };
 
 const deleteCommonExpense = async (id) => {
-  const getExpenseQuery = 'SELECT * FROM Gastos_Comuns WHERE ID = ?';
+  const getExpenseQuery = 'SELECT * FROM Gastos_Comuns WHERE id = ?';
   const [existingExpenses] = await connection.execute(getExpenseQuery, [id]);
 
   if (existingExpenses.length === 0) {
     return null;
   }
 
-  const deleteExpenseQuery = 'DELETE FROM Gastos_Comuns WHERE ID = ?';
+  const deleteExpenseQuery = 'DELETE FROM Gastos_Comuns WHERE id = ?';
   try {
     await connection.execute(deleteExpenseQuery, [id]);
     return true;
