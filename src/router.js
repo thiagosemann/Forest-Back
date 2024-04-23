@@ -6,6 +6,7 @@ const verifyToken = require('./middlewares/authMiddleware');
 const usersController = require('./controllers/usersController');
 const buildingsController = require('./controllers/buildingsController');
 const commonExpensesController = require('./controllers/gastosComunController');
+const expenseTypesController = require('./controllers/tipoGastosController');
 
 
 // User routes
@@ -35,6 +36,13 @@ router.delete('/commonexpenses/:id', verifyToken, commonExpensesController.delet
 router.get('/commonexpenses/building/:predio_id/month/:month/year/:year', verifyToken, commonExpensesController.getExpensesByBuildingAndMonth);
 router.post('/commonexpenses/array', verifyToken, commonExpensesController.createCommonExpenses);
 
+
+// Expense types routes
+router.get('/expensetypes', verifyToken, expenseTypesController.getAllExpenseTypes);
+router.get('/expensetypes/:id', verifyToken, expenseTypesController.getExpenseType);
+router.post('/expensetypes', verifyToken, expenseTypesController.createExpenseType);
+router.put('/expensetypes/:id', verifyToken, expenseTypesController.updateExpenseType);
+router.delete('/expensetypes/:id', verifyToken, expenseTypesController.deleteExpenseType);
 
 
 module.exports = router;

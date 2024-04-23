@@ -11,13 +11,13 @@ const getAllCommonExpenses = async () => {
 };
 
 const createCommonExpense = async (expense) => {
-  const { data_gasto, detalhes, valor, tipo, parcela, total_parcelas, predio_id } = expense;
+  const { data_gasto, nome_original, valor, tipo, parcela, total_parcelas, predio_id, tipoGasto_id } = expense;
 
   // Converta o valor para um tipo numérico, se necessário
   const valorNumerico = parseFloat(valor);
 
-  const selectExpenseQuery = 'SELECT * FROM Gastos_Comuns WHERE data_gasto = ? AND detalhes = ? AND valor = ? AND tipo = ? AND parcela = ? AND total_parcelas = ? AND predio_id = ?';
-  const selectValues = [data_gasto, detalhes, valorNumerico, tipo, parcela, total_parcelas, predio_id];
+  const selectExpenseQuery = 'SELECT * FROM Gastos_Comuns WHERE data_gasto = ? AND nome_original = ? AND valor = ? AND tipo = ? AND parcela = ? AND total_parcelas = ? AND predio_id = ? AND tipoGasto_id = ?';
+  const selectValues = [data_gasto, nome_original, valorNumerico, tipo, parcela, total_parcelas, predio_id, tipoGasto_id];
   
   // Verifica se já existe um gasto com os mesmos atributos
   const [existingExpenses] = await connection.execute(selectExpenseQuery, selectValues);
@@ -27,8 +27,8 @@ const createCommonExpense = async (expense) => {
   }
 
   // Se não existir um gasto com os mesmos atributos, realiza a inserção
-  const insertExpenseQuery = 'INSERT INTO Gastos_Comuns (data_gasto, detalhes, valor, tipo, parcela, total_parcelas, predio_id) VALUES (?, ?, ?, ?, ?, ?, ?)';
-  const insertValues = [data_gasto, detalhes, valorNumerico, tipo, parcela, total_parcelas, predio_id];
+  const insertExpenseQuery = 'INSERT INTO Gastos_Comuns (data_gasto, nome_original, valor, tipo, parcela, total_parcelas, predio_id, tipoGasto_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
+  const insertValues = [data_gasto, nome_original, valorNumerico, tipo, parcela, total_parcelas, predio_id,tipoGasto_id];
 
   try {
     const [result] = await connection.execute(insertExpenseQuery, insertValues);
@@ -53,7 +53,7 @@ const getCommonExpense = async (id) => {
 };
 
 const updateCommonExpense = async (id, expense) => {
-  const { data_gasto, detalhes, valor, tipo, parcela, total_parcelas, predio_id } = expense;
+  const { data_gasto, nome_original, valor, tipo, parcela, total_parcelas, predio_id,tipoGasto_id } = expense;
 
   const getExpenseQuery = 'SELECT * FROM Gastos_Comuns WHERE id = ?';
   const [existingExpenses] = await connection.execute(getExpenseQuery, [id]);
@@ -64,11 +64,11 @@ const updateCommonExpense = async (id, expense) => {
 
   const updateExpenseQuery = `
     UPDATE Gastos_Comuns 
-    SET data_gasto = ?, detalhes = ?, valor = ?, tipo = ?, parcela = ?, total_parcelas = ?, predio_id = ?
+    SET data_gasto = ?, nome_original = ?, valor = ?, tipo = ?, parcela = ?, total_parcelas = ?, predio_id = ?, tipoGasto_id = ?
     WHERE id = ?
   `;
 
-  const values = [data_gasto, detalhes, valor, tipo, parcela, total_parcelas, predio_id, id];
+  const values = [data_gasto, nome_original, valor, tipo, parcela, total_parcelas, predio_id, tipoGasto_id, id];
 
   try {
     await connection.execute(updateExpenseQuery, values);
