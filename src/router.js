@@ -7,6 +7,7 @@ const usersController = require('./controllers/usersController');
 const buildingsController = require('./controllers/buildingsController');
 const commonExpensesController = require('./controllers/gastosComunController');
 const expenseTypesController = require('./controllers/tipoGastosController');
+const apartamentosController = require('./controllers/apartamentoController');
 
 
 // User routes
@@ -43,6 +44,13 @@ router.get('/expensetypes/:id', verifyToken, expenseTypesController.getExpenseTy
 router.post('/expensetypes', verifyToken, expenseTypesController.createExpenseType);
 router.put('/expensetypes/:id', verifyToken, expenseTypesController.updateExpenseType);
 router.delete('/expensetypes/:id', verifyToken, expenseTypesController.deleteExpenseType);
+
+
+// Apartamento routes
+router.get('/apartamentos', verifyToken, apartamentosController.getAllApartamentos);
+router.get('/apartamentos/:id', verifyToken, apartamentosController.getApartamentoById);
+router.post('/apartamentos', verifyToken, apartamentosController.createApartamento);
+router.get('/apartamentos/predios/:id', verifyToken, apartamentosController.getApartamentosByBuildingId);
 
 
 module.exports = router;
