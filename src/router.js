@@ -8,6 +8,7 @@ const buildingsController = require('./controllers/buildingsController');
 const commonExpensesController = require('./controllers/gastosComunController');
 const expenseTypesController = require('./controllers/tipoGastosController');
 const apartamentosController = require('./controllers/apartamentoController');
+const individualExpensesController = require('./controllers/gastosIndividuaisController');
 
 
 // User routes
@@ -51,6 +52,15 @@ router.get('/apartamentos', verifyToken, apartamentosController.getAllApartament
 router.get('/apartamentos/:id', verifyToken, apartamentosController.getApartamentoById);
 router.post('/apartamentos', verifyToken, apartamentosController.createApartamento);
 router.get('/apartamentos/predios/:id', verifyToken, apartamentosController.getApartamentosByBuildingId);
+
+// Individual expenses routes
+router.get('/individualexpenses', verifyToken, individualExpensesController.getAllIndividualExpenses);
+router.get('/individualexpenses/:id', verifyToken, individualExpensesController.getIndividualExpense);
+router.post('/individualexpenses', verifyToken, individualExpensesController.createIndividualExpense);
+router.put('/individualexpenses/:id', verifyToken, individualExpensesController.updateIndividualExpense);
+router.delete('/individualexpenses/:id', verifyToken, individualExpensesController.deleteIndividualExpense);
+router.get('/individualexpenses/apartment/:apt_id', verifyToken, individualExpensesController.getExpensesByApartment);
+router.get('/individualexpenses/predios/:predio_id/month/:month/year/:year', verifyToken, individualExpensesController.getIndividualExpensesByAptMonthAndYear);
 
 
 module.exports = router;
