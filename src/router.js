@@ -54,13 +54,13 @@ router.post('/apartamentos', verifyToken, apartamentosController.createApartamen
 router.get('/apartamentos/predios/:id', verifyToken, apartamentosController.getApartamentosByBuildingId);
 
 // Individual expenses routes
-router.get('/individualexpenses', verifyToken, individualExpensesController.getAllIndividualExpenses);
-router.get('/individualexpenses/:id', verifyToken, individualExpensesController.getIndividualExpense);
-router.post('/individualexpenses', verifyToken, individualExpensesController.createIndividualExpense);
+
+router.post('/individualexpenses', verifyToken, individualExpensesController.createIndividualExpenses);
 router.put('/individualexpenses/:id', verifyToken, individualExpensesController.updateIndividualExpense);
 router.delete('/individualexpenses/:id', verifyToken, individualExpensesController.deleteIndividualExpense);
 router.get('/individualexpenses/apartment/:apt_id', verifyToken, individualExpensesController.getExpensesByApartment);
 router.get('/individualexpenses/predios/:predio_id/month/:month/year/:year', verifyToken, individualExpensesController.getIndividualExpensesByAptMonthAndYear);
-
+router.get('/individualexpenses', verifyToken, individualExpensesController.getAllIndividualExpenses);
+router.get('/individualexpenses/:id', verifyToken, individualExpensesController.getIndividualExpense);
 
 module.exports = router;
