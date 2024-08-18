@@ -67,4 +67,5 @@ router.get('/vagas/apartamentos/:apartamentoId', verifyToken, vagasController.ge
 
 module.exports = router;
 
+//Colocado somente para teste
 
