@@ -66,3 +66,5 @@ router.get('/vagas/predios/:predioId', verifyToken, vagasController.getVagasByBu
 router.get('/vagas/apartamentos/:apartamentoId', verifyToken, vagasController.getVagasByApartamentId);
 
 module.exports = router;
+
+
