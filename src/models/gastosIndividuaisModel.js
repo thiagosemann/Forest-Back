@@ -140,6 +140,32 @@ const getIndividualExpensesByAptMonthAndYear = async (predio_id, month, year) =>
     }
   };
   
+  const deleteIndividualExpensesByAptMonthAndYear = async (predio_id, month, year) => {
+    try {
+      // Busca os apartamentos vinculados ao prédio
+      const aptQuery = 'SELECT id FROM apartamentos WHERE predio_id = ?';
+      const [apartments] = await connection.execute(aptQuery, [predio_id]);
+  
+      if (apartments.length === 0) {
+        return 0; // Nenhum apartamento encontrado
+      }
+  
+      const aptIds = apartments.map(apt => apt.id);
+  
+      // Exclui os gastos individuais dos apartamentos encontrados para o mês e ano especificados
+      const deleteQuery = `
+        DELETE FROM Gastos_Individuais 
+        WHERE apt_id IN (?) AND YEAR(data_gasto) = ? AND MONTH(data_gasto) = ?
+      `;
+      const [result] = await connection.execute(deleteQuery, [aptIds, year, month]);
+  
+      return result.affectedRows;
+    } catch (error) {
+      console.error('Erro ao excluir gastos individuais por prédio, mês e ano:', error);
+      throw error;
+    }
+  };
+  
 
 module.exports = {
   getAllIndividualExpenses,
@@ -148,5 +174,6 @@ module.exports = {
   updateIndividualExpense,
   deleteIndividualExpense,
   getExpensesByApartment,
-  getIndividualExpensesByAptMonthAndYear
+  getIndividualExpensesByAptMonthAndYear,
+  deleteIndividualExpensesByAptMonthAndYear
 };

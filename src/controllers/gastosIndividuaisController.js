@@ -105,6 +105,23 @@ const deleteIndividualExpense = async (request, response) => {
   }
 };
 
+const deleteIndividualExpensesByAptMonthAndYear = async (request, response) => {
+  try {
+    const { predio_id, month, year } = request.params;
+    const deletedCount = await individualExpensesModel.deleteIndividualExpensesByAptMonthAndYear(predio_id, month, year);
+
+    if (deletedCount > 0) {
+      return response.status(200).json({ message: 'Gastos individuais excluídos com sucesso.' });
+    } else {
+      return response.status(404).json({ message: 'Nenhum gasto encontrado para excluir.' });
+    }
+  } catch (error) {
+    console.error('Erro ao excluir gastos individuais:', error);
+    return response.status(500).json({ error: 'Erro ao excluir gastos individuais.' });
+  }
+};
+
+
 module.exports = {
   getAllIndividualExpenses,
   createIndividualExpense,
@@ -113,5 +130,6 @@ module.exports = {
   updateIndividualExpense,
   deleteIndividualExpense,
   getExpensesByApartment,
-  getIndividualExpensesByAptMonthAndYear
+  getIndividualExpensesByAptMonthAndYear,
+  deleteIndividualExpensesByAptMonthAndYear
 };
