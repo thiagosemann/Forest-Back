@@ -9,7 +9,7 @@ const expenseTypesController = require('./src/controllers/tipoGastosController')
 const apartamentosController = require('./src/controllers/apartamentoController');
 const individualExpensesController = require('./src/controllers/gastosIndividuaisController');
 const vagasController = require('./src/controllers/vagasController');
-const statusController = require('../controllers/statusController');
+const statusController = require('./src/controllers/statusController');
 
 // User routes
 router.get('/users', verifyToken, usersController.getAllUsers);
