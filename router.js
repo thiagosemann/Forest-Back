@@ -1,14 +1,14 @@
 const express = require('express');
 const router = express.Router();
-const verifyToken = require('./middlewares/authMiddleware');
+const verifyToken = require('./src/middlewares/authMiddleware');
 
-const usersController = require('./controllers/usersController');
-const buildingsController = require('./controllers/buildingsController');
-const commonExpensesController = require('./controllers/gastosComunController');
-const expenseTypesController = require('./controllers/tipoGastosController');
-const apartamentosController = require('./controllers/apartamentoController');
-const individualExpensesController = require('./controllers/gastosIndividuaisController');
-const vagasController = require('./controllers/vagasController');
+const usersController = require('./src/controllers/usersController');
+const buildingsController = require('./src/controllers/buildingsController');
+const commonExpensesController = require('./src/controllers/gastosComunController');
+const expenseTypesController = require('./src/controllers/tipoGastosController');
+const apartamentosController = require('./src/controllers/apartamentoController');
+const individualExpensesController = require('./src/controllers/gastosIndividuaisController');
+const vagasController = require('./src/controllers/vagasController');
 
 // User routes
 router.get('/users', verifyToken, usersController.getAllUsers);
