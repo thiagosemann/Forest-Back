@@ -65,6 +65,11 @@ router.get('/vagas/:id', verifyToken, vagasController.getVagaById);
 router.post('/vagas', verifyToken, vagasController.createVaga);
 router.get('/vagas/predios/:predioId', verifyToken, vagasController.getVagasByBuildingId);
 router.get('/vagas/apartamentos/:apartamentoId', verifyToken, vagasController.getVagasByApartamentId);
+router.put('/vagas/:id', verifyToken, vagasController.updateVaga);
+router.delete('/vagas/:id', verifyToken, vagasController.deleteVaga);
+
+
+
 
 // Definir a rota para o status do servidor
 router.get('/status', statusController.getServerStatus);
