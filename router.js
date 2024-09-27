@@ -35,6 +35,8 @@ router.put('/commonexpenses/:id', verifyToken, commonExpensesController.updateCo
 router.delete('/commonexpenses/:id', verifyToken, commonExpensesController.deleteCommonExpense);
 router.get('/commonexpenses/building/:predio_id/month/:month/year/:year', verifyToken, commonExpensesController.getExpensesByBuildingAndMonth);
 router.post('/commonexpenses/array', verifyToken, commonExpensesController.createCommonExpenses);
+router.get('/commonexpenses/provisoes/:predio_id', verifyToken, commonExpensesController.getProvisoesByBuilding);
+
 
 // Expense types routes
 router.get('/expensetypes', verifyToken, expenseTypesController.getAllExpenseTypes);
@@ -68,14 +70,11 @@ router.get('/vagas/apartamentos/:apartamentoId', verifyToken, vagasController.ge
 router.put('/vagas/:id', verifyToken, vagasController.updateVaga);
 router.delete('/vagas/:id', verifyToken, vagasController.deleteVaga);
 
-
-
-
 // Definir a rota para o status do servidor
 router.get('/status', statusController.getServerStatus);
 
 
 module.exports = router;
 
-//Colocado somente para teste
+
 

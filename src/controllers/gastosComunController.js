@@ -89,6 +89,23 @@ const deleteCommonExpense = async (request, response) => {
   }
 };
 
+const getProvisoesByBuilding = async (request, response) => {
+  try {
+    const { predio_id } = request.params;
+    const expenses = await commonExpensesModel.getProvisoesByBuilding(predio_id);
+
+    if (expenses.length > 0) {
+      return response.status(200).json(expenses);
+    } else {
+      return response.status(404).json({ message: 'Nenhuma provisão encontrada para o prédio especificado' });
+    }
+  } catch (error) {
+    console.error('Erro ao obter provisões por prédio:', error);
+    return response.status(500).json({ error: 'Erro ao obter provisões por prédio' });
+  }
+};
+
+
 module.exports = {
   getAllCommonExpenses,
   createCommonExpense,
@@ -96,5 +113,6 @@ module.exports = {
   getCommonExpense,
   updateCommonExpense,
   deleteCommonExpense,
-  getExpensesByBuildingAndMonth
+  getExpensesByBuildingAndMonth,
+  getProvisoesByBuilding 
 };

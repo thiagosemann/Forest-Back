@@ -148,6 +148,22 @@ const getExpensesByBuildingAndMonth = async (predio_id, month, year) => {
   }
 };
 
+const getProvisoesByBuilding = async (predio_id) => {
+  const query = `
+    SELECT * FROM Gastos_Comuns
+    WHERE predio_id = ? 
+    AND tipo = 'Provisão Utilizada'
+  `;
+  try {
+    const [expenses] = await connection.execute(query, [predio_id]);
+    return expenses;
+  } catch (error) {
+    console.error('Erro ao buscar gastos por prédio:', error);
+    throw error;
+  }
+};
+
+
 
 
 module.exports = {
@@ -156,5 +172,6 @@ module.exports = {
   getCommonExpense,
   updateCommonExpense,
   deleteCommonExpense,
-  getExpensesByBuildingAndMonth
+  getExpensesByBuildingAndMonth,
+  getProvisoesByBuilding
 };
