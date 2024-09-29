@@ -10,6 +10,7 @@ const apartamentosController = require('./src/controllers/apartamentoController'
 const individualExpensesController = require('./src/controllers/gastosIndividuaisController');
 const vagasController = require('./src/controllers/vagasController');
 const statusController = require('./src/controllers/statusController');
+const provisaoController = require('./src/controllers/provisaoController');
 
 // User routes
 router.get('/users', verifyToken, usersController.getAllUsers);
@@ -70,8 +71,17 @@ router.get('/vagas/apartamentos/:apartamentoId', verifyToken, vagasController.ge
 router.put('/vagas/:id', verifyToken, vagasController.updateVaga);
 router.delete('/vagas/:id', verifyToken, vagasController.deleteVaga);
 
+// Provisões routes
+router.get('/provisoes', verifyToken, provisaoController.getAllProvisoes);
+router.get('/provisoes/:id', verifyToken, provisaoController.getProvisaoById);
+router.post('/provisoes', verifyToken, provisaoController.createProvisao);
+router.put('/provisoes/:id', verifyToken, provisaoController.updateProvisao);
+router.delete('/provisoes/:id', verifyToken, provisaoController.deleteProvisao);
+router.get('/provisoes/predios/:predioId', verifyToken, provisaoController.getProvisoesByBuildingId);
+
 // Definir a rota para o status do servidor
 router.get('/status', statusController.getServerStatus);
+
 
 
 module.exports = router;
