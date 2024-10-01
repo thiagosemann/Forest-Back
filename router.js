@@ -11,6 +11,7 @@ const individualExpensesController = require('./src/controllers/gastosIndividuai
 const vagasController = require('./src/controllers/vagasController');
 const statusController = require('./src/controllers/statusController');
 const provisaoController = require('./src/controllers/provisaoController');
+const fundosController = require('./src/controllers/fundoController');
 
 // User routes
 router.get('/users', verifyToken, usersController.getAllUsers);
@@ -78,6 +79,16 @@ router.post('/provisoes', verifyToken, provisaoController.createProvisao);
 router.put('/provisoes/:id', verifyToken, provisaoController.updateProvisao);
 router.delete('/provisoes/:id', verifyToken, provisaoController.deleteProvisao);
 router.get('/provisoes/predios/:predioId', verifyToken, provisaoController.getProvisoesByBuildingId);
+
+// Fundos routes
+router.get('/fundos', verifyToken, fundosController.getAllFundos);
+router.get('/fundos/:id', verifyToken, fundosController.getFundoById);
+router.post('/fundos', verifyToken, fundosController.createFundo);
+router.put('/fundos/:id', verifyToken, fundosController.updateFundo);
+router.delete('/fundos/:id', verifyToken, fundosController.deleteFundo);
+router.get('/fundos/predios/:predioId', verifyToken, fundosController.getFundosByBuildingId);
+
+
 
 // Definir a rota para o status do servidor
 router.get('/status', statusController.getServerStatus);
