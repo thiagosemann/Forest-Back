@@ -12,6 +12,8 @@ const vagasController = require('./src/controllers/vagasController');
 const statusController = require('./src/controllers/statusController');
 const provisaoController = require('./src/controllers/provisaoController');
 const fundosController = require('./src/controllers/fundoController');
+const rateioController = require('./src/controllers/rateioController');
+
 
 // User routes
 router.get('/users', verifyToken, usersController.getAllUsers);
@@ -61,7 +63,8 @@ router.get('/individualexpenses/apartment/:apt_id', verifyToken, individualExpen
 router.get('/individualexpenses/predios/:predio_id/month/:month/year/:year', verifyToken, individualExpensesController.getIndividualExpensesByAptMonthAndYear);
 router.get('/individualexpenses', verifyToken, individualExpensesController.getAllIndividualExpenses);
 router.get('/individualexpenses/:id', verifyToken, individualExpensesController.getIndividualExpense);
-router.delete('/individualexpenses/predios/:predio_id/month/:month/year/:year', verifyToken, individualExpensesController.deleteIndividualExpensesByAptMonthAndYear);
+router.delete('/individualexpenses/batch', verifyToken, individualExpensesController.deleteIndividualExpensesInBatch);
+
 
 // Vagas routes
 router.get('/vagas', verifyToken, vagasController.getAllVagas);
@@ -88,6 +91,8 @@ router.put('/fundos/:id', verifyToken, fundosController.updateFundo);
 router.delete('/fundos/:id', verifyToken, fundosController.deleteFundo);
 router.get('/fundos/predios/:predioId', verifyToken, fundosController.getFundosByBuildingId);
 
+// Rateio routes
+router.get('/rateio/predios/:predio_id/month/:month/year/:year', verifyToken, rateioController.getRateioByBuildingMonthAndYear);
 
 
 // Definir a rota para o status do servidor
