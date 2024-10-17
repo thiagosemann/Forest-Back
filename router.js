@@ -16,13 +16,15 @@ const rateioController = require('./src/controllers/rateioController');
 
 
 // User routes
-router.get('/users', verifyToken, usersController.getAllUsers);
-router.get('/users/:id', verifyToken, usersController.getUser);
-router.post('/login', usersController.loginUser);
-router.post('/users', usersController.createUser);
-router.put('/users/:id', verifyToken, usersController.updateUser); 
-router.get('/users/building/:building_id', verifyToken, usersController.getUsersByBuilding);
-router.delete('/users/:id', verifyToken, usersController.deleteUser);
+router.get('/users', verifyToken, usersController.getAllUsers); // Listar todos os usuários
+router.get('/users/:id', verifyToken, usersController.getUser); // Obter um usuário por ID
+router.post('/login', usersController.loginUser); // Login de usuário
+router.post('/users', usersController.createUser); // Criar um novo usuário
+router.post('/users/batch', verifyToken, usersController.createUsersBatch); // Inserção de usuários em lote
+router.put('/users/:id', verifyToken, usersController.updateUser); // Atualizar usuário por ID
+router.get('/users/building/:building_id', verifyToken, usersController.getUsersByBuilding); // Obter usuários por prédio
+router.delete('/users/:id', verifyToken, usersController.deleteUser); // Excluir usuário por ID
+
 
 // Building routes
 router.get('/buildings', verifyToken, buildingsController.getAllBuildings);

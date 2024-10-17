@@ -94,7 +94,16 @@ const deleteUser = async (request, response) => {
     return response.status(500).json({ error: 'Erro ao excluir usuário.' });
   }
 };
-
+const createUsersBatch = async (request, response) => {
+  try {
+    const users = request.body; // Array de objetos com first_name, last_name, cpf, email
+    const createdUsers = await usersModel.createUsersBatch(users);
+    return response.status(201).json({ message: `${createdUsers.length} usuários criados com sucesso.` });
+  } catch (error) {
+    console.error('Erro ao criar usuários em lote:', error);
+    return response.status(409).json({ error: error.message });
+  }
+};
 module.exports = {
   getAllUsers,
   createUser,
@@ -102,6 +111,6 @@ module.exports = {
   getUser,
   updateUser,
   getUsersByBuilding,
-  deleteUser
-
+  deleteUser,
+  createUsersBatch
 };

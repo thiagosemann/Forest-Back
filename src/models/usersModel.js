@@ -12,7 +12,8 @@ const getAllUsers = async () => {
 const saltRounds = 10;
 
 const createUser = async (user) => {
-  const { first_name, last_name, cpf, email, password, role, predio_id } = user;
+  console.log(user)
+  const { first_name, last_name, cpf, email, password, role, building_id } = user;
 
   // Gere o hash da senha
   const hashedPassword = await bcrypt.hash(password, saltRounds);
@@ -28,7 +29,7 @@ const createUser = async (user) => {
   }
 
   const insertUserQuery = 'INSERT INTO users (first_name, last_name, cpf, email, password, role, predio_id) VALUES (?, ?, ?, ?, ?, ?, ?)';
-  const values = [first_name, last_name, cpf, email, hashedPassword, role, predio_id];
+  const values = [first_name, last_name, cpf, email, hashedPassword, role, building_id];
 
   try {
     const [result] = await connection.execute(insertUserQuery, values);
@@ -134,6 +135,39 @@ const deleteUser = async (id) => {
   }
 };
 
+const createUsersBatch = async (users) => {
+  const insertUserQuery = `
+    INSERT INTO users (first_name, last_name, cpf, email, role, predio_id) 
+    VALUES (?, ?, ?, ?, ?, ?)
+  `;
+
+  try {
+    for (let user of users) {
+      const { first_name, last_name, cpf, email, role, building_id } = user;
+      console.log(user)
+      // Verifica se o usuário já existe pelo CPF ou e-mail
+      const checkUserExistsQuery = 'SELECT * FROM users WHERE cpf = ? OR email = ?';
+      const [existingUsers] = await connection.execute(checkUserExistsQuery, [cpf, email]);
+
+      if (existingUsers.length > 0) {
+        let conflictField = '';
+        if (existingUsers[0].cpf === cpf) conflictField = 'CPF';
+        else if (existingUsers[0].email === email) conflictField = 'e-mail';
+        throw new Error(`Usuário com esse ${conflictField} já existe.`);
+      }
+
+      // Inserir o usuário
+      const values = [first_name, last_name, cpf, email, role, building_id];
+      await connection.execute(insertUserQuery, values);
+    }
+
+    return users; // Retorna os usuários inseridos
+  } catch (error) {
+    console.error('Erro ao inserir usuários em lote:', error);
+    throw error;
+  }
+};
+
 module.exports = {
   getAllUsers,
   createUser,
@@ -141,5 +175,6 @@ module.exports = {
   getUser,
   updateUser,
   deleteUser,
-  getUsersByBuilding
+  getUsersByBuilding,
+  createUsersBatch
 };
