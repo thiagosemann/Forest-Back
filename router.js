@@ -13,6 +13,7 @@ const statusController = require('./src/controllers/statusController');
 const provisaoController = require('./src/controllers/provisaoController');
 const fundosController = require('./src/controllers/fundoController');
 const rateioController = require('./src/controllers/rateioController');
+const saldoFundosController = require('./src/controllers/saldoFundosController');
 
 
 // User routes
@@ -95,6 +96,16 @@ router.get('/fundos/predios/:predioId', verifyToken, fundosController.getFundosB
 
 // Rateio routes
 router.get('/rateio/predios/:predio_id/month/:month/year/:year', verifyToken, rateioController.getRateioByBuildingMonthAndYear);
+
+
+// Rotas para saldo de fundos
+router.get('/saldofundos', verifyToken, saldoFundosController.getAllSaldoFundos); 
+router.get('/saldofundos/predios/:predioId', verifyToken, saldoFundosController.getSaldoFundosByBuildingId);
+
+router.get('/saldofundos/:id', verifyToken, saldoFundosController.getSaldoFundoById); 
+router.post('/saldofundos', verifyToken, saldoFundosController.createSaldoFundo); 
+router.put('/saldofundos/:id', verifyToken, saldoFundosController.updateSaldoFundo); 
+router.delete('/saldofundos/:id', verifyToken, saldoFundosController.deleteSaldoFundo); 
 
 
 // Definir a rota para o status do servidor

@@ -31,10 +31,16 @@ const getFundoById = async (id) => {
 };
 
 const getFundosByBuildingId = async (predioId) => {
-  const query = 'SELECT * FROM fundos WHERE predio_id = ?';
+  const query = `
+    SELECT f.*, sf.saldo
+    FROM fundos f
+    LEFT JOIN saldo_fundos sf ON f.id = sf.fundo_id
+    WHERE f.predio_id = ?`;
+  
   const [fundos] = await connection.execute(query, [predioId]);
-  return fundos;
+  return fundos; // Retorna os fundos com seus saldos, se existirem
 };
+
 
 const updateFundo = async (fundo) => {
   const { id, tipo_fundo, predio_id, porcentagem } = fundo;
