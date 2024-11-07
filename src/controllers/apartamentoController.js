@@ -35,6 +35,7 @@ const getApartamentoById = async (request, response) => {
     return response.status(500).json({ error: 'Erro ao obter apartamento' });
   }
 };
+
 const getApartamentosByBuildingId = async (request, response) => {
   try {
     const { id } = request.params;
@@ -51,9 +52,43 @@ const getApartamentosByBuildingId = async (request, response) => {
   }
 };
 
+const updateApartamento = async (request, response) => {
+  try {
+    const { id } = request.params;
+    const updated = await apartamentosModel.updateApartamento(id, request.body);
+
+    if (updated) {
+      return response.status(200).json({ message: 'Apartamento atualizado com sucesso' });
+    } else {
+      return response.status(404).json({ message: 'Apartamento não encontrado' });
+    }
+  } catch (error) {
+    console.error('Erro ao atualizar apartamento:', error);
+    return response.status(500).json({ error: 'Erro ao atualizar apartamento' });
+  }
+};
+
+const deleteApartamento = async (request, response) => {
+  try {
+    const { id } = request.params;
+    const deleted = await apartamentosModel.deleteApartamento(id);
+
+    if (deleted) {
+      return response.status(200).json({ message: 'Apartamento deletado com sucesso' });
+    } else {
+      return response.status(404).json({ message: 'Apartamento não encontrado' });
+    }
+  } catch (error) {
+    console.error('Erro ao deletar apartamento:', error);
+    return response.status(500).json({ error: 'Erro ao deletar apartamento' });
+  }
+};
+
 module.exports = {
   getAllApartamentos,
   createApartamento,
   getApartamentoById,
-  getApartamentosByBuildingId
+  getApartamentosByBuildingId,
+  updateApartamento,
+  deleteApartamento
 };

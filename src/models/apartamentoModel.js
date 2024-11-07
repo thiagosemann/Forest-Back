@@ -6,9 +6,9 @@ const getAllApartamentos = async () => {
 };
 
 const createApartamento = async (apartamento) => {
-  const { nome, bloco, predio_id } = apartamento;
-  const insertApartamentoQuery = 'INSERT INTO apartamentos (nome, bloco, predio_id) VALUES (?, ?, ?)';
-  const values = [nome, bloco, predio_id];
+  const { nome, bloco, predio_id, fracao } = apartamento;
+  const insertApartamentoQuery = 'INSERT INTO apartamentos (nome, bloco, predio_id,fracao) VALUES (?, ?, ?, ?)';
+  const values = [nome, bloco, predio_id, fracao];
 
   try {
     const [result] = await connection.execute(insertApartamentoQuery, values);
@@ -31,15 +31,42 @@ const getApartamentoById = async (id) => {
 };
 
 const getApartamentosByBuildingId = async (id) => {
-    const query = 'SELECT * FROM apartamentos WHERE predio_id = ?';
-    const [apartamentos] = await connection.execute(query, [id]);
-    return apartamentos;
-  
-  };
+  const query = 'SELECT * FROM apartamentos WHERE predio_id = ?';
+  const [apartamentos] = await connection.execute(query, [id]);
+  return apartamentos;
+};
+
+const updateApartamento = async (id, apartamento) => {
+  const { nome, bloco, predio_id, fracao } = apartamento;
+  const updateQuery = 'UPDATE apartamentos SET nome = ?, bloco = ?, predio_id = ?, fracao = ? WHERE id = ?';
+  const values = [nome, bloco, predio_id,fracao, id];
+
+  try {
+    const [result] = await connection.execute(updateQuery, values);
+    return result.affectedRows > 0;
+  } catch (error) {
+    console.error('Erro ao atualizar apartamento:', error);
+    throw error;
+  }
+};
+
+const deleteApartamento = async (id) => {
+  const deleteQuery = 'DELETE FROM apartamentos WHERE id = ?';
+
+  try {
+    const [result] = await connection.execute(deleteQuery, [id]);
+    return result.affectedRows > 0;
+  } catch (error) {
+    console.error('Erro ao deletar apartamento:', error);
+    throw error;
+  }
+};
 
 module.exports = {
   getAllApartamentos,
   createApartamento,
   getApartamentoById,
-  getApartamentosByBuildingId
+  getApartamentosByBuildingId,
+  updateApartamento,
+  deleteApartamento
 };
