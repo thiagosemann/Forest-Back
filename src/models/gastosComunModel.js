@@ -11,18 +11,25 @@ const getAllCommonExpenses = async () => {
 };
 
 const createCommonExpense = async (expense) => {
-  const { data_gasto, nome_original, valor, tipo, parcela, total_parcelas, predio_id, tipoGasto_id, tipoGasto_Extra } = expense;
+  console.log(expense);
+  const {
+    data_gasto,
+    nome_original,
+    valor,
+    tipo,
+    parcela,
+    total_parcelas,
+    predio_id,
+    tipoGasto_id,
+    tipo_Gasto_Extra,
+  } = expense;
 
   const valorNumerico = parseFloat(valor);
-
-  // Definindo valores como null se não forem informados
-  const tipoGastoId = tipoGasto_id || null;
-  const tipo_Gasto_Extra = tipoGasto_Extra || '';
+  const tipoGastoId = tipoGasto_id || null; // Define como null se não informado
 
   let selectExpenseQuery;
   let selectValues;
 
-  // Se tipoGasto_id for null, usa IS NULL; caso contrário, faz a comparação normal
   if (tipoGastoId === null) {
     selectExpenseQuery = `
       SELECT * FROM Gastos_Comuns 
@@ -57,7 +64,7 @@ const createCommonExpense = async (expense) => {
   if (existingExpenses.length > 0) {
     return { message: 'Este gasto já foi inserido anteriormente.' };
   }
-  // Inserindo o novo gasto comum
+
   const insertExpenseQuery = `
     INSERT INTO Gastos_Comuns 
       (data_gasto, nome_original, valor, tipo, parcela, total_parcelas, predio_id, tipoGasto_id, tipo_Gasto_Extra) 
@@ -73,6 +80,7 @@ const createCommonExpense = async (expense) => {
     throw error;
   }
 };
+
 
 
 const getCommonExpense = async (id) => {
