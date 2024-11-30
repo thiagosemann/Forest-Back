@@ -84,11 +84,25 @@ const deleteApartamento = async (request, response) => {
   }
 };
 
+const createApartamentosBatch = async (request, response) => {
+  try {
+    const apartamentos = request.body; // Array de objetos com nome, bloco, predio_id, fracao
+    const createdApartamentos = await apartamentosModel.createApartamentosBatch(apartamentos);
+    return response
+      .status(201)
+      .json({ message: `${createdApartamentos.length} apartamentos criados com sucesso.` });
+  } catch (error) {
+    console.error('Erro ao criar apartamentos em lote:', error);
+    return response.status(409).json({ error: error.message });
+  }
+};
+
 module.exports = {
   getAllApartamentos,
   createApartamento,
   getApartamentoById,
   getApartamentosByBuildingId,
   updateApartamento,
-  deleteApartamento
+  deleteApartamento,
+  createApartamentosBatch
 };

@@ -18,6 +18,35 @@ const createApartamento = async (apartamento) => {
     throw error;
   }
 };
+const createApartamentosBatch = async (apartamentos) => {
+  const insertApartamentoQuery = `
+    INSERT INTO apartamentos (nome, bloco, predio_id, fracao) 
+    VALUES (?, ?, ?, ?)
+  `;
+
+  try {
+    for (let apartamento of apartamentos) {
+      const { nome, bloco, predio_id, fracao } = apartamento;
+
+      // Verifica se o apartamento já existe pelo nome e prédio
+      const checkApartamentoExistsQuery = 'SELECT * FROM apartamentos WHERE nome = ? AND predio_id = ?';
+      const [existingApartamentos] = await connection.execute(checkApartamentoExistsQuery, [nome, predio_id]);
+
+      if (existingApartamentos.length > 0) {
+        throw new Error(`Apartamento com o nome "${nome}" já existe no prédio ${predio_id}.`);
+      }
+
+      // Inserir o apartamento
+      const values = [nome, bloco, predio_id, fracao];
+      await connection.execute(insertApartamentoQuery, values);
+    }
+
+    return apartamentos; // Retorna os apartamentos inseridos
+  } catch (error) {
+    console.error('Erro ao inserir apartamentos em lote:', error);
+    throw error;
+  }
+};
 
 const getApartamentoById = async (id) => {
   const query = 'SELECT * FROM apartamentos WHERE ID = ?';
@@ -68,5 +97,6 @@ module.exports = {
   getApartamentoById,
   getApartamentosByBuildingId,
   updateApartamento,
-  deleteApartamento
+  deleteApartamento,
+  createApartamentosBatch
 };

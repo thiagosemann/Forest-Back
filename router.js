@@ -56,6 +56,7 @@ router.delete('/expensetypes/:id', verifyToken, expenseTypesController.deleteExp
 router.get('/apartamentos', verifyToken, apartamentosController.getAllApartamentos);
 router.get('/apartamentos/:id', verifyToken, apartamentosController.getApartamentoById);
 router.post('/apartamentos', verifyToken, apartamentosController.createApartamento);
+router.post('/apartamentos/batch', verifyToken, apartamentosController.createApartamentosBatch); // Inserção de usuários em lote
 router.get('/apartamentos/predios/:id', verifyToken, apartamentosController.getApartamentosByBuildingId);
 router.put('/apartamentos/:id', verifyToken, apartamentosController.updateApartamento); // Rota para atualizar apartamento
 router.delete('/apartamentos/:id', verifyToken, apartamentosController.deleteApartamento); // Rota para deletar apartamento
