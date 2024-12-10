@@ -14,6 +14,8 @@ const provisaoController = require('./src/controllers/provisaoController');
 const fundosController = require('./src/controllers/fundoController');
 const rateioController = require('./src/controllers/rateioController');
 const saldoFundosController = require('./src/controllers/saldoFundosController');
+const airbnbCalendarController = require('./src/controllers/calendarioAirBnbController'); // Importando o controlador
+const googleScriptController = require('./src/controllers/googleScriptController');
 
 
 // User routes
@@ -115,6 +117,11 @@ router.delete('/saldofundos/:id', verifyToken, saldoFundosController.deleteSaldo
 // Definir a rota para o status do servidor
 router.get('/status', statusController.getServerStatus);
 
+// Rota para obter o calendário da Airbnb sem validação de token
+router.get('/airbnb-calendar', airbnbCalendarController.fetchAirbnbCalendar);
+
+// Rota para enviar dados ao Google Script
+router.post('/enviar-imagem', googleScriptController.enviarDadosParaGoogleScript);
 
 
 module.exports = router;
