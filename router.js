@@ -121,7 +121,9 @@ router.get('/status', statusController.getServerStatus);
 router.get('/airbnb-calendar', airbnbCalendarController.fetchAirbnbCalendar);
 
 // Rota para enviar dados ao Google Script
-router.post('/enviar-imagem', googleScriptController.enviarDadosParaGoogleScript);
+router.post('/enviar-dados', googleScriptController.enviarDadosParaGoogleScript);
+router.post('/enviar-imagem', googleScriptController.enviarImagemParaGoogleScript);
+router.post('/enviar-pdf', googleScriptController.enviarPDFParaGoogleScript);
 
 
 module.exports = router;

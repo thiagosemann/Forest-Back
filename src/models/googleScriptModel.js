@@ -1,23 +1,53 @@
 const axios = require('axios');
 
+// Defina a URL do Google Script em uma variável
+const urlGoogleScript = 'https://script.google.com/macros/s/AKfycbwunJy93aE_SKXbr8JYHxmuR_s88l_s45gDyjwWjGW1jaryqUF_n9E2wgRDgUszreZCIQ/exec';
+
 async function enviarDadosParaGoogleScript(dados) {
   try {
-    const urlGoogleScript = 'https://script.google.com/macros/s/AKfycbz55PC9Ns0fyiIt3WtEuc247H1doa2CoT2gABhPpAdHarcT_bUHKmeHz4CDJsjGdJD1lw/exec'; // Substitua pela URL do seu Google Apps Script
-
-    const response = await axios.post(urlGoogleScript, dados, {
+    const response = await axios.post(urlGoogleScript, { type: 'dados', data: { dados } }, {
       headers: {
         'Content-Type': 'application/json',
       },
     });
-
     return response.data; // Retorna a resposta do Google Apps Script
-
   } catch (error) {
     console.error('Erro ao enviar dados para o Google Script:', error);
     throw new Error('Erro ao enviar dados para o Google Script');
   }
 }
 
+async function enviarImagemParaGoogleScript(dados) {
+  try {
+    const response = await axios.post(urlGoogleScript, { type: 'image', data: { dados } }, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    return response.data; // Retorna a resposta do Google Apps Script
+  } catch (error) {
+    console.error('Erro ao enviar imagem para o Google Script:', error);
+    throw new Error('Erro ao enviar imagem para o Google Script');
+  }
+}
+
+async function enviarPDFParaGoogleScript(dados) {
+  try {
+    const response = await axios.post(urlGoogleScript, { type: 'pdf', data: { dados } }, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    return response.data; // Retorna a resposta do Google Apps Script
+  } catch (error) {
+    console.error('Erro ao enviar PDF para o Google Script:', error);
+    throw new Error('Erro ao enviar PDF para o Google Script');
+  }
+}
+
 module.exports = {
-  enviarDadosParaGoogleScript
+  enviarDadosParaGoogleScript,
+  enviarImagemParaGoogleScript,
+  enviarPDFParaGoogleScript
 };
