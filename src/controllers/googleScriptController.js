@@ -29,13 +29,13 @@ const enviarDadosParaGoogleScript = async (request, response) => {
 // Função para enviar imagem ao Google Script
 const enviarImagemParaGoogleScript = async (request, response) => {
   try {
-    const { cod_reserva, CPF,imagemBase64 } = request.body;
+    const { cod_reserva, CPF,imagemBase64,tipo } = request.body;
 
     // Verificando se o campo imagemBase64 foi enviado
-    if (!cod_reserva || !CPF || !imagemBase64) {
+    if (!cod_reserva || !CPF || !imagemBase64 || !tipo) {
       return response.status(400).json({ error: 'O campo imagemBase64 é obrigatório' });
     }
-    const dados = { cod_reserva, CPF, imagemBase64 };
+    const dados = { cod_reserva, CPF, imagemBase64,tipo };
 
     // Enviando a imagem para o Google Script usando o modelo
     const resultado = await googleScriptModel.enviarImagemParaGoogleScript(dados);

@@ -1,7 +1,7 @@
 const axios = require('axios');
 
 // Defina a URL do Google Script em uma variável
-const urlGoogleScript = 'https://script.google.com/macros/s/AKfycbwunJy93aE_SKXbr8JYHxmuR_s88l_s45gDyjwWjGW1jaryqUF_n9E2wgRDgUszreZCIQ/exec';
+const urlGoogleScript = 'https://script.google.com/macros/s/AKfycbx3oQsSWQ569RaDTpp7OOPRfQwOP2t70K57RjZKOHLhkafvBqIZwBV-0SvhwfgC7c4FmQ/exec';
 
 async function enviarDadosParaGoogleScript(dados) {
   try {
