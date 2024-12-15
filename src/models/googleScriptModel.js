@@ -1,7 +1,9 @@
 const axios = require('axios');
+require('dotenv').config();
 
 // Defina a URL do Google Script em uma variável
-const urlGoogleScript = 'https://script.google.com/macros/s/AKfycbx3oQsSWQ569RaDTpp7OOPRfQwOP2t70K57RjZKOHLhkafvBqIZwBV-0SvhwfgC7c4FmQ/exec';
+const urlGoogleScript = process.env.googleScriptURL;
+ 
 
 async function enviarDadosParaGoogleScript(dados) {
   try {
