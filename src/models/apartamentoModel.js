@@ -27,20 +27,18 @@ const createApartamentosBatch = async (apartamentos) => {
   try {
     for (let apartamento of apartamentos) {
       const { nome, bloco, predio_id, fracao } = apartamento;
-
       // Verifica se o apartamento já existe pelo nome e prédio
       const checkApartamentoExistsQuery = 'SELECT * FROM apartamentos WHERE nome = ? AND predio_id = ?';
-      const [existingApartamentos] = await connection.execute(checkApartamentoExistsQuery, [nome, predio_id]);
-
-      if (existingApartamentos.length > 0) {
-        throw new Error(`Apartamento com o nome "${nome}" já existe no prédio ${predio_id}.`);
+      if(nome && predio_id ){
+        const [existingApartamentos] = await connection.execute(checkApartamentoExistsQuery, [nome, predio_id]);
+        if (existingApartamentos.length > 0) {
+          throw new Error(`Apartamento com o nome "${nome}" já existe no prédio ${predio_id}.`);
+        }
+        // Inserir o apartamento
+        const values = [nome, bloco, predio_id, fracao];
+        await connection.execute(insertApartamentoQuery, values);
       }
-
-      // Inserir o apartamento
-      const values = [nome, bloco, predio_id, fracao];
-      await connection.execute(insertApartamentoQuery, values);
     }
-
     return apartamentos; // Retorna os apartamentos inseridos
   } catch (error) {
     console.error('Erro ao inserir apartamentos em lote:', error);
