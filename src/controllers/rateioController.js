@@ -33,13 +33,7 @@ const getRateioByBuildingMonthAndYear = async (request, response) => {
       acc + parseFloat(fundo.porcentagem) * valorComumTotal, 0);
   
     // Mapear as frequências para os multiplicadores das provisões
-    const freqMap = {
-      "Mensal": 1,
-      "Bimensal": 1 / 2,
-      "Trimestral": 1 / 3,
-      "Semestral": 1 / 6,
-      "Anual": 1 / 12
-    };
+
   
     // Buscar Provisões e calcular o valor total ajustado pela frequência
     const provisoes = await provisaoModel.getProvisoesByBuildingId(predio_id);
@@ -47,7 +41,7 @@ const getRateioByBuildingMonthAndYear = async (request, response) => {
       return response.status(200).json({ error: 'Provisões não encontradas' });
     }
     const valorProvisaoTotal = provisoes.reduce((acc, provisao) => 
-      acc + parseFloat(provisao.valor) * (freqMap[provisao.frequencia] || 0), 0);
+      acc + parseFloat(provisao.valor) / (Number(provisao.frequencia) || 0), 0);
   
     // Montar o array de rateios
     const rateio = await Promise.all(individualExpenses.map(async (gastoIndividual) => {

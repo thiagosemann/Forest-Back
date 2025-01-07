@@ -142,11 +142,24 @@ const deleteCommonExpense = async (id) => {
 
 const getExpensesByBuildingAndMonth = async (predio_id, month, year) => {
   const query = `
-    SELECT * FROM Gastos_Comuns
-    WHERE predio_id = ? 
-    AND YEAR(data_gasto) = ?
-    AND MONTH(data_gasto) = ?;
+    SELECT 
+      gc.*,
+      CASE 
+        WHEN gc.tipoGasto_id IS NOT NULL THEN tg.detalhes
+        ELSE gc.tipo_Gasto_Extra
+      END AS tipo_Gasto_Extra
+    FROM 
+      Gastos_Comuns gc
+    LEFT JOIN 
+      tipo_Gasto tg
+    ON 
+      gc.tipoGasto_id = tg.id
+    WHERE 
+      gc.predio_id = ? 
+      AND YEAR(gc.data_gasto) = ? 
+      AND MONTH(gc.data_gasto) = ?;
   `;
+
   try {
     const [expenses] = await connection.execute(query, [predio_id, year, month]);
     return expenses;
@@ -155,6 +168,8 @@ const getExpensesByBuildingAndMonth = async (predio_id, month, year) => {
     throw error;
   }
 };
+
+
 
 const getProvisoesByBuilding = async (predio_id) => {
   const query = `
