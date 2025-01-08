@@ -12,10 +12,12 @@ const vagasController = require('./src/controllers/vagasController');
 const statusController = require('./src/controllers/statusController');
 const provisaoController = require('./src/controllers/provisaoController');
 const fundosController = require('./src/controllers/fundoController');
-const rateioController = require('./src/controllers/rateioController');
+const calculateRateioController = require('./src/controllers/calculateRateioController');
 const saldoFundosController = require('./src/controllers/saldoFundosController');
 const airbnbCalendarController = require('./src/controllers/calendarioAirBnbController'); // Importando o controlador
 const googleScriptController = require('./src/controllers/googleScriptController');
+const rateiosPorApartamentoController = require('./src/controllers/rateiosPorApartamentoController');
+const rateiosController = require('./src/controllers/rateiosController');
 
 
 // User routes
@@ -101,7 +103,7 @@ router.delete('/fundos/:id', verifyToken, fundosController.deleteFundo);
 router.get('/fundos/predios/:predioId', verifyToken, fundosController.getFundosByBuildingId);
 
 // Rateio routes
-router.get('/rateio/predios/:predio_id/month/:month/year/:year', verifyToken, rateioController.getRateioByBuildingMonthAndYear);
+router.get('/calculateRateio/predios/:predio_id/month/:month/year/:year', verifyToken, calculateRateioController.getRateioByBuildingMonthAndYear);
 
 
 // Rotas para saldo de fundos
@@ -124,6 +126,22 @@ router.get('/airbnb-calendar', airbnbCalendarController.fetchAirbnbCalendar);
 router.post('/enviar-dados', googleScriptController.enviarDadosParaGoogleScript);
 router.post('/enviar-imagem', googleScriptController.enviarImagemParaGoogleScript);
 router.post('/enviar-pdf', googleScriptController.enviarPDFParaGoogleScript);
+
+// Rotas para Rateios
+router.get('/rateios', verifyToken, rateiosController.getAllRateios);
+router.get('/rateios/predios/:predioId/:mes', verifyToken, rateiosController.getRateiosByBuildingIdAndMonth);
+router.get('/rateios/:id', verifyToken, rateiosController.getRateioById);
+router.post('/rateios', verifyToken, rateiosController.createRateio);
+router.put('/rateios/:id', verifyToken, rateiosController.updateRateio);
+router.delete('/rateios/:id', verifyToken, rateiosController.deleteRateio);
+
+// Rotas para RateiosPorApartamento
+router.get('/rateiosPorApartamento', verifyToken, rateiosPorApartamentoController.getAllRateiosPorApartamento);
+router.get('/rateiosPorApartamento/rateio/:rateioId', verifyToken, rateiosPorApartamentoController.getRateiosPorApartamentoByRateioId);
+router.get('/rateiosPorApartamento/:id', verifyToken, rateiosPorApartamentoController.getRateioPorApartamentoById);
+router.post('/rateiosPorApartamento', verifyToken, rateiosPorApartamentoController.createRateioPorApartamento);
+router.put('/rateiosPorApartamento/:id', verifyToken, rateiosPorApartamentoController.updateRateioPorApartamento);
+router.delete('/rateiosPorApartamento/:id', verifyToken, rateiosPorApartamentoController.deleteRateioPorApartamento);
 
 
 module.exports = router;

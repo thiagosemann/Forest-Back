@@ -6,7 +6,6 @@ const fundoModel = require('../models/fundoModel');
 const provisaoModel = require('../models/provisaoModel');
 
 
-
 const getRateioByBuildingMonthAndYear = async (request, response) => {
   const { predio_id, month, year } = request.params; // Pegar os parâmetros da rota    
   try {
@@ -58,7 +57,7 @@ const getRateioByBuildingMonthAndYear = async (request, response) => {
         valorComum: valorComumTotal * fracaoTotal,
         valorProvisoes: valorProvisaoTotal * fracaoTotal,
         valorFundos: valorFundoTotal * fracaoTotal,
-        apt_id: gastoIndividual.apt_id,
+        apartamento_id: gastoIndividual.apt_id,
         fracao_total: fracaoTotal,
         vagas: vagas
       };
