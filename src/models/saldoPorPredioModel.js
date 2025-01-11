@@ -6,9 +6,9 @@ const getAllSaldos = async () => {
 };
 
 const createSaldo = async (saldo) => {
-  const { predio_id, valor, data } = saldo;
-  const insertSaldoQuery = 'INSERT INTO saldos_por_predio (predio_id, valor, data) VALUES (?, ?, ?)';
-  const values = [predio_id, valor, data];
+  const { predio_id, valor, data, type } = saldo;  // Incluindo o type
+  const insertSaldoQuery = 'INSERT INTO saldos_por_predio (predio_id, valor, data, type) VALUES (?, ?, ?, ?)';
+  const values = [predio_id, valor, data, type];  // Incluindo o type nos valores
 
   try {
     const [result] = await connection.execute(insertSaldoQuery, values);
@@ -37,13 +37,13 @@ const getSaldosByBuildingId = async (predioId) => {
 };
 
 const updateSaldo = async (saldo) => {
-  const { id, predio_id, valor, data } = saldo;
+  const { id, predio_id, valor, data, type } = saldo;  // Incluindo o type
   const updateSaldoQuery = `
     UPDATE saldos_por_predio 
-    SET predio_id = ?, valor = ?, data = ?
+    SET predio_id = ?, valor = ?, data = ?, type = ?
     WHERE id = ?
   `;
-  const values = [predio_id, valor, data, id];
+  const values = [predio_id, valor, data, type, id];  // Incluindo o type nos valores
 
   try {
     const [result] = await connection.execute(updateSaldoQuery, values);
