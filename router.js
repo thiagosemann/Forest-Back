@@ -18,6 +18,8 @@ const airbnbCalendarController = require('./src/controllers/calendarioAirBnbCont
 const googleScriptController = require('./src/controllers/googleScriptController');
 const rateiosPorApartamentoController = require('./src/controllers/rateiosPorApartamentoController');
 const rateiosController = require('./src/controllers/rateiosController');
+const investimentosPorPredioController = require('./src/controllers/investimentosPorPredioController');
+const saldosController = require('./src/controllers/saldoPorPredioController');
 
 
 // User routes
@@ -129,7 +131,7 @@ router.post('/enviar-pdf', googleScriptController.enviarPDFParaGoogleScript);
 
 // Rotas para Rateios
 router.get('/rateios', verifyToken, rateiosController.getAllRateios);
-router.get('/rateios/predios/:predioId/:mes', verifyToken, rateiosController.getRateiosByBuildingIdAndMonth);
+router.get('/rateios/predios/:predioId/:mes/:ano', verifyToken, rateiosController.getRateiosByBuildingIdAndMonthAndYear);
 router.get('/rateios/:id', verifyToken, rateiosController.getRateioById);
 router.post('/rateios', verifyToken, rateiosController.createRateio);
 router.put('/rateios/:id', verifyToken, rateiosController.updateRateio);
@@ -142,6 +144,22 @@ router.get('/rateiosPorApartamento/:id', verifyToken, rateiosPorApartamentoContr
 router.post('/rateiosPorApartamento', verifyToken, rateiosPorApartamentoController.createRateioPorApartamento);
 router.put('/rateiosPorApartamento/:id', verifyToken, rateiosPorApartamentoController.updateRateioPorApartamento);
 router.delete('/rateiosPorApartamento/:id', verifyToken, rateiosPorApartamentoController.deleteRateioPorApartamento);
+
+// Investimentos por Prédio routes
+router.get('/investimentos', verifyToken, investimentosPorPredioController.getAllInvestimentos);
+router.get('/investimentos/:id', verifyToken, investimentosPorPredioController.getInvestimentoById);
+router.post('/investimentos', verifyToken, investimentosPorPredioController.createInvestimento);
+router.put('/investimentos/:id', verifyToken, investimentosPorPredioController.updateInvestimento);
+router.delete('/investimentos/:id', verifyToken, investimentosPorPredioController.deleteInvestimento);
+router.get('/investimentos/predios/:predioId', verifyToken, investimentosPorPredioController.getInvestimentosByBuildingId);
+
+// Rotas para saldos_por_predio
+router.get('/saldos', verifyToken, saldosController.getAllSaldos);
+router.get('/saldos/:id', verifyToken, saldosController.getSaldoById);
+router.post('/saldos', verifyToken, saldosController.createSaldo);
+router.put('/saldos/:id', verifyToken, saldosController.updateSaldo);
+router.delete('/saldos/:id', verifyToken, saldosController.deleteSaldo);
+router.get('/saldos/predios/:predioId', verifyToken, saldosController.getSaldosByBuildingId);
 
 
 module.exports = router;

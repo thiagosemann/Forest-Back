@@ -17,14 +17,14 @@ const createRateio = async (request, response) => {
     const createdRateio = await rateiosModel.createRateio(request.body);
 
     // Para cada apartamento, criar o rateio por apartamento
-    const { usersRateio } = request.body;  // usersRateio é um array de apartamentos
-    const rateioId = createdRateio.insertId;  // ID do rateio criado
+    const { usersRateio } = request.body; // usersRateio é um array de apartamentos
+    const rateioId = createdRateio.insertId; // ID do rateio criado
 
     for (const apartamento of usersRateio) {
       const rateioPorApartamento = {
         apartamento_id: apartamento.apartamento_id,
         rateio_id: rateioId,
-        valor: apartamento.valorIndividual + apartamento.valorComum + apartamento.valorProvisoes + apartamento.valorFundos,  // Total
+        valor: apartamento.valorIndividual + apartamento.valorComum + apartamento.valorProvisoes + apartamento.valorFundos, // Total
         apt_name: apartamento.apt_name,
         apt_fracao: apartamento.apt_fracao,
         valorIndividual: apartamento.valorIndividual,
@@ -62,14 +62,14 @@ const getRateioById = async (request, response) => {
   }
 };
 
-const getRateiosByBuildingIdAndMonth = async (request, response) => {
+const getRateiosByBuildingIdAndMonthAndYear = async (request, response) => {
   try {
-    const { predioId, mes } = request.params;
-    const rateios = await rateiosModel.getRateiosByBuildingIdAndMonth(predioId, mes);
+    const { predioId, mes, ano } = request.params;
+    const rateios = await rateiosModel.getRateiosByBuildingIdAndMonthAndYear(predioId, mes, ano);
     return response.status(200).json(rateios);
   } catch (error) {
-    console.error('Erro ao obter rateios por prédio e mês:', error);
-    return response.status(500).json({ error: 'Erro ao obter rateios por prédio e mês' });
+    console.error('Erro ao obter rateios por prédio, mês e ano:', error);
+    return response.status(500).json({ error: 'Erro ao obter rateios por prédio, mês e ano' });
   }
 };
 
@@ -112,7 +112,7 @@ module.exports = {
   getAllRateios,
   createRateio,
   getRateioById,
-  getRateiosByBuildingIdAndMonth,
+  getRateiosByBuildingIdAndMonthAndYear,
   updateRateio,
   deleteRateio,
 };

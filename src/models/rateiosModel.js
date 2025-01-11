@@ -6,9 +6,9 @@ const getAllRateios = async () => {
 };
 
 const createRateio = async (rateio) => {
-  const { mes, predio_id } = rateio;
-  const insertRateioQuery = 'INSERT INTO rateios (mes, predio_id) VALUES (?, ?)';
-  const values = [mes, predio_id];
+  const { mes, ano, predio_id } = rateio;
+  const insertRateioQuery = 'INSERT INTO rateios (mes, ano, predio_id) VALUES (?, ?, ?)';
+  const values = [mes, ano, predio_id];
 
   try {
     const [result] = await connection.execute(insertRateioQuery, values);
@@ -26,21 +26,20 @@ const getRateioById = async (id) => {
   return rateios.length > 0 ? rateios[0] : null;
 };
 
-const getRateiosByBuildingIdAndMonth = async (predioId, mes) => {
-  const query = 'SELECT * FROM rateios WHERE predio_id = ? AND mes = ?';
-  const [rateios] = await connection.execute(query, [predioId, mes]);
+const getRateiosByBuildingIdAndMonthAndYear = async (predioId, mes, ano) => {
+  const query = 'SELECT * FROM rateios WHERE predio_id = ? AND mes = ? AND ano = ?';
+  const [rateios] = await connection.execute(query, [predioId, mes, ano]);
   return rateios;
 };
 
-
 const updateRateio = async (rateio) => {
-  const { id, mes, predio_id } = rateio;
+  const { id, mes, ano, predio_id } = rateio;
   const updateRateioQuery = `
     UPDATE rateios 
-    SET mes = ?, predio_id = ?
+    SET mes = ?, ano = ?, predio_id = ?
     WHERE id = ?
   `;
-  const values = [mes, predio_id, id];
+  const values = [mes, ano, predio_id, id];
 
   try {
     const [result] = await connection.execute(updateRateioQuery, values);
@@ -67,7 +66,7 @@ module.exports = {
   getAllRateios,
   createRateio,
   getRateioById,
-  getRateiosByBuildingIdAndMonth,
+  getRateiosByBuildingIdAndMonthAndYear,
   updateRateio,
   deleteRateio,
 };
