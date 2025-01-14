@@ -19,6 +19,7 @@ const googleScriptController = require('./src/controllers/googleScriptController
 const rateiosPorApartamentoController = require('./src/controllers/rateiosPorApartamentoController');
 const rateiosController = require('./src/controllers/rateiosController');
 const saldosController = require('./src/controllers/saldoPorPredioController');
+const notasGastoComunsController = require('./src/controllers/notasGastosComunsController');
 
 
 // User routes
@@ -138,6 +139,7 @@ router.delete('/rateios/:id', verifyToken, rateiosController.deleteRateio);
 
 // Rotas para RateiosPorApartamento
 router.get('/rateiosPorApartamento', verifyToken, rateiosPorApartamentoController.getAllRateiosPorApartamento);
+router.get('/rateiosPorApartamento/apartamento/:apartamentoId', verifyToken, rateiosPorApartamentoController.getRateioPorApartamentoByAptId);
 router.get('/rateiosPorApartamento/rateio/:rateioId', verifyToken, rateiosPorApartamentoController.getRateiosPorApartamentoByRateioId);
 router.get('/rateiosPorApartamento/:id', verifyToken, rateiosPorApartamentoController.getRateioPorApartamentoById);
 router.post('/rateiosPorApartamento', verifyToken, rateiosPorApartamentoController.createRateioPorApartamento);
@@ -151,6 +153,15 @@ router.post('/saldos', verifyToken, saldosController.createSaldo);
 router.put('/saldos/:id', verifyToken, saldosController.updateSaldo);
 router.delete('/saldos/:id', verifyToken, saldosController.deleteSaldo);
 router.get('/saldos/predios/:predioId', verifyToken, saldosController.getSaldosByBuildingId);
+
+// Rotas para documentos de gastos comuns
+router.get('/notasGastoComuns', verifyToken, notasGastoComunsController.getAllNotasGastosComuns);
+router.get('/notasGastoComuns/:id', verifyToken, notasGastoComunsController.getNotasGastosComunsById);
+router.post('/notasGastoComuns', verifyToken, notasGastoComunsController.createNotasGastosComuns);
+router.put('/notasGastoComuns/:id', verifyToken, notasGastoComunsController.updateNotasGastosComuns);
+router.delete('/notasGastoComuns/:id', verifyToken, notasGastoComunsController.deleteNotasGastosComuns);
+router.get('/notasGastoComuns/common-expense/:commonExpenseId', verifyToken, notasGastoComunsController.getNotasGastosComunsByCommonExpenseId);
+
 
 
 module.exports = router;

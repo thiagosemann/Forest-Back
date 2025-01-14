@@ -2,7 +2,15 @@ const connection = require('./connection');
 
 const getAllCommonExpenses = async () => {
   try {
-    const [expenses] = await connection.execute('SELECT * FROM Gastos_Comuns');
+    // Consulta para buscar todos os gastos comuns e o id do documento (se existir)
+    const query = `
+      SELECT gc.*, 
+             (SELECT ng.id FROM notasGastosComuns ng WHERE ng.commonExpense_id = gc.id LIMIT 1) AS nota_id
+      FROM Gastos_Comuns gc
+    `;
+    
+    const [expenses] = await connection.execute(query);
+
     return expenses;
   } catch (error) {
     console.error('Erro ao buscar gastos comuns:', error);
@@ -84,7 +92,13 @@ const createCommonExpense = async (expense) => {
 
 
 const getCommonExpense = async (id) => {
-  const query = 'SELECT * FROM Gastos_Comuns WHERE id = ?';
+  const query = `
+    SELECT gc.*, 
+           (SELECT ng.id FROM notasGastosComuns ng WHERE ng.commonExpense_id = gc.id LIMIT 1) AS nota_id
+    FROM Gastos_Comuns gc
+    WHERE gc.id = ?
+  `;
+  
   const [expenses] = await connection.execute(query, [id]);
 
   if (expenses.length > 0) {
@@ -143,11 +157,12 @@ const deleteCommonExpense = async (id) => {
 const getExpensesByBuildingAndMonth = async (predio_id, month, year) => {
   const query = `
     SELECT 
-      gc.*,
+      gc.*, 
       CASE 
         WHEN gc.tipoGasto_id IS NOT NULL THEN tg.detalhes
         ELSE gc.tipo_Gasto_Extra
-      END AS tipo_Gasto_Extra
+      END AS tipo_Gasto_Extra,
+      (SELECT ng.id FROM notasGastosComuns ng WHERE ng.commonExpense_id = gc.id LIMIT 1) AS nota_id
     FROM 
       Gastos_Comuns gc
     LEFT JOIN 
@@ -168,6 +183,7 @@ const getExpensesByBuildingAndMonth = async (predio_id, month, year) => {
     throw error;
   }
 };
+
 
 
 

@@ -54,6 +54,43 @@ const getRateioPorApartamentoById = async (id) => {
 
   return rateios.length > 0 ? rateios[0] : null;
 };
+const getRateioPorApartamentoByAptId = async (apartamentoId) => {
+  // Primeiro, buscar os valores e rateio_id da tabela rateio_por_apartamento
+  const queryRateioPorApartamento = `
+    SELECT valor, rateio_id 
+    FROM rateio_por_apartamento 
+    WHERE apartamento_id = ?
+  `;
+  const [rateioPorApartamento] = await connection.execute(queryRateioPorApartamento, [apartamentoId]);
+
+  if (rateioPorApartamento.length === 0) {
+    return []; // Retorna um array vazio se não houver registros
+  }
+
+  // Obter os rateio_id e buscar os dados correspondentes na tabela rateios
+  const rateioIds = rateioPorApartamento.map(item => item.rateio_id);
+  const placeholders = rateioIds.map(() => '?').join(','); // Para criar placeholders dinâmicos
+  const queryRateios = `
+    SELECT id AS rateio_id, mes, ano 
+    FROM rateios 
+    WHERE id IN (${placeholders})
+  `;
+  const [rateios] = await connection.execute(queryRateios, rateioIds);
+
+  // Montar o array de objetos combinando os dados das duas tabelas
+  const result = rateioPorApartamento.map(item => {
+    const rateio = rateios.find(r => r.rateio_id === item.rateio_id);
+    return {
+      valor: item.valor,
+      mes: rateio?.mes || null, // Garantir segurança caso não encontre
+      ano: rateio?.ano || null,
+    };
+  });
+
+  return result;
+};
+
+
 
 const getRateiosPorRateioId = async (rateioId) => {
   const query = 'SELECT * FROM rateio_por_apartamento WHERE rateio_id = ?';
@@ -136,4 +173,5 @@ module.exports = {
   getRateiosPorRateioId,
   updateRateioPorApartamento,
   deleteRateioPorApartamento,
+  getRateioPorApartamentoByAptId
 };

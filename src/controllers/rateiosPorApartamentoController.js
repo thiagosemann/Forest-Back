@@ -37,6 +37,22 @@ const getRateioPorApartamentoById = async (request, response) => {
   }
 };
 
+const getRateioPorApartamentoByAptId = async (request, response) => {
+  try {
+    const { apartamentoId } = request.params;
+    const rateio = await rateiosPorApartamentoModel.getRateioPorApartamentoByAptId(apartamentoId);
+
+    if (rateio) {
+      return response.status(200).json(rateio);
+    } else {
+      return response.status(404).json({ message: 'Rateio por apartamento não encontrado' });
+    }
+  } catch (error) {
+    console.error('Erro ao obter rateio por apartamento:', error);
+    return response.status(500).json({ error: 'Erro ao obter rateio por apartamento' });
+  }
+};
+
 const getRateiosPorApartamentoByRateioId = async (request, response) => {
   try {
     const { rateioId } = request.params;
@@ -91,4 +107,5 @@ module.exports = {
   getRateiosPorApartamentoByRateioId,
   updateRateioPorApartamento,
   deleteRateioPorApartamento,
+  getRateioPorApartamentoByAptId
 };
