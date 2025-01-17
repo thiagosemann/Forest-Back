@@ -42,6 +42,43 @@ const getNotasGastosComunsById = async (id) => {
     return null;
   }
 };
+const getNotasGastosComunsByBuildingAndMonth = async (predio_id, month, year) => { 
+  const query = `
+    SELECT 
+      ng.id AS id,
+      ng.document AS document,
+      ng.commonExpense_id AS commonExpense_id
+    FROM 
+      notasGastosComuns ng
+    INNER JOIN 
+      Gastos_Comuns gc
+    ON 
+      ng.commonExpense_id = gc.id
+    WHERE 
+      gc.predio_id = ? 
+      AND YEAR(gc.data_gasto) = ? 
+      AND MONTH(gc.data_gasto) = ?;
+  `;
+
+  try {
+    const [documents] = await connection.execute(query, [predio_id, year, month]);
+
+    if (documents.length > 0) {
+      return documents.map((doc) => ({
+        id: doc.id,
+        commonExpense_id: doc.commonExpense_id,
+        documentBlob: doc.document ? doc.document.toString('utf8') : null,
+      }));
+    } else {
+      console.log('Nenhum documento encontrado para o prédio, mês e ano fornecidos.');
+      return [];
+    }
+  } catch (error) {
+    console.error('Erro ao buscar notas fiscais por prédio, mês e ano:', error);
+    throw error;
+  }
+};
+
 
 // Obtém documentos por commonExpense_id
 const getNotasGastosComunsByCommonExpenseId = async (commonExpenseId) => {
@@ -82,6 +119,9 @@ const deleteNotasGastosComuns = async (id) => {
   }
 };
 
+
+
+
 module.exports = {
   getAllNotasGastosComuns,
   createNotasGastosComuns,
@@ -89,4 +129,5 @@ module.exports = {
   getNotasGastosComunsByCommonExpenseId,
   updateNotasGastosComuns,
   deleteNotasGastosComuns,
+  getNotasGastosComunsByBuildingAndMonth
 };

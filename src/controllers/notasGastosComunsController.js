@@ -12,16 +12,14 @@ const getAllNotasGastosComuns = async (request, response) => {
 
 const createNotasGastosComuns = async (request, response) => {
   try {
-    console.log(request.body)
-    // Verifica se o arquivo foi enviado
+    console.log(request.body);
     if (!request.body || !request.body.documentBlob) {
       return response.status(400).json({ error: 'Arquivo não fornecido' });
     }
 
-    const documentBlob = request.body.documentBlob;  // Obtém os dados binários do arquivo
+    const documentBlob = request.body.documentBlob;
     const { commonExpense_id } = request.body;
 
-    // Criação do documento com o arquivo binário
     const createdDocument = await documentosModel.createNotasGastosComuns({ documentBlob, commonExpense_id });
 
     return response.status(201).json(createdDocument);
@@ -62,15 +60,13 @@ const updateNotasGastosComuns = async (request, response) => {
   try {
     const { id } = request.params;
 
-    // Verifica se o arquivo foi enviado
     let documentBlob = null;
     if (request.files && request.files.documentBlob) {
-      documentBlob = request.files.documentBlob.data;  // Obtém os dados binários do arquivo
+      documentBlob = request.files.documentBlob.data;
     }
 
     const { commonExpense_id } = request.body;
 
-    // Atualização do documento com ou sem arquivo binário
     const document = { id, documentBlob, commonExpense_id };
     const wasUpdated = await documentosModel.updateNotasGastosComuns(document);
 
@@ -102,11 +98,32 @@ const deleteNotasGastosComuns = async (request, response) => {
   }
 };
 
+const getNotasGastosComunsByBuildingAndMonth = async (request, response) => {
+  try {
+    const { predio_id, month, year } = request.params;
+    if (!predio_id || !month || !year) {
+      return response.status(400).json({ error: 'Parâmetros predio_id, month e year são obrigatórios' });
+    }
+
+    const documents = await documentosModel.getNotasGastosComunsByBuildingAndMonth(predio_id, month, year);
+
+    if (documents && documents.length > 0) {
+      return response.status(200).json(documents);
+    } else {
+      return response.status(404).json({ message: 'Nenhum documento encontrado' });
+    }
+  } catch (error) {
+    console.error('Erro ao obter documentos por prédio e mês:', error);
+    return response.status(500).json({ error: 'Erro ao obter documentos por prédio e mês' });
+  }
+};
+
 module.exports = {
   getAllNotasGastosComuns,
   createNotasGastosComuns,
   getNotasGastosComunsById,
   getNotasGastosComunsByCommonExpenseId,
   updateNotasGastosComuns,
-  deleteNotasGastosComuns
+  deleteNotasGastosComuns,
+  getNotasGastosComunsByBuildingAndMonth,
 };
