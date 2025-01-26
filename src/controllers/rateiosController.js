@@ -21,6 +21,9 @@ const createRateio = async (request, response) => {
     const rateioId = createdRateio.insertId; // ID do rateio criado
 
     for (const apartamento of usersRateio) {
+      // Garantir que fracao_vagas seja 0 caso não exista
+      const fracaoVagas = apartamento.fracao_vagas ? apartamento.fracao_vagas : 0;
+
       const rateioPorApartamento = {
         apartamento_id: apartamento.apartamento_id,
         rateio_id: rateioId,
@@ -31,7 +34,7 @@ const createRateio = async (request, response) => {
         valorComum: apartamento.valorComum,
         valorProvisoes: apartamento.valorProvisoes,
         valorFundos: apartamento.valorFundos,
-        fracao_vagas: apartamento.vagas.length > 0 ? apartamento.vagas.reduce((acc, vaga) => acc + vaga.fracao, 0) : 0, // Caso haja vagas
+        fracao_vagas: fracaoVagas, // Atribui 0 caso não exista
         fracao_total: apartamento.fracao_total
       };
 
@@ -45,6 +48,7 @@ const createRateio = async (request, response) => {
     return response.status(409).json({ error: error.message });
   }
 };
+
 
 const getRateioById = async (request, response) => {
   try {
@@ -107,6 +111,7 @@ const deleteRateio = async (request, response) => {
     return response.status(500).json({ error: 'Erro ao deletar rateio' });
   }
 };
+
 
 module.exports = {
   getAllRateios,

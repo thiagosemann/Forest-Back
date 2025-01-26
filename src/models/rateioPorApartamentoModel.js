@@ -22,8 +22,8 @@ const createRateioPorApartamento = async (rateioPorApartamento) => {
 
   const insertRateioQuery = `
     INSERT INTO rateio_por_apartamento 
-    (apartamento_id, rateio_id, valor, apt_name, apt_fracao, valorIndividual, valorComum, valorProvisoes, valorFundos, fracao_vagas, fracao_total) 
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    (apartamento_id, rateio_id, valor, apt_name, apt_fracao, valorIndividual, valorComum, valorProvisoes, valorFundos, fracao_vagas, fracao_total, data_pagamento) 
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
   const values = [
     apartamento_id,
@@ -37,6 +37,7 @@ const createRateioPorApartamento = async (rateioPorApartamento) => {
     valorFundos,
     fracao_vagas,
     fracao_total,
+    "", // Valor padrão para data_pagamento
   ];
 
   try {
@@ -47,6 +48,7 @@ const createRateioPorApartamento = async (rateioPorApartamento) => {
     throw error;
   }
 };
+
 
 const getRateioPorApartamentoById = async (id) => {
   const query = 'SELECT * FROM rateio_por_apartamento WHERE id = ?';
@@ -166,6 +168,95 @@ const deleteRateioPorApartamento = async (id) => {
   }
 };
 
+const updateDataPagamento = async (id, dataPagamento) => {
+  const query = `
+    UPDATE rateio_por_apartamento
+    SET data_pagamento = ?
+    WHERE id = ?
+  `;
+
+  try {
+    const [result] = await connection.execute(query, [dataPagamento, id]);
+    return result.affectedRows > 0; // Retorna true se a atualização foi bem-sucedida
+  } catch (error) {
+    console.error('Erro ao atualizar data_pagamento:', error);
+    throw error;
+  }
+};
+
+const getRateiosNaoPagosPorPredioId = async (predioId) => {
+  const query = `
+    SELECT rpa.*, 
+           CONCAT(LPAD(r.mes, 2, '0'), '/', r.ano) AS data_vencimento
+    FROM rateio_por_apartamento rpa
+    JOIN apartamentos apt ON rpa.apartamento_id = apt.id
+    JOIN rateios r ON rpa.rateio_id = r.id
+    WHERE apt.predio_id = ?
+      AND (rpa.data_pagamento IS NULL OR rpa.data_pagamento = '')
+  `;
+
+  try {
+    const [rateios] = await connection.execute(query, [predioId]);
+    return rateios; // Retorna todos os rateios encontrados com a propriedade 'data_vencimento'
+  } catch (error) {
+    console.error('Erro ao buscar rateios por predio_id:', error);
+    throw error;
+  }
+};
+
+const atualizarDataPagamento = async (pagamentosConsolidados) => {
+  // Função para normalizar o valor (remover "R$", substituir vírgula por ponto e arredondar)
+  const normalizarValor = (valor) => {
+    const valorNumerico = parseFloat(valor.replace('R$', '').replace(',', '.').trim());
+    return Math.floor(valorNumerico); // Arredonda para baixo, ignorando centavos
+  };
+
+  try {
+    // Iterar sobre cada pagamento consolidado
+    for (const pagamento of pagamentosConsolidados) {
+      const { apt_name, data_vencimento, valor } = pagamento;
+
+      // Normalizar o valor do pagamento consolidado
+      const valorConsolidadoNormalizado = normalizarValor(valor);
+
+      // Consultar rateio_por_apartamento para encontrar registros com o mesmo apt_name
+      const queryRateioPorApartamento = `
+        SELECT rpa.*, CONCAT(LPAD(r.mes, 2, '0'), '/', r.ano) AS data_rateio
+        FROM rateio_por_apartamento rpa
+        JOIN rateios r ON rpa.rateio_id = r.id
+        WHERE rpa.apt_name = ?
+      `;
+      const [rateiosPorApartamento] = await connection.execute(queryRateioPorApartamento, [apt_name]);
+
+      // Iterar sobre os registros encontrados
+      for (const rateio of rateiosPorApartamento) {
+        // Normalizar o valor do rateio
+        const valorRateioNormalizado = normalizarValor(rateio.valor);
+
+        // Comparar valores normalizados e datas de vencimento
+        if (
+          valorRateioNormalizado === valorConsolidadoNormalizado &&
+          rateio.data_rateio === data_vencimento
+        ) {
+          // Atualizar a coluna data_pagamento
+          const updateQuery = `
+            UPDATE rateio_por_apartamento
+            SET data_pagamento = ?
+            WHERE id = ?
+          `;
+          await connection.execute(updateQuery, [data_vencimento, rateio.id]);
+          console.log(`Data de pagamento atualizada para o apartamento ${apt_name}: ${data_vencimento}`);
+        }
+      }
+    }
+
+    console.log('Atualização de data_pagamento concluída com sucesso.');
+  } catch (error) {
+    console.error('Erro ao atualizar data_pagamento:', error);
+    throw error;
+  }
+};
+
 module.exports = {
   getAllRateiosPorApartamento,
   createRateioPorApartamento,
@@ -173,5 +264,8 @@ module.exports = {
   getRateiosPorRateioId,
   updateRateioPorApartamento,
   deleteRateioPorApartamento,
-  getRateioPorApartamentoByAptId
+  getRateioPorApartamentoByAptId,
+  updateDataPagamento,
+  getRateiosNaoPagosPorPredioId,
+  atualizarDataPagamento
 };
