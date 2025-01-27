@@ -191,7 +191,7 @@ const getProvisoesByBuilding = async (predio_id) => {
   const query = `
     SELECT * FROM Gastos_Comuns
     WHERE predio_id = ? 
-    AND tipo = 'Provisão Utilizada'
+    AND tipo = 'Provisão'
   `;
   try {
     const [expenses] = await connection.execute(query, [predio_id]);
