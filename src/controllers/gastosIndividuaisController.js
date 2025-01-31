@@ -107,8 +107,7 @@ const deleteIndividualExpense = async (request, response) => {
 
 const deleteIndividualExpensesInBatch = async (request, response) => {
   try {
-    const { ids } = request.body; // Espera-se que um array de IDs seja passado no corpo da requisição
-    const result = await individualExpensesModel.deleteIndividualExpensesInBatch(ids);
+    const result = await individualExpensesModel.deleteIndividualExpensesInBatch(request.body);
 
     if (result.affectedRows > 0) {
       return response.status(200).json({ message: 'Gastos individuais excluídos com sucesso.' });

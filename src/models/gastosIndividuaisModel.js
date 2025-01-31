@@ -146,10 +146,13 @@ const getIndividualExpensesByAptMonthAndYear = async (predio_id, month, year) =>
       throw new Error('É necessário fornecer um array de IDs válido.');
     }
   
-    const deleteQuery = 'DELETE FROM Gastos_Individuais WHERE id IN (?)';
+    // Cria placeholders dinâmicos (?, ?, ?)
+    const placeholders = expenseIds.map(() => '?').join(',');
+    const deleteQuery = `DELETE FROM Gastos_Individuais WHERE id IN (${placeholders})`;
   
     try {
-      const [result] = await connection.execute(deleteQuery, [expenseIds]);
+      // Passa os IDs diretamente como parâmetros
+      const [result] = await connection.execute(deleteQuery, expenseIds);
       return { affectedRows: result.affectedRows };
     } catch (error) {
       console.error('Erro ao excluir gastos individuais em lote:', error);

@@ -70,13 +70,14 @@ router.delete('/apartamentos/:id', verifyToken, apartamentosController.deleteApa
 
 // Individual expenses routes
 router.post('/individualexpenses', verifyToken, individualExpensesController.createIndividualExpenses);
+router.delete('/individualexpenses/batch', verifyToken, individualExpensesController.deleteIndividualExpensesInBatch);
+
 router.put('/individualexpenses/:id', verifyToken, individualExpensesController.updateIndividualExpense);
 router.delete('/individualexpenses/:id', verifyToken, individualExpensesController.deleteIndividualExpense);
 router.get('/individualexpenses/apartment/:apt_id', verifyToken, individualExpensesController.getExpensesByApartment);
 router.get('/individualexpenses/predios/:predio_id/month/:month/year/:year', verifyToken, individualExpensesController.getIndividualExpensesByAptMonthAndYear);
 router.get('/individualexpenses', verifyToken, individualExpensesController.getAllIndividualExpenses);
 router.get('/individualexpenses/:id', verifyToken, individualExpensesController.getIndividualExpense);
-router.delete('/individualexpenses/batch', verifyToken, individualExpensesController.deleteIndividualExpensesInBatch);
 
 
 // Vagas routes
