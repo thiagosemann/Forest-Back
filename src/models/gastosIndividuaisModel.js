@@ -101,7 +101,34 @@ const getExpensesByApartment = async (apt_id) => {
   }
 };
 
-const getIndividualExpensesByAptMonthAndYear = async (predio_id, month, year) => {
+
+
+
+const getIndividualExpensesByAptIdMonthAndYear = async (id, month, year) => {
+  try {
+    // Consulta na tabela Gastos_Individuais pelo apt_id = id, filtrando pelo mês e ano informados
+    const indExpQuery = `
+      SELECT id, apt_id, aguaM3, aguaValor, gasM3, gasValor, lazer, lavanderia, multa 
+      FROM Gastos_Individuais 
+      WHERE apt_id = ? 
+        AND YEAR(data_gasto) = ? 
+        AND MONTH(data_gasto) = ?
+      LIMIT 1
+    `;
+    
+    // Executa a consulta utilizando o id informado, year e month
+    const [individualExpenses] = await connection.execute(indExpQuery, [id, year, month]);
+    // Retorna o primeiro objeto encontrado ou null, se não houver registros
+    return individualExpenses.length > 0 ? individualExpenses[0] : null;
+  } catch (error) {
+    console.error('Erro ao buscar gasto por apartamento e mês:', error);
+    throw error;
+  }
+};
+
+
+
+const getIndividualExpensesByPredioIdMonthAndYear = async (predio_id, month, year) => {
     try {
       // Busca os apartamentos vinculados ao prédio
       const aptQuery = 'SELECT id, nome, fracao FROM apartamentos WHERE predio_id = ?';
@@ -167,6 +194,7 @@ module.exports = {
   updateIndividualExpense,
   deleteIndividualExpense,
   getExpensesByApartment,
-  getIndividualExpensesByAptMonthAndYear,
-  deleteIndividualExpensesInBatch
+  getIndividualExpensesByPredioIdMonthAndYear,
+  deleteIndividualExpensesInBatch,
+  getIndividualExpensesByAptIdMonthAndYear
 };

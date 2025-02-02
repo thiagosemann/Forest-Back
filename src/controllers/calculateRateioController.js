@@ -4,80 +4,90 @@ const commonExpensesModel = require('../models/gastosComunModel');
 const vagasModel = require('../models/vagasModel');
 const fundoModel = require('../models/fundoModel');
 const provisaoModel = require('../models/provisaoModel');
+const apartamentoModel = require('../models/apartamentoModel');
 
 
 const getRateioByBuildingMonthAndYear = async (request, response) => {
-  const { predio_id, month, year } = request.params; // Pegar os parâmetros da rota    
+  const { predio_id, month, year } = request.params;    
   try {
-    // Buscar gastos comuns e calcular o valor total
+    // Buscar gastos comuns (obrigatório)
     const commonExpenses = await commonExpensesModel.getExpensesByBuildingAndMonth(predio_id, month, year);
     if (!commonExpenses.length) {
       return response.status(200).json({ error: 'Gastos comuns não encontrados' });
     }
     const valorComumTotal = commonExpenses.reduce((acc, gasto) => 
       gasto.tipo === "Rateio" ? acc + parseFloat(gasto.valor) : acc, 0);
-  
-    // Buscar gastos individuais
-    const individualExpenses = await individualExpensesModel.getIndividualExpensesByAptMonthAndYear(predio_id, month, year);
-    if (!individualExpenses.length) {
-      return response.status(200).json({ error: 'Gastos individuais não encontrados' });
-    }
-  
-    // Buscar Fundos e calcular o total
-    const fundos = await fundoModel.getFundosByBuildingId(predio_id);
-    if (!fundos.length) {
-      return response.status(200).json({ error: 'Fundos não encontrados' });
-    }
-    const valorFundoTotal = fundos.reduce((acc, fundo) => 
-      acc + parseFloat(fundo.porcentagem) * valorComumTotal, 0);
-  
-    // Mapear as frequências para os multiplicadores das provisões
 
-  
-    // Buscar Provisões e calcular o valor total ajustado pela frequência
-    const provisoes = await provisaoModel.getProvisoesByBuildingId(predio_id);
-    if (!provisoes.length) {
-      return response.status(200).json({ error: 'Provisões não encontradas' });
+    // Buscar todos os apartamentos do prédio
+    const apartamentos = await apartamentoModel.getApartamentosByBuildingId(predio_id);
+    if (!apartamentos.length) {
+      return response.status(200).json({ error: 'Nenhum apartamento encontrado' });
     }
-    const valorProvisaoTotal = provisoes.reduce((acc, provisao) => 
-      acc + parseFloat(provisao.valor) / (Number(provisao.frequencia) || 0), 0);
-  
-    // Montar o array de rateios
-    const rateio = await Promise.all(individualExpenses.map(async (gastoIndividual) => {
-      const vagas = await vagasModel.getVagasByApartamentId(gastoIndividual.apt_id);
-      const fracaoTotal = vagas.reduce((acc, vaga) => acc + parseFloat(vaga.fracao), parseFloat(gastoIndividual.apt_fracao));
-  
+    // Buscar gastos individuais (opcional)
+    const individualExpenses = await individualExpensesModel.getIndividualExpensesByPredioIdMonthAndYear(predio_id, month, year);
+
+    // Buscar Fundos (opcional)
+    const fundos = await fundoModel.getFundosByBuildingId(predio_id);
+    const valorFundoTotal = fundos.reduce((acc, fundo) => 
+      acc + (parseFloat(fundo.porcentagem) * valorComumTotal), 0);
+
+    // Buscar Provisões (opcional)
+    const provisoes = await provisaoModel.getProvisoesByBuildingId(predio_id);
+    const valorProvisaoTotal = provisoes.reduce((acc, provisao) => {
+      const frequencia = Number(provisao.frequencia) || 1;
+      return acc + (parseFloat(provisao.valor) / frequencia);
+    }, 0);
+    // Mapear todos os apartamentos para o rateio
+    const rateio = await Promise.all(apartamentos.map(async (apartamento) => {
+      // Encontrar gasto individual correspondente ao apartamento (se existir)
+      const gastoIndividual = individualExpenses.find(e => e.apt_id === apartamento.id) || {
+        aguaValor: 0,
+        gasValor: 0,
+        lazer: 0,
+        lavanderia: 0,
+        multa: 0
+      };
+      // Buscar vagas e calcular fração total
+      const vagas = await vagasModel.getVagasByApartamentId(apartamento.id);
+      let  fracaoTotal = 0;
+      if(vagas.length!=0){
+         fracaoTotal = vagas.reduce((acc, vaga) => 
+          acc + parseFloat(vaga.fracao), parseFloat(apartamento.fracao));
+      }else{
+        fracaoTotal = parseFloat(apartamento.fracao)
+      }
+
+      // Calcular valores individuais
       const valorIndividualTotal = ["aguaValor", "gasValor", "lazer", "lavanderia", "multa"]
         .reduce((acc, key) => acc + parseFloat(gastoIndividual[key] || 0), 0);
-  
+
       return {
-        apt_name: gastoIndividual.apt_name,
-        apt_fracao: gastoIndividual.apt_fracao,
+        apt_name: apartamento.nome,
+        apt_fracao: apartamento.fracao,
         valorIndividual: valorIndividualTotal,
         valorComum: valorComumTotal * fracaoTotal,
         valorProvisoes: valorProvisaoTotal * fracaoTotal,
         valorFundos: valorFundoTotal * fracaoTotal,
-        apartamento_id: gastoIndividual.apt_id,
+        apartamento_id: apartamento.id,
         fracao_total: fracaoTotal,
-        vagas: vagas
+        vagas: vagas,
+        mes: month,
+        ano: year
       };
     }));
-  
-    // Retornar os valores calculados em formato JSON
+
     response.json({
       rateio,
       valorComumTotal,
-      valorProvisaoTotal,
-      valorFundoTotal
+      valorProvisaoTotal: valorProvisaoTotal || 0,
+      valorFundoTotal: valorFundoTotal || 0
     });
-  
+
   } catch (error) {
-    console.error('Erro ao buscar rateio por prédio, mês e ano:', error);
+    console.error('Erro ao buscar rateio:', error);
     response.status(500).json({ error: 'Erro ao buscar rateio' });
   }
-  
 };
-
 
 module.exports = {
   getRateioByBuildingMonthAndYear,

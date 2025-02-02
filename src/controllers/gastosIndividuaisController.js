@@ -51,22 +51,19 @@ const getExpensesByApartment = async (request, response) => {
   try {
     const { apt_id } = request.params;
     const expenses = await individualExpensesModel.getExpensesByApartment(apt_id);
+    return response.status(200).json(expenses);
 
-    if (expenses.length > 0) {
-      return response.status(200).json(expenses);
-    } else {
-      return response.status(404).json({ message: 'Nenhum gasto encontrado para o apartamento especificado' });
-    }
+
   } catch (error) {
     console.error('Erro ao obter gastos por apartamento:', error);
     return response.status(500).json({ error: 'Erro ao obter gastos por apartamento' });
   }
 };
 
-const getIndividualExpensesByAptMonthAndYear = async (request, response) => {
+const getIndividualExpensesByPredioIdMonthAndYear = async (request, response) => {
   try {
     const { predio_id, month, year } = request.params;
-    const expenses = await individualExpensesModel.getIndividualExpensesByAptMonthAndYear(predio_id, month, year);
+    const expenses = await individualExpensesModel.getIndividualExpensesByPredioIdMonthAndYear(predio_id, month, year);
 
     if (expenses.length > 0) {
       return response.status(200).json(expenses);
@@ -78,6 +75,19 @@ const getIndividualExpensesByAptMonthAndYear = async (request, response) => {
     return response.status(500).json({ error: 'Erro ao obter gastos por prédio, mês e ano' });
   }
 };
+
+const getIndividualExpensesByAptIdMonthAndYear = async (request, response) => {
+  try {
+    const { id, month, year } = request.params;
+    const expenses = await individualExpensesModel.getIndividualExpensesByAptIdMonthAndYear(id, month, year);
+    return response.status(200).json(expenses);
+
+  } catch (error) {
+    console.error('Erro ao obter gastos por prédio, mês e ano:', error);
+    return response.status(500).json({ error: 'Erro ao obter gastos por prédio, mês e ano' });
+  }
+};
+
 
 const updateIndividualExpense = async (request, response) => {
   try {
@@ -129,6 +139,8 @@ module.exports = {
   updateIndividualExpense,
   deleteIndividualExpense,
   getExpensesByApartment,
-  getIndividualExpensesByAptMonthAndYear,
-  deleteIndividualExpensesInBatch
+  getIndividualExpensesByAptIdMonthAndYear,
+  getIndividualExpensesByPredioIdMonthAndYear,
+  deleteIndividualExpensesInBatch,
+  
 };
