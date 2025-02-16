@@ -2,24 +2,31 @@ const express = require('express');
 const router = express.Router();
 const verifyToken = require('./src/middlewares/authMiddleware');
 
-const usersController = require('./src/controllers/usersController');
-const buildingsController = require('./src/controllers/buildingsController');
-const commonExpensesController = require('./src/controllers/gastosComunController');
-const expenseTypesController = require('./src/controllers/tipoGastosController');
-const apartamentosController = require('./src/controllers/apartamentoController');
-const individualExpensesController = require('./src/controllers/gastosIndividuaisController');
-const vagasController = require('./src/controllers/vagasController');
-const statusController = require('./src/controllers/statusController');
-const provisaoController = require('./src/controllers/provisaoController');
-const fundosController = require('./src/controllers/fundoController');
-const calculateRateioController = require('./src/controllers/calculateRateioController');
-const saldoFundosController = require('./src/controllers/saldoFundosController');
-const airbnbCalendarController = require('./src/controllers/calendarioAirBnbController'); // Importando o controlador
-const googleScriptController = require('./src/controllers/googleScriptController');
-const rateiosPorApartamentoController = require('./src/controllers/rateiosPorApartamentoController');
-const rateiosController = require('./src/controllers/rateiosController');
-const saldosController = require('./src/controllers/saldoPorPredioController');
-const notasGastoComunsController = require('./src/controllers/notasGastosComunsController');
+const usersController = require('./src/controllers/Admnistracao/usersController');
+const buildingsController = require('./src/controllers/Admnistracao/buildingsController');
+const commonExpensesController = require('./src/controllers/Admnistracao/gastosComunController');
+const expenseTypesController = require('./src/controllers/Admnistracao/tipoGastosController');
+const apartamentosController = require('./src/controllers/Admnistracao/apartamentoController');
+const individualExpensesController = require('./src/controllers/Admnistracao/gastosIndividuaisController');
+const vagasController = require('./src/controllers/Admnistracao/vagasController');
+const statusController = require('./src/controllers/Admnistracao/statusController');
+const provisaoController = require('./src/controllers/Admnistracao/provisaoController');
+const fundosController = require('./src/controllers/Admnistracao/fundoController');
+const calculateRateioController = require('./src/controllers/Admnistracao/calculateRateioController');
+const saldoFundosController = require('./src/controllers/Admnistracao/saldoFundosController');
+const googleScriptController = require('./src/controllers/Admnistracao/googleScriptController');
+const rateiosPorApartamentoController = require('./src/controllers/Admnistracao/rateiosPorApartamentoController');
+const rateiosController = require('./src/controllers/Admnistracao/rateiosController');
+const saldosController = require('./src/controllers/Admnistracao/saldoPorPredioController');
+const notasGastoComunsController = require('./src/controllers/Admnistracao/notasGastosComunsController');
+
+//-----------------------Controller Airbnb--------------------------------
+const usersAirbnbController = require('./src/controllers/Airbnb/usersController');
+const predioAirbnbController = require('./src/controllers/Airbnb/predioAirbnbController');
+const apartamentosAirbnbController = require('./src/controllers/Airbnb/apartamentosAirbnbController');
+const reservasAirbnbController = require('./src/controllers/Airbnb/reservasAirbnbController');
+const checkinFormController = require('./src/controllers/Airbnb/checkinFormController'); // Import do checkinController
+
 
 
 // User routes
@@ -109,7 +116,6 @@ router.get('/fundos/predios/:predioId', verifyToken, fundosController.getFundosB
 // Rateio routes
 router.get('/calculateRateio/predios/:predio_id/month/:month/year/:year', verifyToken, calculateRateioController.getRateioByBuildingMonthAndYear);
 
-
 // Rotas para saldo de fundos
 router.get('/saldofundos', verifyToken, saldoFundosController.getAllSaldoFundos); 
 router.get('/saldofundos/predios/:predioId', verifyToken, saldoFundosController.getSaldoFundosByBuildingId);
@@ -119,12 +125,8 @@ router.post('/saldofundos', verifyToken, saldoFundosController.createSaldoFundo)
 router.put('/saldofundos/:id', verifyToken, saldoFundosController.updateSaldoFundo); 
 router.delete('/saldofundos/:id', verifyToken, saldoFundosController.deleteSaldoFundo); 
 
-
 // Definir a rota para o status do servidor
 router.get('/status', statusController.getServerStatus);
-
-// Rota para obter o calendário da Airbnb sem validação de token
-router.get('/airbnb-calendar', airbnbCalendarController.fetchAirbnbCalendar);
 
 // Rota para enviar dados ao Google Script
 router.post('/enviar-dados', googleScriptController.enviarDadosParaGoogleScript);
@@ -167,6 +169,54 @@ router.put('/notasGastoComuns/:id', verifyToken, notasGastoComunsController.upda
 router.delete('/notasGastoComuns/:id', verifyToken, notasGastoComunsController.deleteNotasGastosComuns);
 router.get('/notasGastoComuns/common-expense/:commonExpenseId', verifyToken, notasGastoComunsController.getNotasGastosComunsByCommonExpenseId);
 router.get('/notasGastoComuns/building/:predio_id/month/:month/year/:year', verifyToken, notasGastoComunsController.getNotasGastosComunsByBuildingAndMonth);
+
+
+
+
+//------------------------------Rotas Airbnb----------------------------------------------------------------------------------//
+
+
+// User routes
+router.get('/users-airbnb', verifyToken, usersAirbnbController.getAllUsers);
+router.get('/users-airbnb/:id', verifyToken, usersAirbnbController.getUser);
+router.get('/users-airbnb/role/:role', verifyToken, usersAirbnbController.getUsersByRole);
+router.post('/login-airbnb', usersAirbnbController.loginUser);
+router.post('/users-airbnb', usersAirbnbController.createUser);
+router.post('/users-airbnb/batch', verifyToken, usersAirbnbController.createUsersBatch);
+router.put('/users-airbnb/:id', verifyToken, usersAirbnbController.updateUser);
+router.delete('/users-airbnb/:id', verifyToken, usersAirbnbController.deleteUser);
+
+// PredioAirbnb routes
+router.get('/predios-airbnb', verifyToken, predioAirbnbController.getAllPredios);
+router.get('/predios-airbnb/:id', verifyToken, predioAirbnbController.getPredioById);
+router.post('/predios-airbnb', verifyToken, predioAirbnbController.createPredio);
+router.put('/predios-airbnb/:id', verifyToken, predioAirbnbController.updatePredio);
+router.delete('/predios-airbnb/:id', verifyToken, predioAirbnbController.deletePredio);
+
+// ApartamentosAirbnb routes
+router.get('/apartamentos-airbnb', verifyToken, apartamentosAirbnbController.getAllApartamentos);
+router.get('/apartamentos-airbnb/:id', verifyToken, apartamentosAirbnbController.getApartamentoById);
+router.post('/apartamentos-airbnb', verifyToken, apartamentosAirbnbController.createApartamento);
+router.get('/apartamentos-airbnb/predios/:predioId', verifyToken, apartamentosAirbnbController.getApartamentosByPredioId);
+router.put('/apartamentos-airbnb/:id', verifyToken, apartamentosAirbnbController.updateApartamento);
+router.delete('/apartamentos-airbnb/:id', verifyToken, apartamentosAirbnbController.deleteApartamento);
+
+// ReservasAirbnb routes
+router.get('/reservas-airbnb', reservasAirbnbController.getAllReservas);
+router.get('/reservas-airbnb/:id', reservasAirbnbController.getReservaById);
+router.post('/reservas-airbnb', reservasAirbnbController.createReserva);
+router.get('/reservas-airbnb/apartamentos/:apartamentoId', reservasAirbnbController.getReservasByApartamentoId);
+router.put('/reservas-airbnb/:id', reservasAirbnbController.updateReserva);
+router.delete('/reservas-airbnb/:id', reservasAirbnbController.deleteReserva);
+
+// Rotas de Check-in
+router.get('/checkins', verifyToken, checkinFormController.getAllCheckins); // Listar todos os check-ins
+router.get('/checkins/:id', verifyToken, checkinFormController.getCheckinById); // Obter um check-in por ID
+router.get('/checkins/reserva/:reservaId', verifyToken, checkinFormController.getCheckinsByReservaId); // Obter check-ins por reservaId
+router.get('/checkins/search/:reservaId/:codReserva', verifyToken, checkinFormController.getCheckinByReservaIdOrCodReserva); // Obter check-in por reservaId ou codReserva
+router.post('/checkins', checkinFormController.createCheckin); // Criar um novo check-in
+router.put('/checkins/:id', verifyToken, checkinFormController.updateCheckin); // Atualizar um check-in por ID
+router.delete('/checkins/:id', verifyToken, checkinFormController.deleteCheckin); // Deletar um check-in por ID
 
 
 
