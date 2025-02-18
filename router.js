@@ -19,6 +19,7 @@ const rateiosPorApartamentoController = require('./src/controllers/Admnistracao/
 const rateiosController = require('./src/controllers/Admnistracao/rateiosController');
 const saldosController = require('./src/controllers/Admnistracao/saldoPorPredioController');
 const notasGastoComunsController = require('./src/controllers/Admnistracao/notasGastosComunsController');
+const extratoPdfController = require('./src/controllers/Admnistracao/extratoPdfController');
 
 //-----------------------Controller Airbnb--------------------------------
 const usersAirbnbController = require('./src/controllers/Airbnb/usersController');
@@ -169,6 +170,13 @@ router.put('/notasGastoComuns/:id', verifyToken, notasGastoComunsController.upda
 router.delete('/notasGastoComuns/:id', verifyToken, notasGastoComunsController.deleteNotasGastosComuns);
 router.get('/notasGastoComuns/common-expense/:commonExpenseId', verifyToken, notasGastoComunsController.getNotasGastosComunsByCommonExpenseId);
 router.get('/notasGastoComuns/building/:predio_id/month/:month/year/:year', verifyToken, notasGastoComunsController.getNotasGastosComunsByBuildingAndMonth);
+
+// Exemplo com Express Router
+router.get('/extratos-pdf', extratoPdfController.getAllExtratosPdf);
+router.post('/extratos-pdf', extratoPdfController.createExtratoPdf);
+router.get('/extratos-pdf/:id', verifyToken, extratoPdfController.getExtratoPdfById);
+
+router.get('/extratos-pdf/predio/:predio_id/month/:month/year/:year', extratoPdfController.getExtratosPdfByBuildingMonthYear);
 
 
 
