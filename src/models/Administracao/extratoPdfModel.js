@@ -64,7 +64,6 @@ const updateExtratoPdf = async (extrato) => {
 // Deleta um extrato PDF
 const deleteExtratoPdf = async (id) => {
   const deleteQuery = 'DELETE FROM extratopdf WHERE id = ?';
-  
   try {
     const [result] = await connection.execute(deleteQuery, [id]);
     return result.affectedRows > 0;

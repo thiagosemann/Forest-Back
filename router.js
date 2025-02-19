@@ -174,8 +174,8 @@ router.get('/notasGastoComuns/building/:predio_id/month/:month/year/:year', veri
 // Exemplo com Express Router
 router.get('/extratos-pdf', extratoPdfController.getAllExtratosPdf);
 router.post('/extratos-pdf', extratoPdfController.createExtratoPdf);
+router.delete('/extratos-pdf/:id', verifyToken, extratoPdfController.deleteExtratoPdf);
 router.get('/extratos-pdf/:id', verifyToken, extratoPdfController.getExtratoPdfById);
-
 router.get('/extratos-pdf/predio/:predio_id/month/:month/year/:year', extratoPdfController.getExtratosPdfByBuildingMonthYear);
 
 
