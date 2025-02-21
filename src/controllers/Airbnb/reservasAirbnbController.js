@@ -81,6 +81,26 @@ const deleteReserva = async (request, response) => {
     return response.status(500).json({ error: 'Erro ao deletar reserva' });
   }
 };
+const getReservasPorPeriodo = async (request, response) => {
+  try {
+    const { start, end } = request.query;
+
+    if (!start || !end) {
+      return response.status(400).json({ 
+        error: 'Datas inicial e final são obrigatórias' 
+      });
+    }
+
+    const reservas = await reservaModel.getReservasPorPeriodo(start, end);
+    return response.status(200).json(reservas);
+    
+  } catch (error) {
+    console.error('Erro ao buscar reservas por período:', error);
+    return response.status(500).json({ 
+      error: 'Erro ao buscar reservas por período' 
+    });
+  }
+};
 
 module.exports = {
   getAllReservas,
@@ -88,5 +108,6 @@ module.exports = {
   getReservaById,
   getReservasByApartamentoId,
   updateReserva,
-  deleteReserva
+  deleteReserva,
+  getReservasPorPeriodo
 };

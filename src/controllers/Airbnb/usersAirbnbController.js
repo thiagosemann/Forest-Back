@@ -1,4 +1,4 @@
-const usersModel = require('../../models/Airbnb/usersModel');
+const usersModel = require('../../models/Airbnb/usersAirbnbModel');
 
 const getAllUsers = async (_request, response) => {
   try {

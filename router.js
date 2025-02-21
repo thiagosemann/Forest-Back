@@ -22,7 +22,7 @@ const notasGastoComunsController = require('./src/controllers/Admnistracao/notas
 const extratoPdfController = require('./src/controllers/Admnistracao/extratoPdfController');
 
 //-----------------------Controller Airbnb--------------------------------
-const usersAirbnbController = require('./src/controllers/Airbnb/usersController');
+const usersAirbnbController = require('./src/controllers/Airbnb/usersAirbnbController');
 const predioAirbnbController = require('./src/controllers/Airbnb/predioAirbnbController');
 const apartamentosAirbnbController = require('./src/controllers/Airbnb/apartamentosAirbnbController');
 const reservasAirbnbController = require('./src/controllers/Airbnb/reservasAirbnbController');
@@ -211,6 +211,8 @@ router.delete('/apartamentos-airbnb/:id', verifyToken, apartamentosAirbnbControl
 
 // ReservasAirbnb routes
 router.get('/reservas-airbnb', reservasAirbnbController.getAllReservas);
+router.get('/reservas-airbnb/por-periodo', reservasAirbnbController.getReservasPorPeriodo);
+
 router.get('/reservas-airbnb/:id', reservasAirbnbController.getReservaById);
 router.post('/reservas-airbnb', reservasAirbnbController.createReserva);
 router.get('/reservas-airbnb/apartamentos/:apartamentoId', reservasAirbnbController.getReservasByApartamentoId);

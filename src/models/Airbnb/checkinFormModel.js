@@ -1,5 +1,5 @@
 const connection = require('../connection2');
-const usersModel = require('../Airbnb/usersModel')
+const usersModel = require('../Airbnb/usersAirbnbModel')
 
 const getAllCheckins = async () => {
   const [checkins] = await connection.execute(

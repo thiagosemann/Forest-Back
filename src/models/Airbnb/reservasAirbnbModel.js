@@ -278,6 +278,25 @@ const deleteReserva = async (id) => {
     throw error;
   }
 };
+// Adicione no ReservasModel
+const getReservasPorPeriodo = async (startDate, endDate) => {
+  const query = `
+    SELECT r.*, a.nome AS apartamento_nome, a.valor_limpeza
+    FROM reservas r
+    LEFT JOIN apartamentos a ON r.apartamento_id = a.id
+    WHERE r.end_data BETWEEN ? AND ?
+    ORDER BY r.end_data ASC
+  `;
+  
+  try {
+    const [reservas] = await connection.execute(query, [startDate, endDate]);
+    return reservas;
+  } catch (error) {
+    console.error('Erro ao buscar reservas por período:', error);
+    throw error;
+  }
+};
+
 
 module.exports = {
   getAllReservas,
@@ -285,5 +304,6 @@ module.exports = {
   getReservaById,
   getReservasByApartamentoId,
   updateReserva,
-  deleteReserva
+  deleteReserva,
+  getReservasPorPeriodo
 };
