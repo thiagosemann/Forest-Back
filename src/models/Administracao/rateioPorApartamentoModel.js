@@ -184,6 +184,50 @@ const updateDataPagamento = async (id, dataPagamento) => {
   }
 };
 
+// Função 1 – Rateios Gerados e Pagos no Mês Correto
+const getRateiosGeradosEPagosNoMesCorreto = async (predioId, mes, ano) => {
+  const query = `
+    SELECT rpa.*, 
+           CONCAT(LPAD(r.mes, 2, '0'), '/', r.ano) AS data_vencimento
+    FROM rateio_por_apartamento rpa
+    JOIN rateios r ON rpa.rateio_id = r.id
+    WHERE r.predio_id = ?
+      AND r.mes = ?
+      AND r.ano = ?
+      AND rpa.data_pagamento = CONCAT(LPAD(?, 2, '0'), '/', ?)
+  `;
+
+  try {
+    const [rateios] = await connection.execute(query, [predioId, mes, ano, mes, ano]);
+    return rateios;
+  } catch (error) {
+    console.error('Erro ao buscar rateios gerados e pagos no mês correto:', error);
+    throw error;
+  }
+};
+
+// Função 2 – Rateios Pagos com Geração em Meses Diferentes
+const getRateiosPagosGeradosEmMesesDiferentes = async (predioId, mes, ano) => {
+  const query = `
+    SELECT rpa.*, 
+           CONCAT(LPAD(r.mes, 2, '0'), '/', r.ano) AS data_vencimento
+    FROM rateio_por_apartamento rpa
+    JOIN rateios r ON rpa.rateio_id = r.id
+    WHERE r.predio_id = ?
+      AND rpa.data_pagamento = CONCAT(LPAD(?, 2, '0'), '/', ?)
+      AND NOT (r.mes = ? AND r.ano = ?)
+  `;
+
+  try {
+    const [rateios] = await connection.execute(query, [predioId, mes, ano, mes, ano]);
+    return rateios;
+  } catch (error) {
+    console.error('Erro ao buscar rateios pagos com geração em meses diferentes:', error);
+    throw error;
+  }
+};
+// Função 3 – Rateios Não Pagos 
+
 const getRateiosNaoPagosPorPredioId = async (predioId) => {
   const query = `
     SELECT rpa.*, 
@@ -267,5 +311,7 @@ module.exports = {
   getRateioPorApartamentoByAptId,
   updateDataPagamento,
   getRateiosNaoPagosPorPredioId,
-  atualizarDataPagamento
+  atualizarDataPagamento,
+  getRateiosGeradosEPagosNoMesCorreto,
+  getRateiosPagosGeradosEmMesesDiferentes
 };

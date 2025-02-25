@@ -20,7 +20,6 @@ const createRateioPorApartamento = async (data) => {
   }
 };
 
-
 const getRateioPorApartamentoById = async (request, response) => {
   try {
     const { id } = request.params;
@@ -63,7 +62,6 @@ const getRateiosPorApartamentoByRateioId = async (request, response) => {
     return response.status(500).json({ error: 'Erro ao obter rateios por apartamento por prédio' });
   }
 };
-
 
 const updateRateioPorApartamento = async (request, response) => {
   try {
@@ -142,6 +140,7 @@ const getRateiosNaoPagosPorPredioId = async (request, response) => {
     return response.status(500).json({ error: 'Erro ao obter rateios por prédio' });
   }
 };
+
 // Nova função para atualizar a data de pagamento
 const atualizarDataPagamento = async (request, response) => {
   try {
@@ -161,7 +160,47 @@ const atualizarDataPagamento = async (request, response) => {
   }
 };
 
+// Nova função: Rateios Gerados e Pagos no Mês Correto
+const getRateiosGeradosEPagosNoMesCorreto = async (request, response) => {
+  try {
+    const { predioId, mes, ano } = request.params;
+    if (!predioId || !mes || !ano) {
+      return response.status(400).json({ error: 'Os campos predioId, mes e ano são obrigatórios' });
+    }
 
+    const rateios = await rateiosPorApartamentoModel.getRateiosGeradosEPagosNoMesCorreto(predioId, mes, ano);
+
+    if (rateios && rateios.length > 0) {
+      return response.status(200).json(rateios);
+    } else {
+      return response.status(404).json({ message: 'Nenhum rateio encontrado com geração e pagamento no mesmo mês.' });
+    }
+  } catch (error) {
+    console.error('Erro ao buscar rateios gerados e pagos no mês correto:', error);
+    return response.status(500).json({ error: 'Erro ao buscar rateios gerados e pagos no mês correto' });
+  }
+};
+
+// Nova função: Rateios Pagos com Geração em Meses Diferentes
+const getRateiosPagosGeradosEmMesesDiferentes = async (request, response) => {
+  try {
+    const { predioId, mes, ano } = request.params;
+    if (!predioId || !mes || !ano) {
+      return response.status(400).json({ error: 'Os campos predioId, mes e ano são obrigatórios' });
+    }
+
+    const rateios = await rateiosPorApartamentoModel.getRateiosPagosGeradosEmMesesDiferentes(predioId, mes, ano);
+
+    if (rateios && rateios.length > 0) {
+      return response.status(200).json(rateios);
+    } else {
+      return response.status(404).json({ message: 'Nenhum rateio encontrado com pagamento no mês informado e geração em meses diferentes.' });
+    }
+  } catch (error) {
+    console.error('Erro ao buscar rateios pagos com geração em meses diferentes:', error);
+    return response.status(500).json({ error: 'Erro ao buscar rateios pagos com geração em meses diferentes' });
+  }
+};
 
 module.exports = {
   getAllRateiosPorApartamento,
@@ -173,5 +212,7 @@ module.exports = {
   getRateioPorApartamentoByAptId,
   updateDataPagamento,
   getRateiosNaoPagosPorPredioId,
-  atualizarDataPagamento
+  atualizarDataPagamento,
+  getRateiosGeradosEPagosNoMesCorreto,
+  getRateiosPagosGeradosEmMesesDiferentes
 };
