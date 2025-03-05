@@ -181,10 +181,7 @@ router.get('/extratos-pdf/:id', verifyToken, extratoPdfController.getExtratoPdfB
 router.get('/extratos-pdf/predio/:predio_id/month/:month/year/:year', extratoPdfController.getExtratosPdfByBuildingMonthYear);
 
 
-
-
 //------------------------------Rotas Airbnb----------------------------------------------------------------------------------//
-
 
 // User routes
 router.get('/users-airbnb', verifyToken, usersAirbnbController.getAllUsers);
