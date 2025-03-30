@@ -6,10 +6,10 @@ const getAllBuildings = async () => {
 };
 
 const createBuilding = async (building) => {
-  const { nome, CNPJ, sindico, email, qnt_Apartamentos, sindico_id } = building;
-  console.log("building",building)
-  const insertBuildingQuery = 'INSERT INTO predios (nome, CNPJ, sindico, email, qnt_Apartamentos, sindico_id) VALUES (?, ?, ?, ?, ?, ?)';
-  const values = [nome, CNPJ, sindico, email, qnt_Apartamentos, sindico_id];
+  const { nome, CNPJ, sindico, email, qnt_Apartamentos, sindico_id, cep } = building;
+  console.log("building", building);
+  const insertBuildingQuery = 'INSERT INTO predios (nome, CNPJ, sindico, email, qnt_Apartamentos, sindico_id, cep) VALUES (?, ?, ?, ?, ?, ?, ?)';
+  const values = [nome, CNPJ, sindico, email, qnt_Apartamentos, sindico_id, cep];
 
   try {
     const [result] = await connection.execute(insertBuildingQuery, values);
@@ -32,7 +32,7 @@ const getBuilding = async (id) => {
 };
 
 const updateBuilding = async (id, building) => {
-  const { nome, CNPJ, sindico, email, qnt_Apartamentos, sindico_id } = building;
+  const { nome, CNPJ, sindico, email, qnt_Apartamentos, sindico_id, cep } = building;
 
   const getBuildingQuery = 'SELECT * FROM predios WHERE id = ?';
   const [existingBuildings] = await connection.execute(getBuildingQuery, [id]);
@@ -43,11 +43,11 @@ const updateBuilding = async (id, building) => {
 
   const updateBuildingQuery = `
     UPDATE predios 
-    SET nome = ?, CNPJ = ?, sindico = ?, email = ?, qnt_Apartamentos = ?, sindico_id = ?
+    SET nome = ?, CNPJ = ?, sindico = ?, email = ?, qnt_Apartamentos = ?, sindico_id = ?, cep = ?
     WHERE id = ?
   `;
 
-  const values = [nome, CNPJ, sindico, email, qnt_Apartamentos, sindico_id, id];
+  const values = [nome, CNPJ, sindico, email, qnt_Apartamentos, sindico_id, cep, id];
 
   try {
     await connection.execute(updateBuildingQuery, values);
@@ -59,19 +59,19 @@ const updateBuilding = async (id, building) => {
 };
 
 const deleteBuilding = async (id) => {
-  // Check if the building exists
+  // Verifica se o prédio existe
   const getBuildingQuery = 'SELECT * FROM predios WHERE id = ?';
   const [existingBuildings] = await connection.execute(getBuildingQuery, [id]);
 
   if (existingBuildings.length === 0) {
-    return null; // Return null if the building doesn't exist
+    return null;
   }
 
-  // Delete the building
+  // Deleta o prédio
   const deleteBuildingQuery = 'DELETE FROM predios WHERE id = ?';
   try {
     await connection.execute(deleteBuildingQuery, [id]);
-    return true; // Return true if the building was deleted successfully
+    return true;
   } catch (error) {
     console.error('Erro ao excluir prédio:', error);
     throw error;
