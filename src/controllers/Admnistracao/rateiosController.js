@@ -22,7 +22,7 @@ const createRateio = async (request, response) => {
 
     for (const apartamento of usersRateio) {
       // Garantir que fracao_vagas seja 0 caso não exista
-      const fracaoVagas = apartamento.fracao_vagas ? apartamento.fracao_vagas : 0;
+      const fracaoVagas = Number(apartamento.fracao_total) - Number(apartamento.apt_fracao);
 
       const rateioPorApartamento = {
         apartamento_id: apartamento.apartamento_id,
@@ -37,7 +37,6 @@ const createRateio = async (request, response) => {
         fracao_vagas: fracaoVagas, // Atribui 0 caso não exista
         fracao_total: apartamento.fracao_total
       };
-
       // Chamada para criar o rateio por apartamento
       await rateiosPorApartamentoController.createRateioPorApartamento(rateioPorApartamento);
     }
