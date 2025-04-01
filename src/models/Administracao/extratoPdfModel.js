@@ -9,7 +9,7 @@ const getAllExtratosPdf = async () => {
 
 // Cria um novo extrato PDF
 const createExtratoPdf = async (extrato) => {
-  const { documentoBuffer, tipo, predio_id, data_gasto } = extrato; // Adicionados tipo e predio_id
+  const { documento, tipo, predio_id, data_gasto } = extrato; // Adicionados tipo e predio_id
   const insertQuery = `
     INSERT INTO extratopdf 
       (documento, tipo, predio_id, data_gasto)
@@ -18,7 +18,7 @@ const createExtratoPdf = async (extrato) => {
   
   try {
     const [result] = await connection.execute(insertQuery, 
-      [documentoBuffer, tipo, predio_id, data_gasto] // Nova ordem
+      [documento, tipo, predio_id, data_gasto] // Nova ordem
     );
     return { id: result.insertId };
   } catch (error) {
@@ -43,7 +43,7 @@ const getExtratoPdfById = async (id) => {
 
 // Atualiza um extrato PDF
 const updateExtratoPdf = async (extrato) => {
-  const { id, documentoBuffer, tipo, predio_id, data_gasto } = extrato; // Adicionados tipo e predio_id
+  const { id, documento, tipo, predio_id, data_gasto } = extrato; // Adicionados tipo e predio_id
   const updateQuery = `
     UPDATE extratopdf 
     SET documento = ?, tipo = ?, predio_id = ?, data_gasto = ?
@@ -52,7 +52,7 @@ const updateExtratoPdf = async (extrato) => {
   
   try {
     const [result] = await connection.execute(updateQuery, 
-      [documentoBuffer, tipo, predio_id, data_gasto, id] // Nova ordem
+      [documento, tipo, predio_id, data_gasto, id] // Nova ordem
     );
     return result.affectedRows > 0;
   } catch (error) {

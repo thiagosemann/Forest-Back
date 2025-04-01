@@ -12,7 +12,7 @@ const getAllExtratosPdf = async (request, response) => {
 
 const createExtratoPdf = async (request, response) => {
   try {
-    if (!request.body || !request.body.documentoBuffer) {
+    if (!request.body || !request.body.documento) {
       return response.status(400).json({ error: 'Arquivo PDF não fornecido' });
     }
 
@@ -44,14 +44,14 @@ const updateExtratoPdf = async (request, response) => {
   try {
     const { id } = request.params;
 
-    let documentoBuffer = null;
-    if (request.files && request.files.documentoBuffer) {
-      documentoBuffer = request.files.documentoBuffer.data;
+    let documento = null;
+    if (request.files && request.files.documento) {
+      documento = request.files.documento.data;
     }
 
     const { data_gasto } = request.body;
 
-    const extrato = { id, documentoBuffer, data_gasto };
+    const extrato = { id, documento, data_gasto };
     const wasUpdated = await extratosPdfModel.updateExtratoPdf(extrato);
 
     if (wasUpdated) {
