@@ -20,6 +20,7 @@ const rateiosController = require('./src/controllers/Admnistracao/rateiosControl
 const saldosController = require('./src/controllers/Admnistracao/saldoPorPredioController');
 const notasGastoComunsController = require('./src/controllers/Admnistracao/notasGastosComunsController');
 const extratoPdfController = require('./src/controllers/Admnistracao/extratoPdfController');
+const usersApartamentosController = require('./src/controllers/Admnistracao/usersApartamentosController');
 
 //-----------------------Controller Airbnb--------------------------------
 const usersAirbnbController = require('./src/controllers/Airbnb/usersAirbnbController');
@@ -179,6 +180,14 @@ router.post('/extratos-pdf', extratoPdfController.createExtratoPdf);
 router.delete('/extratos-pdf/:id', verifyToken, extratoPdfController.deleteExtratoPdf);
 router.get('/extratos-pdf/:id', verifyToken, extratoPdfController.getExtratoPdfById);
 router.get('/extratos-pdf/predio/:predio_id/month/:month/year/:year', extratoPdfController.getExtratosPdfByBuildingMonthYear);
+
+
+// Cria uma relação entre usuário e apartamento
+router.post('/users-apartamentos', verifyToken, usersApartamentosController.createUserApartamento);
+router.get('/users-apartamentos', verifyToken, usersApartamentosController.getAllUserApartamentos);
+router.get('/users-apartamentos/user/:userId', verifyToken, usersApartamentosController.getApartamentosByUserId);
+router.get('/users-apartamentos/apartamento/:apartamentoId', verifyToken, usersApartamentosController.getUsersByApartamentoId);
+router.delete('/users-apartamentos/:user_id/:apartamento_id', verifyToken, usersApartamentosController.deleteUserApartamento);
 
 
 //------------------------------Rotas Airbnb----------------------------------------------------------------------------------//
