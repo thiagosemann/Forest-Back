@@ -21,13 +21,7 @@ const saldosController = require('./src/controllers/Admnistracao/saldoPorPredioC
 const notasGastoComunsController = require('./src/controllers/Admnistracao/notasGastosComunsController');
 const extratoPdfController = require('./src/controllers/Admnistracao/extratoPdfController');
 const usersApartamentosController = require('./src/controllers/Admnistracao/usersApartamentosController');
-
-//-----------------------Controller Airbnb--------------------------------
-const usersAirbnbController = require('./src/controllers/Airbnb/usersAirbnbController');
-const predioAirbnbController = require('./src/controllers/Airbnb/predioAirbnbController');
-const apartamentosAirbnbController = require('./src/controllers/Airbnb/apartamentosAirbnbController');
-const reservasAirbnbController = require('./src/controllers/Airbnb/reservasAirbnbController');
-const checkinFormController = require('./src/controllers/Airbnb/checkinFormController'); // Import do checkinController
+const rateioBoletoEmailController = require('./src/controllers/Admnistracao/rateiosBoletosEmailController');
 
 
 
@@ -156,6 +150,7 @@ router.put('/rateiosPorApartamento/:id', verifyToken, rateiosPorApartamentoContr
 router.delete('/rateiosPorApartamento/:id', verifyToken, rateiosPorApartamentoController.deleteRateioPorApartamento);
 router.get('/rateiosPorApartamento/gerados-pagos/:predioId/:mes/:ano', verifyToken, rateiosPorApartamentoController.getRateiosGeradosEPagosNoMesCorreto);
 router.get('/rateiosPorApartamento/pagos-diferentes/:predioId/:mes/:ano', verifyToken, rateiosPorApartamentoController.getRateiosPagosGeradosEmMesesDiferentes);
+router.get('/rateiosPorApartamento/rateiosPdfNames/:rateioId', verifyToken, rateiosPorApartamentoController.getRateiosEPdfsNames);
 
 // Rotas para saldos_por_predio
 router.get('/saldos', verifyToken, saldosController.getAllSaldos);
@@ -189,54 +184,12 @@ router.get('/users-apartamentos/user/:userId', verifyToken, usersApartamentosCon
 router.get('/users-apartamentos/apartamento/:apartamentoId', verifyToken, usersApartamentosController.getUsersByApartamentoId);
 router.delete('/users-apartamentos/:user_id/:apartamento_id', verifyToken, usersApartamentosController.deleteUserApartamento);
 
-
-//------------------------------Rotas Airbnb----------------------------------------------------------------------------------//
-
-// User routes
-router.get('/users-airbnb', verifyToken, usersAirbnbController.getAllUsers);
-router.get('/users-airbnb/:id', verifyToken, usersAirbnbController.getUser);
-router.get('/users-airbnb/role/:role', verifyToken, usersAirbnbController.getUsersByRole);
-router.post('/login-airbnb', usersAirbnbController.loginUser);
-router.post('/users-airbnb', usersAirbnbController.createUser);
-router.post('/users-airbnb/batch', verifyToken, usersAirbnbController.createUsersBatch);
-router.put('/users-airbnb/:id', verifyToken, usersAirbnbController.updateUser);
-router.delete('/users-airbnb/:id', verifyToken, usersAirbnbController.deleteUser);
-
-// PredioAirbnb routes
-router.get('/predios-airbnb', verifyToken, predioAirbnbController.getAllPredios);
-router.get('/predios-airbnb/:id', verifyToken, predioAirbnbController.getPredioById);
-router.post('/predios-airbnb', verifyToken, predioAirbnbController.createPredio);
-router.put('/predios-airbnb/:id', verifyToken, predioAirbnbController.updatePredio);
-router.delete('/predios-airbnb/:id', verifyToken, predioAirbnbController.deletePredio);
-
-// ApartamentosAirbnb routes
-router.get('/apartamentos-airbnb', verifyToken, apartamentosAirbnbController.getAllApartamentos);
-router.get('/apartamentos-airbnb/:id', verifyToken, apartamentosAirbnbController.getApartamentoById);
-router.post('/apartamentos-airbnb', verifyToken, apartamentosAirbnbController.createApartamento);
-router.get('/apartamentos-airbnb/predios/:predioId', verifyToken, apartamentosAirbnbController.getApartamentosByPredioId);
-router.put('/apartamentos-airbnb/:id', verifyToken, apartamentosAirbnbController.updateApartamento);
-router.delete('/apartamentos-airbnb/:id', verifyToken, apartamentosAirbnbController.deleteApartamento);
-
-// ReservasAirbnb routes
-router.get('/reservas-airbnb', reservasAirbnbController.getAllReservas);
-router.get('/reservas-airbnb/por-periodo', reservasAirbnbController.getReservasPorPeriodo);
-
-router.get('/reservas-airbnb/:id', reservasAirbnbController.getReservaById);
-router.post('/reservas-airbnb', reservasAirbnbController.createReserva);
-router.get('/reservas-airbnb/apartamentos/:apartamentoId', reservasAirbnbController.getReservasByApartamentoId);
-router.put('/reservas-airbnb/:id', reservasAirbnbController.updateReserva);
-router.delete('/reservas-airbnb/:id', reservasAirbnbController.deleteReserva);
-
-// Rotas de Check-in
-router.get('/checkins', verifyToken, checkinFormController.getAllCheckins); // Listar todos os check-ins
-router.get('/checkins/:id', verifyToken, checkinFormController.getCheckinById); // Obter um check-in por ID
-router.get('/checkins/reserva/:reservaId', verifyToken, checkinFormController.getCheckinsByReservaId); // Obter check-ins por reservaId
-router.get('/checkins/search/:reservaId/:codReserva', verifyToken, checkinFormController.getCheckinByReservaIdOrCodReserva); // Obter check-in por reservaId ou codReserva
-router.post('/checkins', checkinFormController.createCheckin); // Criar um novo check-in
-router.put('/checkins/:id', verifyToken, checkinFormController.updateCheckin); // Atualizar um check-in por ID
-router.delete('/checkins/:id', verifyToken, checkinFormController.deleteCheckin); // Deletar um check-in por ID
-
-
+// Rotas para Rateio Boleto Email
+router.get('/rateioBoletoEmails', verifyToken, rateioBoletoEmailController.getAllRateioBoletoEmails);
+router.post('/rateioBoletoEmails', verifyToken, rateioBoletoEmailController.createRateioBoletoEmail);
+router.get('/rateioBoletoEmails/:id', verifyToken, rateioBoletoEmailController.getRateioBoletoEmailById); 
+router.put('/rateioBoletoEmails/:id', verifyToken, rateioBoletoEmailController.updateRateioBoletoEmail);   
+router.delete('/rateioBoletoEmails/:id',verifyToken,rateioBoletoEmailController.deleteRateioBoletoEmail);
 
 module.exports = router;
 

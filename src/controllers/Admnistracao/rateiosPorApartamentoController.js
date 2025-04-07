@@ -202,6 +202,29 @@ const getRateiosPagosGeradosEmMesesDiferentes = async (request, response) => {
   }
 };
 
+const getRateiosEPdfsNames = async (request, response) => {
+  try {
+    const { rateioId } = request.params;
+    
+    if (!rateioId) {
+      return response.status(400).json({ error: 'O parâmetro rateioId é obrigatório' });
+    }
+
+    const rateios = await rateiosPorApartamentoModel.getRateiosEPdfsNames(rateioId);
+    
+    if (rateios.length > 0) {
+      return response.status(200).json(rateios);
+    } else {
+      return response.status(404).json({ message: 'Nenhum rateio encontrado para o ID fornecido' });
+    }
+  } catch (error) {
+    console.error('Erro ao obter dados parciais do rateio:', error);
+    return response.status(500).json({ 
+      error: 'Erro ao obter dados parciais do rateio',
+      details: error.message 
+    });
+  }
+};
 module.exports = {
   getAllRateiosPorApartamento,
   createRateioPorApartamento,
@@ -214,5 +237,6 @@ module.exports = {
   getRateiosNaoPagosPorPredioId,
   atualizarDataPagamento,
   getRateiosGeradosEPagosNoMesCorreto,
-  getRateiosPagosGeradosEmMesesDiferentes
+  getRateiosPagosGeradosEmMesesDiferentes,
+  getRateiosEPdfsNames
 };

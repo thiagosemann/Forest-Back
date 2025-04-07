@@ -9,6 +9,7 @@ const createRateioPorApartamento = async (rateioPorApartamento) => {
   const {
     apartamento_id,
     rateio_id,
+    rateio_boleto_email_id, // Nova coluna
     valor,
     apt_name,
     apt_fracao,
@@ -22,12 +23,15 @@ const createRateioPorApartamento = async (rateioPorApartamento) => {
 
   const insertRateioQuery = `
     INSERT INTO rateio_por_apartamento 
-    (apartamento_id, rateio_id, valor, apt_name, apt_fracao, valorIndividual, valorComum, valorProvisoes, valorFundos, fracao_vagas, fracao_total, data_pagamento) 
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    (apartamento_id, rateio_id, rateio_boleto_email_id, valor, apt_name, apt_fracao, 
+     valorIndividual, valorComum, valorProvisoes, valorFundos, fracao_vagas, fracao_total, data_pagamento) 
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
+  
   const values = [
     apartamento_id,
     rateio_id,
+    rateio_boleto_email_id || null, // Tratamento do novo campo
     valor,
     apt_name,
     apt_fracao,
@@ -37,7 +41,7 @@ const createRateioPorApartamento = async (rateioPorApartamento) => {
     valorFundos,
     fracao_vagas,
     fracao_total,
-    "", // Valor padrão para data_pagamento
+    ""
   ];
 
   try {
@@ -49,6 +53,82 @@ const createRateioPorApartamento = async (rateioPorApartamento) => {
   }
 };
 
+const updateRateioPorApartamento = async (rateioPorApartamento) => {
+  const {
+    id,
+    rateio_boleto_email_id, // Novo campo
+    apartamento_id,
+    rateio_id,
+    valor,
+    apt_name,
+    apt_fracao,
+    valorIndividual,
+    valorComum,
+    valorProvisoes,
+    valorFundos,
+    fracao_vagas,
+    fracao_total,
+  } = rateioPorApartamento;
+
+  const updateRateioQuery = `
+    UPDATE rateio_por_apartamento
+    SET 
+      apartamento_id = ?, 
+      rateio_id = ?,
+      rateio_boleto_email_id = ?,  -- Novo campo
+      valor = ?, 
+      apt_name = ?, 
+      apt_fracao = ?, 
+      valorIndividual = ?, 
+      valorComum = ?, 
+      valorProvisoes = ?, 
+      valorFundos = ?, 
+      fracao_vagas = ?, 
+      fracao_total = ?
+    WHERE id = ?
+  `;
+
+  const values = [
+    apartamento_id,
+    rateio_id,
+    rateio_boleto_email_id || null,  // Tratamento do novo campo
+    valor,
+    apt_name,
+    apt_fracao,
+    valorIndividual,
+    valorComum,
+    valorProvisoes,
+    valorFundos,
+    fracao_vagas,
+    fracao_total,
+    id,
+  ];
+
+  try {
+    const [result] = await connection.execute(updateRateioQuery, values);
+    return result.affectedRows > 0; // Retorna true se o rateio foi atualizado com sucesso
+  } catch (error) {
+    console.error('Erro ao atualizar rateio por apartamento:', error);
+    throw error;
+  }
+};
+
+const updateRateioBoletoEmailId = async (rateioApartamentoId, rateioBoletoEmailId) => {
+  const query = `
+    UPDATE rateio_por_apartamento
+    SET rateio_boleto_email_id = ?
+    WHERE id = ?
+  `;
+  
+  try {
+    const [result] = await connection.execute(query, [rateioBoletoEmailId, rateioApartamentoId]);
+    return result.affectedRows > 0;
+  } catch (error) {
+    console.error('Erro ao atualizar vínculo:', error);
+    throw error;
+  }
+};
+
 
 const getRateioPorApartamentoById = async (id) => {
   const query = 'SELECT * FROM rateio_por_apartamento WHERE id = ?';
@@ -56,6 +136,7 @@ const getRateioPorApartamentoById = async (id) => {
 
   return rateios.length > 0 ? rateios[0] : null;
 };
+
 const getRateioPorApartamentoByAptId = async (apartamentoId) => {
   // Primeiro, buscar os valores e rateio_id da tabela rateio_por_apartamento
   const queryRateioPorApartamento = `
@@ -100,58 +181,20 @@ const getRateiosPorRateioId = async (rateioId) => {
   return rateios;
 };
 
-const updateRateioPorApartamento = async (rateioPorApartamento) => {
-  const {
-    id,
-    apartamento_id,
-    rateio_id,
-    valor,
-    apt_name,
-    apt_fracao,
-    valorIndividual,
-    valorComum,
-    valorProvisoes,
-    valorFundos,
-    fracao_vagas,
-    fracao_total,
-  } = rateioPorApartamento;
-
-  const updateRateioQuery = `
-    UPDATE rateio_por_apartamento
-    SET 
-      apartamento_id = ?, 
-      rateio_id = ?, 
-      valor = ?, 
-      apt_name = ?, 
-      apt_fracao = ?, 
-      valorIndividual = ?, 
-      valorComum = ?, 
-      valorProvisoes = ?, 
-      valorFundos = ?, 
-      fracao_vagas = ?, 
-      fracao_total = ?
-    WHERE id = ?
+const getApartamentoByRateioIdEApartamentoId = async (rateioId, apartamentoId) => {
+  const query = `
+    SELECT * 
+    FROM rateio_por_apartamento 
+    WHERE rateio_id = ? 
+      AND apartamento_id = ?
+    LIMIT 1
   `;
-  const values = [
-    apartamento_id,
-    rateio_id,
-    valor,
-    apt_name,
-    apt_fracao,
-    valorIndividual,
-    valorComum,
-    valorProvisoes,
-    valorFundos,
-    fracao_vagas,
-    fracao_total,
-    id,
-  ];
 
   try {
-    const [result] = await connection.execute(updateRateioQuery, values);
-    return result.affectedRows > 0; // Retorna true se o rateio foi atualizado com sucesso
+    const [result] = await connection.execute(query, [rateioId, apartamentoId]);
+    return result.length > 0 ? result[0] : null;
   } catch (error) {
-    console.error('Erro ao atualizar rateio por apartamento:', error);
+    console.error('Erro ao buscar rateio por apartamento:', error);
     throw error;
   }
 };
@@ -301,17 +344,58 @@ const atualizarDataPagamento = async (pagamentosConsolidados) => {
   }
 };
 
+const getRateiosEPdfsNames = async (rateioId) => {
+  const query = `
+    SELECT 
+      rpa.apartamento_id,
+      rpa.rateio_id,
+      rpa.rateio_boleto_email_id,
+      rpa.apt_name,
+      rpa.valor,
+      rbe.rateioPdfFileName,
+      rbe.boletoPdfFileName
+    FROM rateio_por_apartamento rpa
+    LEFT JOIN rateioBoletoEmail rbe 
+      ON rpa.rateio_boleto_email_id = rbe.id
+    WHERE rpa.rateio_id = ?
+  `;
+
+  try {
+    const [result] = await connection.execute(query, [rateioId]);
+    
+    // Formata o resultado para garantir campos mesmo quando não houver relacionamento
+    return result.map(item => ({
+      apartamento_id: item.apartamento_id,
+      rateio_id: item.rateio_id,
+      rateio_boleto_email_id: item.rateio_boleto_email_id || null,
+      apt_name: item.apt_name,
+      valor: item.valor,
+      rateioPdfFileName: item.rateioPdfFileName || null,
+      boletoPdfFileName: item.boletoPdfFileName || null
+    }));
+    
+  } catch (error) {
+    console.error('Erro ao buscar dados parciais do rateio:', error);
+    throw error;
+  }
+};
+
+
+
 module.exports = {
   getAllRateiosPorApartamento,
-  createRateioPorApartamento,
   getRateioPorApartamentoById,
   getRateiosPorRateioId,
+  getRateioPorApartamentoByAptId,
+  getRateiosNaoPagosPorPredioId,
+  getRateiosGeradosEPagosNoMesCorreto,
+  getRateiosPagosGeradosEmMesesDiferentes,
+  getRateiosEPdfsNames,
+  createRateioPorApartamento,
   updateRateioPorApartamento,
   deleteRateioPorApartamento,
-  getRateioPorApartamentoByAptId,
   updateDataPagamento,
-  getRateiosNaoPagosPorPredioId,
   atualizarDataPagamento,
-  getRateiosGeradosEPagosNoMesCorreto,
-  getRateiosPagosGeradosEmMesesDiferentes
+  updateRateioBoletoEmailId,
+  getApartamentoByRateioIdEApartamentoId
 };
