@@ -66,11 +66,11 @@ const updateRateioBoletoEmail = async ({
   return result.affectedRows > 0;
 };
 
-// Deleta um registro
 const deleteRateioBoletoEmail = async (id, tipo) => {
   const registro = await getRateioBoletoEmailById(id);
   if (!registro) return false;
 
+  // 1) Zera os campos de PDF no rateioBoletoEmail
   let query = 'UPDATE rateioBoletoEmail SET ';
   const params = [];
 
@@ -87,17 +87,32 @@ const deleteRateioBoletoEmail = async (id, tipo) => {
 
   await connection.execute(query, params);
 
+  // 2) Verifica se todos os campos de PDF estão nulos
   const updated = await getRateioBoletoEmailById(id);
-  const allFieldsNull = !updated.boletoPdf && !updated.boletoPdfFileName && !updated.rateioPdf && !updated.rateioPdfFileName;
+  const allFieldsNull =
+    !updated.boletoPdf &&
+    !updated.boletoPdfFileName &&
+    !updated.rateioPdf &&
+    !updated.rateioPdfFileName;
 
   if (allFieldsNull) {
-    await connection.execute('DELETE FROM rateio_por_apartamento WHERE rateio_boleto_email_id = ?', [id]);
-    const [result] = await connection.execute('DELETE FROM rateioBoletoEmail WHERE id = ?', [id]);
+    // 3) Em vez de deletar, apenas desassocia na rateio_por_apartamento
+    await connection.execute(
+      'UPDATE rateio_por_apartamento SET rateio_boleto_email_id = NULL WHERE rateio_boleto_email_id = ?',
+      [id]
+    );
+
+    // 4) Aí sim podemos deletar o registro em rateioBoletoEmail
+    const [result] = await connection.execute(
+      'DELETE FROM rateioBoletoEmail WHERE id = ?',
+      [id]
+    );
     return result.affectedRows > 0;
   }
 
   return true;
 };
+
 
 module.exports = {
   getAllRateioBoletoEmails,
