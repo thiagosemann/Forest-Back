@@ -23,7 +23,6 @@ const createUser = async (user) => {
     documentBase64, 
     Telefone 
   } = user;
-  console.log(user)
   let hashedPassword = password ? await bcrypt.hash(password, saltRounds) : null;
   const roleValue = role || 'guest';
 
