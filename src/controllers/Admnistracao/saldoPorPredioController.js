@@ -51,7 +51,6 @@ const updateSaldo = async (request, response) => {
   try {
     const { id } = request.params;
     const saldo = { ...request.body, id };
-
     const wasUpdated = await saldosModel.updateSaldo(saldo);
 
     if (wasUpdated) {
