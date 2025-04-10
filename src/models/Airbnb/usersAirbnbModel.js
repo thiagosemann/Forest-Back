@@ -23,17 +23,16 @@ const createUser = async (user) => {
     documentBase64, 
     Telefone 
   } = user;
-
+  console.log(user)
   let hashedPassword = password ? await bcrypt.hash(password, saltRounds) : null;
   const roleValue = role || 'guest';
 
-  const checkUserExistsQuery = 'SELECT * FROM users WHERE cpf = ? OR email = ?';
-  const [existingUsers] = await connection.execute(checkUserExistsQuery, [cpf, email || '']);
+  const checkUserExistsQuery = 'SELECT * FROM users WHERE cpf = ?';
+  const [existingUsers] = await connection.execute(checkUserExistsQuery, [cpf || '']);
 
   if (existingUsers.length > 0) {
     let conflictField = '';
     if (existingUsers[0].cpf === cpf) conflictField = 'CPF';
-    else if (existingUsers[0].email === email) conflictField = 'e-mail';
     throw new Error(`Usuário com esse ${conflictField} já existe.`);
   }
 
