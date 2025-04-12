@@ -272,16 +272,6 @@ const getRateiosPagosGeradosEmMesesDiferentes = async (predioId, mes, ano) => {
 // Função 3 – Rateios Não Pagos 
 
 const getRateiosNaoPagosPorPredioId = async (predioId, mes, ano) => {
-  // Calcula o mês e ano do período imediatamente anterior
-  let mesAnterior, anoAnterior;
-  if (mes === 1) {
-    mesAnterior = 12;
-    anoAnterior = ano - 1;
-  } else {
-    mesAnterior = mes - 1;
-    anoAnterior = ano;
-  }
- 
   const query = `
     SELECT rpa.*, 
            CONCAT(LPAD(r.mes, 2, '0'), '/', r.ano) AS data_vencimento
@@ -290,18 +280,20 @@ const getRateiosNaoPagosPorPredioId = async (predioId, mes, ano) => {
     JOIN rateios r ON rpa.rateio_id = r.id
     WHERE apt.predio_id = ?
       AND (
-        (r.ano = ? AND r.mes = ?)
-        OR (r.ano = ? AND r.mes = ?)
+        (r.ano < ?)
+        OR (r.ano = ? AND r.mes <= ?)
       )
       AND (rpa.data_pagamento IS NULL OR rpa.data_pagamento = '')
   `;
 
   try {
-    // Parâmetros: predioId, ano/mês atual e ano/mês anterior
+    // Parâmetros: predioId, ano para r.ano < ?, 
+    // e para r.ano = ? e r.mes <= ? (inclui o mês atual)
     const [rateios] = await connection.execute(query, [
-      predioId, 
-      ano, mes, 
-      anoAnterior, mesAnterior
+      predioId,
+      ano,
+      ano,
+      mes
     ]);
     return rateios;
   } catch (error) {
@@ -309,6 +301,8 @@ const getRateiosNaoPagosPorPredioId = async (predioId, mes, ano) => {
     throw error;
   }
 };
+
+
 
 
 const atualizarDataPagamento = async (pagamentosConsolidados) => {
