@@ -150,7 +150,7 @@ router.get('/rateiosPorApartamento', verifyToken, rateiosPorApartamentoControlle
 router.get('/rateiosPorApartamento/apartamento/:apartamentoId', verifyToken, rateiosPorApartamentoController.getRateioPorApartamentoByAptId);
 router.get('/rateiosPorApartamento/rateio/:rateioId', verifyToken, rateiosPorApartamentoController.getRateiosPorApartamentoByRateioId);
 router.get('/rateiosPorApartamento/:id', verifyToken, rateiosPorApartamentoController.getRateioPorApartamentoById);
-router.get('/rateiosPorApartamento/inadimplentes/predio/:predioId', verifyToken, rateiosPorApartamentoController.getRateiosNaoPagosPorPredioId);
+router.get('/rateiosPorApartamento/inadimplentes/predio/:predioId/:mes/:ano', verifyToken, rateiosPorApartamentoController.getRateiosNaoPagosPorPredioId);
 router.post('/rateiosPorApartamento', verifyToken, rateiosPorApartamentoController.createRateioPorApartamento);
 router.post('/rateiosPorApartamento/atualizar-data-pagamento', verifyToken, rateiosPorApartamentoController.atualizarDataPagamento);
 router.put('/rateiosPorApartamento/:id/update-data-pagamento', verifyToken, rateiosPorApartamentoController.updateDataPagamento);

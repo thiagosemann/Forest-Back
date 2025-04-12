@@ -122,13 +122,13 @@ const updateDataPagamento = async (request, response) => {
 
 const getRateiosNaoPagosPorPredioId = async (request, response) => {
   try {
-    const { predioId } = request.params;
-
+    const { predioId,mes, ano } = request.params;
+    
     if (!predioId) {
       return response.status(400).json({ error: 'O campo predioId é obrigatório' });
     }
 
-    const rateios = await rateiosPorApartamentoModel.getRateiosNaoPagosPorPredioId(predioId);
+    const rateios = await rateiosPorApartamentoModel.getRateiosNaoPagosPorPredioId(predioId,mes, ano);
 
     if (rateios.length > 0) {
       return response.status(200).json(rateios);
