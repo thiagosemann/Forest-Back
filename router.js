@@ -22,6 +22,7 @@ const notasGastoComunsController = require('./src/controllers/Admnistracao/notas
 const extratoPdfController = require('./src/controllers/Admnistracao/extratoPdfController');
 const usersApartamentosController = require('./src/controllers/Admnistracao/usersApartamentosController');
 const rateioBoletoEmailController = require('./src/controllers/Admnistracao/rateiosBoletosEmailController');
+const prestacaoCobrancaBoletosController = require('./src/controllers/Admnistracao/prestacaoCobrancaBoletosController');
 
 
 //-----------------------Controller Airbnb--------------------------------
@@ -199,6 +200,13 @@ router.get('/rateioBoletoEmails/:id', verifyToken, rateioBoletoEmailController.g
 router.put('/rateioBoletoEmails/:id', verifyToken, rateioBoletoEmailController.updateRateioBoletoEmail);   
 router.delete('/rateioBoletoEmails/:id',verifyToken,rateioBoletoEmailController.deleteRateioBoletoEmail);
 
+// Rotas para boletos de prestação de cobrança
+router.get('/prestacaoCobrancaBoletos', verifyToken, prestacaoCobrancaBoletosController.getAllPrestacaoCobrancaBoletos);
+router.get('/prestacaoCobrancaBoletos/:id', verifyToken, prestacaoCobrancaBoletosController.getPrestacaoCobrancaBoletoById);
+router.post('/prestacaoCobrancaBoletos', verifyToken, prestacaoCobrancaBoletosController.createPrestacaoCobrancaBoletos);
+router.put('/prestacaoCobrancaBoletos/:id', verifyToken, prestacaoCobrancaBoletosController.updatePrestacaoCobrancaBoleto);
+router.delete('/prestacaoCobrancaBoletos/:id', verifyToken, prestacaoCobrancaBoletosController.deletePrestacaoCobrancaBoleto);
+router.get('/prestacaoCobrancaBoletos/building/:predio_id/month/:month/year/:year', verifyToken, prestacaoCobrancaBoletosController.getPrestacaoCobrancaBoletosByBuildingAndMonth);
 
 
 //------------------------------Rotas Airbnb----------------------------------------------------------------------------------//
