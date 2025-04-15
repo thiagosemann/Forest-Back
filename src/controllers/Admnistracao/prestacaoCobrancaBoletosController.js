@@ -17,13 +17,13 @@ const createPrestacaoCobrancaBoletos = async (req, res) => {
     console.log(req.body);
 
     // Verificação básica dos parâmetros obrigatórios: predio_id e dataEnvio (pdf pode ser nulo)
-    if (!req.body || !req.body.predio_id || !req.body.dataEnvio) {
+    if (!req.body || !req.body.predio_id || !req.body.month || !req.body.year ) {
       return res.status(400).json({ error: 'Parâmetros predio_id e dataEnvio são obrigatórios' });
     }
 
-    const { pdf, predio_id, dataEnvio } = req.body;
+    const { pdf, predio_id, month, year  } = req.body;
 
-    const createdBoleto = await boletosModel.createPrestacaoCobrancaBoletos({ pdf, predio_id, dataEnvio });
+    const createdBoleto = await boletosModel.createPrestacaoCobrancaBoletos({ pdf, predio_id, month, year });
     return res.status(201).json(createdBoleto);
   } catch (error) {
     console.error('Erro ao criar boleto:', error);
