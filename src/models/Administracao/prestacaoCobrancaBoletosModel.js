@@ -8,9 +8,9 @@ const getAllPrestacaoCobrancaBoletos = async () => {
 
 // Cria um novo registro de boleto
 const createPrestacaoCobrancaBoletos = async (boleto) => {
-  const { pdf, predio_id, dataEnvio } = boleto;
-  const insertQuery = 'INSERT INTO prestacaoCobrancaBoletos (pdf, predio_id, dataEnvio) VALUES (?, ?, ?)';
-  const values = [pdf, predio_id, dataEnvio];
+  const { pdf, predio_id, month, year } = boleto;
+  const insertQuery = 'INSERT INTO prestacaoCobrancaBoletos (pdf, predio_id, month, year) VALUES (?, ?, ?, ?)';
+  const values = [pdf, predio_id, month, year];
 
   try {
     const [result] = await connection.execute(insertQuery, values);
@@ -28,7 +28,6 @@ const getPrestacaoCobrancaBoletoById = async (id) => {
 
   if (rows.length > 0) {
     const boleto = rows[0];
-    // Se houver conteúdo no campo pdf, mantém ou converte se necessário
     boleto.pdf = boleto.pdf || null;
     return boleto;
   } else {
@@ -39,17 +38,17 @@ const getPrestacaoCobrancaBoletoById = async (id) => {
 
 // Atualiza um boleto existente
 const updatePrestacaoCobrancaBoleto = async (boleto) => {
-  const { id, pdf, predio_id, dataEnvio } = boleto;
+  const { id, pdf, predio_id, month, year } = boleto;
   const updateQuery = `
     UPDATE prestacaoCobrancaBoletos 
-    SET pdf = ?, predio_id = ?, dataEnvio = ?
+    SET pdf = ?, predio_id = ?, month = ?, year = ?
     WHERE id = ?
   `;
-  const values = [pdf, predio_id, dataEnvio, id];
+  const values = [pdf, predio_id, month, year, id];
 
   try {
     const [result] = await connection.execute(updateQuery, values);
-    return result.affectedRows > 0; // Retorna true se a atualização foi bem-sucedida
+    return result.affectedRows > 0;
   } catch (error) {
     console.error('Erro ao atualizar boleto:', error);
     throw error;
@@ -68,17 +67,17 @@ const deletePrestacaoCobrancaBoleto = async (id) => {
   }
 };
 
-// Obtém boletos filtrados por prédio, mês e ano (com base na dataEnvio)
+// Obtém boletos filtrados por prédio, mês e ano
 const getPrestacaoCobrancaBoletosByBuildingAndMonth = async (predio_id, month, year) => {
   const query = `
     SELECT *
     FROM prestacaoCobrancaBoletos
     WHERE predio_id = ? 
-      AND YEAR(dataEnvio) = ? 
-      AND MONTH(dataEnvio) = ?
+      AND month = ?
+      AND year = ?
   `;
   try {
-    const [rows] = await connection.execute(query, [predio_id, year, month]);
+    const [rows] = await connection.execute(query, [predio_id, month, year]);
     return rows;
   } catch (error) {
     console.error('Erro ao buscar boletos por prédio, mês e ano:', error);
