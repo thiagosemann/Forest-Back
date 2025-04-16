@@ -144,19 +144,26 @@ const getRateiosNaoPagosPorPredioId = async (request, response) => {
 // Nova função para atualizar a data de pagamento
 const atualizarDataPagamento = async (request, response) => {
   try {
-    const { pagamentosConsolidados } = request.body; // Recebe o array de pagamentos consolidados
+    const { pagamentosConsolidados } = request.body;
 
     if (!Array.isArray(pagamentosConsolidados)) {
-      return response.status(400).json({ error: 'O corpo da requisição deve conter um array de pagamentos consolidados.' });
+      return response.status(400).json({ error: 'O corpo da requisição deve conter um array de objetos com id e data_pagamento.' });
     }
 
-    // Chama a função do modelo para atualizar a data de pagamento
+    // Validação opcional de estrutura mínima de cada item
+    for (const pagamento of pagamentosConsolidados) {
+      if (!pagamento.id || !pagamento.data_pagamento) {
+        return response.status(400).json({ error: 'Cada item deve conter "id" e "data_pagamento".' });
+      }
+    }
+
+    // Chamada da função de atualização no model
     await rateiosPorApartamentoModel.atualizarDataPagamento(pagamentosConsolidados);
 
     return response.status(200).json({ message: 'Data de pagamento atualizada com sucesso.' });
   } catch (error) {
     console.error('Erro ao atualizar data de pagamento:', error);
-    return response.status(500).json({ error: 'Erro ao atualizar data de pagamento' });
+    return response.status(500).json({ error: 'Erro ao atualizar data de pagamento.' });
   }
 };
 
