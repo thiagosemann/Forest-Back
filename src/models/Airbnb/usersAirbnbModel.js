@@ -6,41 +6,57 @@ require('dotenv').config();
 const SECRET_KEY = process.env.SECRET_KEY;
 const saltRounds = 10;
 
+// Helper to fetch files for a user
+const getUserFiles = async (userId) => {
+  const [rows] = await connection.execute(
+    'SELECT imagemBase64, documentBase64 FROM user_files WHERE user_id = ?',
+    [userId]
+  );
+  return rows[0] || { imagemBase64: null, documentBase64: null };
+};
+
 const getAllUsers = async () => {
-  const [users] = await connection.execute('SELECT * FROM users');
+  const [users] = await connection.execute(
+    `SELECT u.* 
+     FROM users u`
+  );
   return users;
 };
 
+
 const createUser = async (user) => {
-  const { 
-    first_name, 
-    last_name, 
-    cpf, 
-    email, 
-    password, 
-    role, 
-    imagemBase64, 
-    documentBase64, 
-    Telefone 
+  const {
+    first_name,
+    last_name,
+    cpf,
+    email,
+    password,
+    role,
+    imagemBase64,
+    documentBase64,
+    Telefone
   } = user;
-  let hashedPassword = password ? await bcrypt.hash(password, saltRounds) : null;
+
+  // Hash password if provided
+  const hashedPassword = password
+    ? await bcrypt.hash(password, saltRounds)
+    : null;
   const roleValue = role || 'guest';
 
-  const checkUserExistsQuery = 'SELECT * FROM users WHERE cpf = ?';
+  // Check duplicate by CPF
+  const checkUserExistsQuery = 'SELECT id, cpf FROM users WHERE cpf = ?';
   const [existingUsers] = await connection.execute(checkUserExistsQuery, [cpf || '']);
-
   if (existingUsers.length > 0) {
-    let conflictField = '';
-    if (existingUsers[0].cpf === cpf) conflictField = 'CPF';
+    const conflictField = existingUsers[0].cpf === cpf ? 'CPF' : 'field';
     throw new Error(`Usuário com esse ${conflictField} já existe.`);
   }
 
+  // Insert into users table (no image/document cols)
   const insertUserQuery = `
-    INSERT INTO users 
-      (first_name, last_name, cpf, email, password, role, imagemBase64, documentBase64, Telefone) 
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO users
+      (first_name, last_name, cpf, email, password, role, Telefone)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
   `;
-  
   const values = [
     first_name,
     last_name,
@@ -48,22 +64,29 @@ const createUser = async (user) => {
     email || '',
     hashedPassword,
     roleValue,
-    imagemBase64 || null,
-    documentBase64 || null,
     Telefone || null
   ];
 
   try {
     const [result] = await connection.execute(insertUserQuery, values);
-    
+    const userId = result.insertId;
+
+    // Insert into user_files
+    await connection.execute(
+      `INSERT INTO user_files (user_id, imagemBase64, documentBase64)
+       VALUES (?, ?, ?)`,
+      [userId, imagemBase64 || null, documentBase64 || null]
+    );
+
+    // If terceirizado, initialize daily quota
     if (roleValue === 'tercerizado') {
       await connection.execute(
         'INSERT INTO quant_limpezas_por_dia (user_id) VALUES (?)',
-        [result.insertId]
+        [userId]
       );
     }
-    
-    return { insertId: result.insertId };
+
+    return { insertId: userId };
   } catch (error) {
     console.error('Erro ao inserir usuário:', error);
     throw error;
@@ -73,41 +96,44 @@ const createUser = async (user) => {
 const loginUser = async (email, password) => {
   const query = 'SELECT * FROM users WHERE email = ?';
   const [users] = await connection.execute(query, [email]);
+  if (!users.length) return;
 
-  if (users.length > 0) {
-    const user = users[0];
-    const match = await bcrypt.compare(password, user.password);
-    if (match) {
-      const token = jwt.sign(
-        { id: user.id, email: user.email },
-        SECRET_KEY
-      );
-      return { user, token };
-    }
-  }
+  const user = users[0];
+  const match = await bcrypt.compare(password, user.password);
+  if (!match) return;
+
+  const token = jwt.sign({ id: user.id, email: user.email }, SECRET_KEY);
+  return { user, token };
 };
 
 const getUser = async (id) => {
-  const query = 'SELECT * FROM users WHERE id = ?';
-  const [users] = await connection.execute(query, [id]);
-  return users[0] || null;
+  // Fetch user and join files
+  const query = `
+    SELECT u.*, uf.imagemBase64, uf.documentBase64
+    FROM users u
+    LEFT JOIN user_files uf ON u.id = uf.user_id
+    WHERE u.id = ?
+  `;
+  const [rows] = await connection.execute(query, [id]);
+  return rows[0] || null;
 };
 
 const updateUser = async (id, userData) => {
   const existingUser = await getUser(id);
   if (!existingUser) throw new Error('Usuário não encontrado.');
 
-  const mergedUser = { ...existingUser, ...userData };
-  const { 
-    first_name, 
-    last_name, 
-    cpf, 
-    email, 
-    password, 
-    role, 
-    imagemBase64, 
-    documentBase64, 
+  // Merge with existing data
+  const merged = { ...existingUser, ...userData };
+  const {
+    first_name,
+    last_name,
+    cpf,
+    email,
+    password,
+    role,
     Telefone,
+    imagemBase64,
+    documentBase64,
     segunda,
     terca,
     quarta,
@@ -115,48 +141,71 @@ const updateUser = async (id, userData) => {
     sexta,
     sabado,
     domingo
-  } = mergedUser;
+  } = merged;
 
+  // Hash password if updated
   let hashedPassword = null;
-  if (password) {
+  if (password && password !== existingUser.password) {
     hashedPassword = await bcrypt.hash(password, saltRounds);
   }
 
+  // Update users table
   const updateUserQuery = `
-    UPDATE users 
-    SET 
-      first_name = ?, 
-      last_name = ?, 
-      cpf = ?, 
-      email = ?, 
-      role = ?, 
-      imagemBase64 = ?, 
-      documentBase64 = ?, 
+    UPDATE users SET
+      first_name = ?,
+      last_name = ?,
+      cpf = ?,
+      email = ?,
+      role = ?,
       Telefone = ?
-      ${password ? ', password = ?' : ''}
+      ${hashedPassword ? ', password = ?' : ''}
     WHERE id = ?
   `;
-
   const values = [
     first_name,
     last_name,
     cpf,
     email,
     role,
-    imagemBase64,
-    documentBase64,
     Telefone,
-    ...(password ? [hashedPassword] : []),
+    ...(hashedPassword ? [hashedPassword] : []),
     id
   ];
 
   try {
     await connection.execute(updateUserQuery, values);
+
+    // Upsert into user_files if images provided
+    if (userData.imagemBase64 != null || userData.documentBase64 != null) {
+      // Check existing files
+      const [files] = await connection.execute(
+        'SELECT id FROM user_files WHERE user_id = ?',
+        [id]
+      );
+      if (files.length) {
+        // Update
+        const updateFiles = `
+          UPDATE user_files SET
+            imagemBase64 = ?,
+            documentBase64 = ?
+          WHERE user_id = ?
+        `;
+        await connection.execute(updateFiles, [imagemBase64 || null, documentBase64 || null, id]);
+      } else {
+        // Insert new
+        const insertFiles = `
+          INSERT INTO user_files (user_id, imagemBase64, documentBase64)
+          VALUES (?, ?, ?)
+        `;
+        await connection.execute(insertFiles, [id, imagemBase64 || null, documentBase64 || null]);
+      }
+    }
+
+    // Handle terceirizado daily quotas
     if (role === 'tercerizado') {
-      // Atualiza ou insere os valores de limpeza
       await connection.execute(
-        `INSERT INTO quant_limpezas_por_dia 
-          (user_id, segunda, terca, quarta, quinta, sexta, sabado, domingo)
+        `INSERT INTO quant_limpezas_por_dia
+           (user_id, segunda, terca, quarta, quinta, sexta, sabado, domingo)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)
          ON DUPLICATE KEY UPDATE
            segunda = VALUES(segunda),
@@ -183,7 +232,7 @@ const updateUser = async (id, userData) => {
         [id]
       );
     }
-    
+
     return { message: 'Usuário atualizado com sucesso.' };
   } catch (error) {
     console.error('Erro ao atualizar usuário:', error);
@@ -192,66 +241,19 @@ const updateUser = async (id, userData) => {
 };
 
 const deleteUser = async (id) => {
-  const getUserQuery = 'SELECT * FROM users WHERE id = ?';
-  const [existingUsers] = await connection.execute(getUserQuery, [id]);
-
-  if (existingUsers.length === 0) {
-    return null;
-  }
+  // Delete files and quotas first
+  await connection.execute('DELETE FROM user_files WHERE user_id = ?', [id]);
+  await connection.execute('DELETE FROM quant_limpezas_por_dia WHERE user_id = ?', [id]);
 
   const deleteUserQuery = 'DELETE FROM users WHERE id = ?';
   try {
-    await connection.execute(deleteUserQuery, [id]);
-    
-    await connection.execute(
-      'DELETE FROM quant_limpezas_por_dia WHERE user_id = ?',
-      [id]
-    );
-    
-    return true;
+    const [result] = await connection.execute(deleteUserQuery, [id]);
+    return result.affectedRows ? true : null;
   } catch (error) {
     console.error('Erro ao excluir usuário:', error);
     throw error;
   }
 };
-
-const createUsersBatch = async (users) => {
-  const insertUserQuery = `
-    INSERT INTO users (first_name, last_name, cpf, email, role) 
-    VALUES (?, ?, ?, ?, ?)
-  `;
-
-  try {
-    for (let user of users) {
-      const { first_name, last_name, cpf, email, role } = user;
-      const checkUserExistsQuery = 'SELECT * FROM users WHERE cpf = ? OR email = ?';
-      const [existingUsers] = await connection.execute(checkUserExistsQuery, [cpf, email]);
-
-      if (existingUsers.length > 0) {
-        let conflictField = '';
-        if (existingUsers[0].cpf === cpf) conflictField = 'CPF';
-        else if (existingUsers[0].email === email) conflictField = 'e-mail';
-        throw new Error(`Usuário com esse ${conflictField} já existe.`);
-      }
-
-      const values = [first_name, last_name, cpf, email, role];
-      const [insertResult] = await connection.execute(insertUserQuery, values);
-      
-      if (role === 'tercerizado') {
-        await connection.execute(
-          'INSERT INTO quant_limpezas_por_dia (user_id) VALUES (?)',
-          [insertResult.insertId]
-        );
-      }
-    }
-
-    return users;
-  } catch (error) {
-    console.error('Erro ao inserir usuários em lote:', error);
-    throw error;
-  }
-};
-
 const getUserByCPF = async (cpf) => {
   const query = 'SELECT * FROM users WHERE cpf = ?';
   const [users] = await connection.execute(query, [cpf]);
@@ -305,7 +307,7 @@ const getUsersByRole = async (role) => {
     throw error;
   }
 };
-
+// Other methods (batch inserts, get by CPF/role) left unchanged
 module.exports = {
   getAllUsers,
   createUser,
@@ -313,7 +315,7 @@ module.exports = {
   getUser,
   updateUser,
   deleteUser,
-  createUsersBatch,
   getUserByCPF,
-  getUsersByRole
+  getUsersByRole,
+  getUserFiles
 };

@@ -4,14 +4,15 @@ const usersModel = require('../Airbnb/usersAirbnbModel')
 const getAllCheckins = async () => {
   const [checkins] = await connection.execute(
     `SELECT 
-       checkin.*, 
-       users.first_name, 
-       users.last_name, 
-       users.Telefone, 
-       users.imagemBase64, 
-       users.documentBase64 
-     FROM checkin
-     LEFT JOIN users ON checkin.user_id = users.id`
+       c.*,
+       u.first_name,
+       u.last_name,
+       u.Telefone,
+       uf.imagemBase64,
+       uf.documentBase64
+     FROM checkin c
+     LEFT JOIN users u    ON c.user_id = u.id
+     LEFT JOIN user_files uf ON u.id = uf.user_id`
   );
   return checkins;
 };
@@ -118,17 +119,32 @@ const getCheckinsByReservaId = async (reservaId) => {
 };
 
 const updateCheckin = async (checkin) => {
-  const { id, cod_reserva, CPF, Nome, Telefone, imagemBase64, tipo, documentBase64, reserva_id } = checkin;
+  const {id, cod_reserva,CPF,Nome,Telefone,imagemBase64,documentBase64,tipo,reserva_id } = checkin;
+  const [orig] = await connection.execute(
+    'SELECT user_id FROM checkin WHERE id = ?',
+    [id]
+  );
+  const userId = orig[0].user_id;
+  await usersModel.updateUser(userId, {
+    first_name: Nome,
+    Telefone,
+    imagemBase64,
+    documentBase64,
+    role: tipo,
+    cpf: CPF
+  });
 
+  // 2) Agora atualiza só as colunas do check‑in
   const [result] = await connection.execute(
     `UPDATE checkin
-     SET cod_reserva = ?, CPF = ?, Nome = ?, Telefone = ?, imagemBase64 = ?, tipo = ?, documentBase64 = ?, reserva_id = ?
+     SET cod_reserva = ?, CPF = ?, tipo = ?, reserva_id = ?
      WHERE id = ?`,
-    [cod_reserva, CPF, Nome, Telefone, imagemBase64, tipo, documentBase64, reserva_id, id]
+    [cod_reserva, CPF, tipo, reserva_id, id]
   );
 
   return result.affectedRows > 0;
 };
+
 
 const deleteCheckin = async (id) => {
   const [result] = await connection.execute('DELETE FROM checkin WHERE id = ?', [id]);
@@ -136,42 +152,42 @@ const deleteCheckin = async (id) => {
 };
 
 const getCheckinByReservaIdOrCodReserva = async (reservaId, codReserva) => {
-  // Tenta buscar pelo reserva_id
+  // 1) Tenta buscar pelo reserva_id
   const [checkinsByReservaId] = await connection.execute(
-    `SELECT 
-       checkin.*, 
-       users.first_name, 
-       users.last_name, 
-       users.Telefone, 
-       users.imagemBase64, 
-       users.documentBase64 
-     FROM checkin
-     LEFT JOIN users ON checkin.user_id = users.id
-     WHERE checkin.reserva_id = ?`,
+    `SELECT
+       c.*,
+       u.first_name,
+       u.last_name,
+       u.Telefone,
+       uf.imagemBase64,
+       uf.documentBase64
+     FROM checkin c
+     LEFT JOIN users u    ON c.user_id = u.id
+     LEFT JOIN user_files uf ON u.id = uf.user_id
+     WHERE c.reserva_id = ?`,
     [reservaId]
   );
 
-  // Se encontrar, retorna os resultados
   if (checkinsByReservaId.length > 0) {
     return checkinsByReservaId;
   }
 
-  // Se não encontrar pelo reserva_id, tenta buscar pelo cod_reserva
+  // 2) Se não encontrou, busca pelo cod_reserva
   const [checkinsByCodReserva] = await connection.execute(
-    `SELECT 
-       checkin.*, 
-       users.first_name, 
-       users.last_name, 
-       users.Telefone, 
-       users.imagemBase64, 
-       users.documentBase64 
-     FROM checkin
-     LEFT JOIN users ON checkin.user_id = users.id
-     WHERE checkin.cod_reserva = ?`,
+    `SELECT
+       c.*,
+       u.first_name,
+       u.last_name,
+       u.Telefone,
+       uf.imagemBase64,
+       uf.documentBase64
+     FROM checkin c
+     LEFT JOIN users u    ON c.user_id = u.id
+     LEFT JOIN user_files uf ON u.id = uf.user_id
+     WHERE c.cod_reserva = ?`,
     [codReserva]
   );
 
-  // Retorna os resultados encontrados ou null se não encontrar nada
   return checkinsByCodReserva.length > 0 ? checkinsByCodReserva : null;
 };
 
