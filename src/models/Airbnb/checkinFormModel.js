@@ -20,19 +20,18 @@ const getAllCheckins = async () => {
 const createCheckin = async (checkinData) => {
   const { CPF, Nome, Telefone, imagemBase64, tipo, documentBase64, cod_reserva } = checkinData;
 
+  // Busca a reserva pelo código
   const [reservas] = await connection.execute(
     'SELECT id FROM reservas WHERE cod_reserva = ?', 
     [cod_reserva]
   );
-  
   const reserva_id = reservas[0]?.id || null;
-
 
   // Verifica se o usuário já existe pelo CPF
   let user = await usersModel.getUserByCPF(CPF);
 
   if (user) {
-    // Se o usuário existir, atualiza as informações
+    // Atualiza o usuário existente
     const updatedUserData = {
       first_name: Nome,
       role: tipo,
@@ -40,49 +39,51 @@ const createCheckin = async (checkinData) => {
       documentBase64: documentBase64,
       Telefone: Telefone
     };
-
     await usersModel.updateUser(user.id, updatedUserData);
   } else {
-    // Se o usuário não existir, cria um novo usuário
+    // Cria um novo usuário
     const newUser = {
       first_name: Nome,
-      last_name: '', // Ajuste conforme necessário
+      last_name: '', 
       cpf: CPF,
-      email: null, // Ajuste conforme necessário
-      password: null, // Ajuste conforme necessário
+      email: null, 
+      password: null,
       role: tipo,
       imagemBase64: imagemBase64,
       documentBase64: documentBase64,
       Telefone: Telefone
     };
-
     const createdUser = await usersModel.createUser(newUser);
-    user = { id: createdUser.insertId }; // Obtém o ID do usuário criado
+    user = { id: createdUser.insertId };
   }
 
-  // Cria o check-in com as informações fornecidas
+  // Verifica se o check-in já existe para esta reserva
+  const [existingCheckins] = await connection.execute(
+    'SELECT id FROM checkin WHERE cod_reserva = ?',
+    [cod_reserva]
+  );
+
+  if (existingCheckins.length > 0) {
+    console.log('Check-in já existe, retornando ID existente.');
+    return { checkinId: existingCheckins[0].id };
+  }
+
+  // Cria o check-in se não existir
   const insertCheckinQuery = `
     INSERT INTO checkin 
       (cod_reserva, CPF, tipo, reserva_id, user_id) 
     VALUES (?, ?, ?, ?, ?)
   `;
-
-  const values = [
-    cod_reserva,
-    CPF,
-    tipo,
-    reserva_id,
-    user.id // user_id é o ID do usuário criado ou atualizado
-  ];
+  const values = [cod_reserva, CPF, tipo, reserva_id, user.id];
 
   try {
     const [result] = await connection.execute(insertCheckinQuery, values);
-    return { insertId: result.insertId }; // Retorna o ID do check-in criado
+    return { insertId: result.insertId };
   } catch (error) {
     console.error('Erro ao criar check-in:', error);
     throw error;
   }
-};;
+};
 
 const getCheckinById = async (id) => {
   const [checkins] = await connection.execute(
