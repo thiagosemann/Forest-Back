@@ -142,7 +142,7 @@ const getRateiosNaoPagosPorPredioId = async (request, response) => {
 };
 
 // Nova função para atualizar a data de pagamento
-const atualizarDataPagamento = async (request, response) => {
+const atualizarDataPagamentoEValor = async (request, response) => {
   try {
     const { pagamentosConsolidados } = request.body;
 
@@ -152,13 +152,13 @@ const atualizarDataPagamento = async (request, response) => {
 
     // Validação opcional de estrutura mínima de cada item
     for (const pagamento of pagamentosConsolidados) {
-      if (!pagamento.id || !pagamento.data_pagamento) {
+      if (!pagamento.id || !pagamento.data_pagamento || !pagamento.valor_pagamento ) {
         return response.status(400).json({ error: 'Cada item deve conter "id" e "data_pagamento".' });
       }
     }
 
     // Chamada da função de atualização no model
-    await rateiosPorApartamentoModel.atualizarDataPagamento(pagamentosConsolidados);
+    await rateiosPorApartamentoModel.atualizarDataPagamentoEValor(pagamentosConsolidados);
 
     return response.status(200).json({ message: 'Data de pagamento atualizada com sucesso.' });
   } catch (error) {
@@ -242,7 +242,7 @@ module.exports = {
   getRateioPorApartamentoByAptId,
   updateDataPagamento,
   getRateiosNaoPagosPorPredioId,
-  atualizarDataPagamento,
+  atualizarDataPagamentoEValor,
   getRateiosGeradosEPagosNoMesCorreto,
   getRateiosPagosGeradosEmMesesDiferentes,
   getRateiosEPdfsNames

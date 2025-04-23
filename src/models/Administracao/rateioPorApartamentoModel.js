@@ -11,6 +11,7 @@ const createRateioPorApartamento = async (rateioPorApartamento) => {
     rateio_id,
     rateio_boleto_email_id, // Nova coluna
     valor,
+    valor_pagamento,         // Nova coluna
     apt_name,
     apt_fracao,
     valorIndividual,
@@ -23,16 +24,17 @@ const createRateioPorApartamento = async (rateioPorApartamento) => {
 
   const insertRateioQuery = `
     INSERT INTO rateio_por_apartamento 
-    (apartamento_id, rateio_id, rateio_boleto_email_id, valor, apt_name, apt_fracao, 
+    (apartamento_id, rateio_id, rateio_boleto_email_id, valor, valor_pagamento, apt_name, apt_fracao, 
      valorIndividual, valorComum, valorProvisoes, valorFundos, fracao_vagas, fracao_total, data_pagamento) 
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
   
   const values = [
     apartamento_id,
     rateio_id,
-    rateio_boleto_email_id || null, // Tratamento do novo campo
+    rateio_boleto_email_id || null,
     valor,
+    valor_pagamento || null,
     apt_name,
     apt_fracao,
     valorIndividual,
@@ -41,7 +43,7 @@ const createRateioPorApartamento = async (rateioPorApartamento) => {
     valorFundos,
     fracao_vagas,
     fracao_total,
-    ""
+    null, // data_pagamento inicial
   ];
 
   try {
@@ -56,10 +58,9 @@ const createRateioPorApartamento = async (rateioPorApartamento) => {
 const updateRateioPorApartamento = async (rateioPorApartamento) => {
   const {
     id,
-    rateio_boleto_email_id, // Novo campo
-    apartamento_id,
-    rateio_id,
+    rateio_boleto_email_id,
     valor,
+    valor_pagamento,         // Nova coluna
     apt_name,
     apt_fracao,
     valorIndividual,
@@ -73,26 +74,24 @@ const updateRateioPorApartamento = async (rateioPorApartamento) => {
   const updateRateioQuery = `
     UPDATE rateio_por_apartamento
     SET 
-      apartamento_id = ?, 
-      rateio_id = ?,
-      rateio_boleto_email_id = ?,  -- Novo campo
-      valor = ?, 
-      apt_name = ?, 
-      apt_fracao = ?, 
-      valorIndividual = ?, 
-      valorComum = ?, 
-      valorProvisoes = ?, 
-      valorFundos = ?, 
-      fracao_vagas = ?, 
+      rateio_boleto_email_id = ?,
+      valor = ?,
+      valor_pagamento = ?,       -- Atualização da nova coluna
+      apt_name = ?,
+      apt_fracao = ?,
+      valorIndividual = ?,
+      valorComum = ?,
+      valorProvisoes = ?,
+      valorFundos = ?,
+      fracao_vagas = ?,
       fracao_total = ?
     WHERE id = ?
   `;
 
   const values = [
-    apartamento_id,
-    rateio_id,
-    rateio_boleto_email_id || null,  // Tratamento do novo campo
+    rateio_boleto_email_id || null,
     valor,
+    valor_pagamento || null,
     apt_name,
     apt_fracao,
     valorIndividual,
@@ -106,7 +105,7 @@ const updateRateioPorApartamento = async (rateioPorApartamento) => {
 
   try {
     const [result] = await connection.execute(updateRateioQuery, values);
-    return result.affectedRows > 0; // Retorna true se o rateio foi atualizado com sucesso
+    return result.affectedRows > 0;
   } catch (error) {
     console.error('Erro ao atualizar rateio por apartamento:', error);
     throw error;
@@ -305,27 +304,30 @@ const getRateiosNaoPagosPorPredioId = async (predioId, mes, ano) => {
 
 
 
-const atualizarDataPagamento = async (pagamentosConsolidados) => {
+const atualizarDataPagamentoEValor = async (pagamentosConsolidados) => {
   try {
     for (const pagamento of pagamentosConsolidados) {
-      const { id, data_pagamento } = pagamento;
+      const { id, data_pagamento, valor_pagamento } = pagamento;
+      console.log('Atualizando pagamento:', pagamento);
 
       const updateQuery = `
         UPDATE rateio_por_apartamento
-        SET data_pagamento = ?
+        SET data_pagamento = ?,
+            valor_pagamento = ?
         WHERE id = ?
       `;
 
-      await connection.execute(updateQuery, [data_pagamento, id]);
-      console.log(`Data de pagamento atualizada para o ID ${id}: ${data_pagamento}`);
+      await connection.execute(updateQuery, [data_pagamento, valor_pagamento, id]);
+      console.log(`ID ${id} — data_pagamento: ${data_pagamento}, valor_pagamento: ${valor_pagamento}`);
     }
 
-    console.log('Atualização de data_pagamento concluída com sucesso.');
+    console.log('Atualização de data_pagamento e valor_pagamento concluída com sucesso.');
   } catch (error) {
-    console.error('Erro ao atualizar data_pagamento:', error);
+    console.error('Erro ao atualizar data_pagamento/valor_pagamento:', error);
     throw error;
   }
 };
+
 
 const getRateiosEPdfsNames = async (rateioId) => {
   const query = `
@@ -378,7 +380,7 @@ module.exports = {
   updateRateioPorApartamento,
   deleteRateioPorApartamento,
   updateDataPagamento,
-  atualizarDataPagamento,
+  atualizarDataPagamentoEValor,
   updateRateioBoletoEmailId,
   getApartamentoByRateioIdEApartamentoId
 };
