@@ -236,18 +236,18 @@ const getRateiosGeradosEPagosNoMesCorreto = async (predioId, mes, ano) => {
     WHERE r.predio_id = ?
       AND r.mes = ?
       AND r.ano = ?
-      AND rpa.data_pagamento = CONCAT(LPAD(?, 2, '0'), '/', ?)
+      AND rpa.data_pagamento IS NOT NULL
+      AND rpa.data_pagamento <> ''
   `;
 
   try {
-    const [rateios] = await connection.execute(query, [predioId, mes, ano, mes, ano]);
+    const [rateios] = await connection.execute(query, [predioId, mes, ano]);
     return rateios;
   } catch (error) {
     console.error('Erro ao buscar rateios gerados e pagos no mês correto:', error);
     throw error;
   }
 };
-
 // Função 2 – Rateios Pagos com Geração em Meses Diferentes
 const getRateiosPagosGeradosEmMesesDiferentes = async (predioId, mes, ano) => {
   const query = `
