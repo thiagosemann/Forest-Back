@@ -24,7 +24,7 @@ const createApartamento = async (apartamento) => {
     smart_tv, tv_aberta, tipo_chuveiro, escritorio, tv_quarto, ar_condicionado,
     aspirador_de_po, qtd_taca_vinho, tipo_fogao, respostas_programadas,
     ssid_wifi, senha_wifi, user_prioridade1, user_prioridade2, user_prioridade3,
-    aquecedor,vaga_garagem ,itens_limpeza,air_fryer
+    aquecedor,vaga_garagem ,itens_limpeza,air_fryer,modificado_user_id,data_ultima_modificacao,link_fotos
   } = apartamento;
 
   const insertApartamentoQuery = `
@@ -78,8 +78,10 @@ const createApartamento = async (apartamento) => {
     aquecedor = ?,
     vaga_garagem = ?,
     itens_limpeza = ?,
-    air_fryer = ?;
-    ;
+    air_fryer = ?,
+    modificado_user_id = ?,
+    data_ultima_modificacao = ?,
+    link_fotos = ?;
 `;
 
   const values = [
@@ -92,7 +94,7 @@ const createApartamento = async (apartamento) => {
     smart_tv ?? null, tv_aberta ?? null, tipo_chuveiro ?? null, escritorio ?? null, tv_quarto ?? null, ar_condicionado ?? null,
     aspirador_de_po ?? null, qtd_taca_vinho ?? null, tipo_fogao ?? null, respostas_programadas ?? null,
     ssid_wifi ?? null, senha_wifi ?? null, user_prioridade1 ?? null, user_prioridade2 ?? null, user_prioridade3 ?? null,
-    aquecedor ?? null,vaga_garagem ?? null ,itens_limpeza ?? null, air_fryer ?? null
+    aquecedor ?? null,vaga_garagem ?? null ,itens_limpeza ?? null, air_fryer ?? null, modificado_user_id ?? null,data_ultima_modificacao ?? null,link_fotos ?? null
   ];
 
   try {
@@ -164,6 +166,9 @@ const updateApartamento = async (apartamento) => {
     vaga_garagem = null,
     itens_limpeza = null,
     air_fryer = null,
+    modificado_user_id = null,
+    data_ultima_modificacao = null,
+    link_fotos = null,
   } = apartamento;
 
   const updateApartamentoQuery = `
@@ -177,7 +182,7 @@ const updateApartamento = async (apartamento) => {
       smart_tv = ?, tv_aberta = ?, tipo_chuveiro = ?, escritorio = ?, tv_quarto = ?, ar_condicionado = ?,
       aspirador_de_po = ?, qtd_taca_vinho = ?, tipo_fogao = ?, respostas_programadas = ?,
       ssid_wifi = ?, senha_wifi = ?, user_prioridade1 = ?, user_prioridade2 = ?, user_prioridade3 = ?,
-      aquecedor = ?,vaga_garagem = ?,itens_limpeza = ?, air_fryer = ?
+      aquecedor = ?,vaga_garagem = ?,itens_limpeza = ?, air_fryer = ?,modificado_user_id  = ?,data_ultima_modificacao  = ? , link_fotos = ?
     WHERE id = ?
   `;
 
@@ -191,7 +196,7 @@ const updateApartamento = async (apartamento) => {
     smart_tv, tv_aberta, tipo_chuveiro, escritorio, tv_quarto, ar_condicionado,
     aspirador_de_po, qtd_taca_vinho, tipo_fogao, respostas_programadas,
     ssid_wifi, senha_wifi, user_prioridade1, user_prioridade2, user_prioridade3,
-    aquecedor,vaga_garagem ,itens_limpeza,air_fryer,
+    aquecedor,vaga_garagem ,itens_limpeza,air_fryer,modificado_user_id,data_ultima_modificacao,link_fotos,
     id
   ];
 
