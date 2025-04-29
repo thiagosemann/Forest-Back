@@ -248,6 +248,7 @@ const getRateiosGeradosEPagosNoMesCorreto = async (predioId, mes, ano) => {
     throw error;
   }
 };
+
 // Função 2 – Rateios Pagos com Geração em Meses Diferentes
 const getRateiosPagosGeradosEmMesesDiferentes = async (predioId, mes, ano) => {
   const query = `

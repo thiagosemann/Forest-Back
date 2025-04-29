@@ -245,6 +245,10 @@ router.post('/reservas-airbnb', reservasAirbnbController.createReserva);
 router.get('/reservas-airbnb/apartamentos/:apartamentoId', reservasAirbnbController.getReservasByApartamentoId);
 router.put('/reservas-airbnb/:id', reservasAirbnbController.updateReserva);
 router.delete('/reservas-airbnb/:id', reservasAirbnbController.deleteReserva);
+router.get('/reservas-airbnb/filtro/hoje', reservasAirbnbController.getReservasHoje);
+router.get('/reservas-airbnb/filtro/proximas', reservasAirbnbController.getProximasReservas);
+router.get('/reservas-airbnb/filtro/finalizadas', reservasAirbnbController.getReservasFinalizadas);
+router.get('/reservas-airbnb/filtro/em-andamento', reservasAirbnbController.getReservasEmAndamento);
 
 // Rotas de Check-in
 router.get('/checkins', verifyToken, checkinFormController.getAllCheckins); // Listar todos os check-ins

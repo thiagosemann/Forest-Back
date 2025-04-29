@@ -102,6 +102,45 @@ const getReservasPorPeriodo = async (request, response) => {
   }
 };
 
+const getReservasHoje = async (request, response) => {
+  try {
+    const reservas = await reservaModel.getReservasHoje();
+    return response.status(200).json(reservas);
+  } catch (error) {
+    console.error('Erro ao buscar reservas de hoje:', error);
+    return response.status(500).json({ error: 'Erro ao buscar reservas de hoje' });
+  }
+};
+
+const getProximasReservas = async (request, response) => {
+  try {
+    const reservas = await reservaModel.getProximasReservas();
+    return response.status(200).json(reservas);
+  } catch (error) {
+    console.error('Erro ao buscar próximas reservas:', error);
+    return response.status(500).json({ error: 'Erro ao buscar próximas reservas' });
+  }
+};
+
+const getReservasFinalizadas = async (request, response) => {
+  try {
+    const reservas = await reservaModel.getReservasFinalizadas();
+    return response.status(200).json(reservas);
+  } catch (error) {
+    console.error('Erro ao buscar reservas finalizadas:', error);
+    return response.status(500).json({ error: 'Erro ao buscar reservas finalizadas' });
+  }
+};
+
+const getReservasEmAndamento = async (request, response) => {
+  try {
+    const reservas = await reservaModel.getReservasEmAndamento();
+    return response.status(200).json(reservas);
+  } catch (error) {
+    console.error('Erro ao buscar reservas em andamento:', error);
+    return response.status(500).json({ error: 'Erro ao buscar reservas em andamento' });
+  }
+};
 module.exports = {
   getAllReservas,
   createReserva,
@@ -109,5 +148,9 @@ module.exports = {
   getReservasByApartamentoId,
   updateReserva,
   deleteReserva,
-  getReservasPorPeriodo
+  getReservasPorPeriodo,
+  getReservasHoje,
+  getProximasReservas,
+  getReservasFinalizadas,
+  getReservasEmAndamento
 };
