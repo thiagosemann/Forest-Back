@@ -23,7 +23,8 @@ const createApartamento = async (apartamento) => {
     ventilador, ferro_passar, sanduicheira, chaleira_eletrica, liquidificador,
     smart_tv, tv_aberta, tipo_chuveiro, escritorio, tv_quarto, ar_condicionado,
     aspirador_de_po, qtd_taca_vinho, tipo_fogao, respostas_programadas,
-    ssid_wifi, senha_wifi, user_prioridade1, user_prioridade2, user_prioridade3
+    ssid_wifi, senha_wifi, user_prioridade1, user_prioridade2, user_prioridade3,
+    aquecedor,vaga_garagem ,itens_limpeza,air_fryer
   } = apartamento;
 
   const insertApartamentoQuery = `
@@ -73,7 +74,12 @@ const createApartamento = async (apartamento) => {
     senha_wifi = ?, 
     user_prioridade1 = ?, 
     user_prioridade2 = ?, 
-    user_prioridade3 = ?;
+    user_prioridade3 = ?,
+    aquecedor = ?,
+    vaga_garagem = ?,
+    itens_limpeza = ?,
+    air_fryer = ?;
+    ;
 `;
 
   const values = [
@@ -85,7 +91,8 @@ const createApartamento = async (apartamento) => {
     ventilador ?? null, ferro_passar ?? null, sanduicheira ?? null, chaleira_eletrica ?? null, liquidificador ?? null,
     smart_tv ?? null, tv_aberta ?? null, tipo_chuveiro ?? null, escritorio ?? null, tv_quarto ?? null, ar_condicionado ?? null,
     aspirador_de_po ?? null, qtd_taca_vinho ?? null, tipo_fogao ?? null, respostas_programadas ?? null,
-    ssid_wifi ?? null, senha_wifi ?? null, user_prioridade1 ?? null, user_prioridade2 ?? null, user_prioridade3 ?? null
+    ssid_wifi ?? null, senha_wifi ?? null, user_prioridade1 ?? null, user_prioridade2 ?? null, user_prioridade3 ?? null,
+    aquecedor ?? null,vaga_garagem ?? null ,itens_limpeza ?? null, air_fryer ?? null
   ];
 
   try {
@@ -152,7 +159,11 @@ const updateApartamento = async (apartamento) => {
     senha_wifi = null,
     user_prioridade1 = null,
     user_prioridade2 = null,
-    user_prioridade3 = null
+    user_prioridade3 = null,
+    aquecedor = null,
+    vaga_garagem = null,
+    itens_limpeza = null,
+    air_fryer = null,
   } = apartamento;
 
   const updateApartamentoQuery = `
@@ -165,7 +176,8 @@ const updateApartamento = async (apartamento) => {
       ventilador = ?, ferro_passar = ?, sanduicheira = ?, chaleira_eletrica = ?, liquidificador = ?,
       smart_tv = ?, tv_aberta = ?, tipo_chuveiro = ?, escritorio = ?, tv_quarto = ?, ar_condicionado = ?,
       aspirador_de_po = ?, qtd_taca_vinho = ?, tipo_fogao = ?, respostas_programadas = ?,
-      ssid_wifi = ?, senha_wifi = ?, user_prioridade1 = ?, user_prioridade2 = ?, user_prioridade3 = ?
+      ssid_wifi = ?, senha_wifi = ?, user_prioridade1 = ?, user_prioridade2 = ?, user_prioridade3 = ?,
+      aquecedor = ?,vaga_garagem = ?,itens_limpeza = ?, air_fryer = ?
     WHERE id = ?
   `;
 
@@ -179,6 +191,7 @@ const updateApartamento = async (apartamento) => {
     smart_tv, tv_aberta, tipo_chuveiro, escritorio, tv_quarto, ar_condicionado,
     aspirador_de_po, qtd_taca_vinho, tipo_fogao, respostas_programadas,
     ssid_wifi, senha_wifi, user_prioridade1, user_prioridade2, user_prioridade3,
+    aquecedor,vaga_garagem ,itens_limpeza,air_fryer,
     id
   ];
 
