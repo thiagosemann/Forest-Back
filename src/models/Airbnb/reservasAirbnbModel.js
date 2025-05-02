@@ -277,7 +277,6 @@ const startAutoSync = () => {
 
 // Inicia o processo
 startAutoSync();
-
 // Função para buscar uma reserva pelo ID
 const getReservaById = async (id) => {
   const query = 'SELECT * FROM reservas WHERE id = ?';
