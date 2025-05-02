@@ -153,7 +153,7 @@ router.get('/rateiosPorApartamento/rateio/:rateioId', verifyToken, rateiosPorApa
 router.get('/rateiosPorApartamento/:id', verifyToken, rateiosPorApartamentoController.getRateioPorApartamentoById);
 router.get('/rateiosPorApartamento/inadimplentes/predio/:predioId/:mes/:ano', verifyToken, rateiosPorApartamentoController.getRateiosNaoPagosPorPredioId);
 router.post('/rateiosPorApartamento', verifyToken, rateiosPorApartamentoController.createRateioPorApartamento);
-router.put('/rateiosPorApartamento/atualizar-datas-pagamento', verifyToken, rateiosPorApartamentoController.atualizarDataPagamento);
+router.put('/rateiosPorApartamento/atualizar-datas-pagamento', verifyToken, rateiosPorApartamentoController.atualizarDataPagamentoEValor);
 router.put('/rateiosPorApartamento/:id/update-data-pagamento', verifyToken, rateiosPorApartamentoController.updateDataPagamento);
 router.put('/rateiosPorApartamento/:id', verifyToken, rateiosPorApartamentoController.updateRateioPorApartamento);
 router.delete('/rateiosPorApartamento/:id', verifyToken, rateiosPorApartamentoController.deleteRateioPorApartamento);
@@ -245,6 +245,10 @@ router.post('/reservas-airbnb', reservasAirbnbController.createReserva);
 router.get('/reservas-airbnb/apartamentos/:apartamentoId', reservasAirbnbController.getReservasByApartamentoId);
 router.put('/reservas-airbnb/:id', reservasAirbnbController.updateReserva);
 router.delete('/reservas-airbnb/:id', reservasAirbnbController.deleteReserva);
+router.get('/reservas-airbnb/filtro/hoje', reservasAirbnbController.getReservasHoje);
+router.get('/reservas-airbnb/filtro/proximas', reservasAirbnbController.getProximasReservas);
+router.get('/reservas-airbnb/filtro/finalizadas', reservasAirbnbController.getReservasFinalizadas);
+router.get('/reservas-airbnb/filtro/em-andamento', reservasAirbnbController.getReservasEmAndamento);
 
 // Rotas de Check-in
 router.get('/checkins', verifyToken, checkinFormController.getAllCheckins); // Listar todos os check-ins

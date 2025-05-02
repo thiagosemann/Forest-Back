@@ -8,14 +8,14 @@ const moment = require('moment-timezone');
 const getAllReservas = async () => {
   const query = `
     SELECT r.*, 
-           COALESCE(a.nome, 'Apartamento não encontrado') AS apartamento_nome
+           COALESCE(a.nome, 'Apartamento não encontrado') AS apartamento_nome,
+           EXISTS (SELECT 1 FROM checkin c WHERE c.reserva_id = r.id) AS documentosEnviados
     FROM reservas r
     LEFT JOIN apartamentos a ON r.apartamento_id = a.id
   `;
   const [reservas] = await connection.execute(query);
   return reservas;
 };
-
 // Função para criar reserva (atualizada com cod_reserva e faxina_userId)
 const createReserva = async (reserva) => {
   const { 
@@ -279,19 +279,23 @@ const startAutoSync = () => {
 startAutoSync();
 // Função para buscar uma reserva pelo ID
 const getReservaById = async (id) => {
-  const query = 'SELECT * FROM reservas WHERE id = ?';
+  const query = `
+    SELECT r.*, 
+           EXISTS (SELECT 1 FROM checkin c WHERE c.reserva_id = r.id) AS documentosEnviados 
+    FROM reservas r 
+    WHERE r.id = ?
+  `;
   const [reservas] = await connection.execute(query, [id]);
-
-  if (reservas.length > 0) {
-    return reservas[0];
-  } else {
-    return null;
-  }
+  return reservas[0] || null;
 };
-
 // Função para buscar reservas pelo ID do apartamento
 const getReservasByApartamentoId = async (apartamentoId) => {
-  const query = 'SELECT * FROM reservas WHERE apartamento_id = ?';
+  const query = `
+    SELECT r.*, 
+           EXISTS (SELECT 1 FROM checkin c WHERE c.reserva_id = r.id) AS documentosEnviados 
+    FROM reservas r 
+    WHERE r.apartamento_id = ?
+  `;
   const [reservas] = await connection.execute(query, [apartamentoId]);
   return reservas;
 };
@@ -362,22 +366,78 @@ const deleteReserva = async (id) => {
 // Adicione no ReservasModel
 const getReservasPorPeriodo = async (startDate, endDate) => {
   const query = `
-    SELECT r.*, a.nome AS apartamento_nome, a.valor_limpeza
+    SELECT r.*, a.nome AS apartamento_nome, a.valor_limpeza,
+           EXISTS (SELECT 1 FROM checkin c WHERE c.reserva_id = r.id) AS documentosEnviados
     FROM reservas r
     LEFT JOIN apartamentos a ON r.apartamento_id = a.id
     WHERE r.end_data BETWEEN ? AND ?
     ORDER BY r.end_data ASC
   `;
-  
-  try {
-    const [reservas] = await connection.execute(query, [startDate, endDate]);
-    return reservas;
-  } catch (error) {
-    console.error('Erro ao buscar reservas por período:', error);
-    throw error;
-  }
+  const [reservas] = await connection.execute(query, [startDate, endDate]);
+  return reservas;
 };
 
+// Função para buscar reservas com start_date hoje e verificação de checkin
+const getReservasHoje = async () => {
+  const hoje = moment().tz('America/Sao_Paulo').format('YYYY-MM-DD');
+  const query = `
+    SELECT r.*, 
+           COALESCE(a.nome, 'Apartamento não encontrado') AS apartamento_nome,
+           EXISTS (SELECT 1 FROM checkin c WHERE c.reserva_id = r.id) AS documentosEnviados
+    FROM reservas r
+    LEFT JOIN apartamentos a ON r.apartamento_id = a.id
+    WHERE DATE(r.start_date) = ?
+  `;
+  const [reservas] = await connection.execute(query, [hoje]);
+  return reservas;
+};
+
+// Função para buscar reservas futuras com verificação de checkin
+const getProximasReservas = async () => {
+  const hoje = moment().tz('America/Sao_Paulo').format('YYYY-MM-DD');
+  const query = `
+    SELECT r.*, 
+           COALESCE(a.nome, 'Apartamento não encontrado') AS apartamento_nome,
+           EXISTS (SELECT 1 FROM checkin c WHERE c.reserva_id = r.id) AS documentosEnviados
+    FROM reservas r
+    LEFT JOIN apartamentos a ON r.apartamento_id = a.id
+    WHERE DATE(r.start_date) > ?
+    ORDER BY r.start_date ASC
+  `;
+  const [reservas] = await connection.execute(query, [hoje]);
+  return reservas;
+};
+
+// Função para buscar reservas finalizadas com verificação de checkin
+const getReservasFinalizadas = async () => {
+  const hoje = moment().tz('America/Sao_Paulo').format('YYYY-MM-DD');
+  const query = `
+    SELECT r.*, 
+           COALESCE(a.nome, 'Apartamento não encontrado') AS apartamento_nome,
+           EXISTS (SELECT 1 FROM checkin c WHERE c.reserva_id = r.id) AS documentosEnviados
+    FROM reservas r
+    LEFT JOIN apartamentos a ON r.apartamento_id = a.id
+    WHERE DATE(r.end_data) < ?
+    ORDER BY r.end_data DESC
+  `;
+  const [reservas] = await connection.execute(query, [hoje]);
+  return reservas;
+};
+
+// Função para buscar reservas em andamento com verificação de checkin
+const getReservasEmAndamento = async () => {
+  const agoraSP = moment().tz('America/Sao_Paulo').format('YYYY-MM-DD HH:mm:ss');
+  const query = `
+    SELECT r.*, 
+           COALESCE(a.nome, 'Apartamento não encontrado') AS apartamento_nome,
+           EXISTS (SELECT 1 FROM checkin c WHERE c.reserva_id = r.id) AS documentosEnviados
+    FROM reservas r
+    LEFT JOIN apartamentos a ON r.apartamento_id = a.id
+    WHERE r.start_date < ? AND r.end_data > ?
+  `;
+  const [reservas] = await connection.execute(query, [agoraSP, agoraSP]);
+  return reservas;
+};
 
 module.exports = {
   getAllReservas,
@@ -386,5 +446,9 @@ module.exports = {
   getReservasByApartamentoId,
   updateReserva,
   deleteReserva,
-  getReservasPorPeriodo
+  getReservasPorPeriodo,
+  getReservasHoje,
+  getProximasReservas,
+  getReservasFinalizadas,
+  getReservasEmAndamento
 };
