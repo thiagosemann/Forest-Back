@@ -149,24 +149,29 @@ const syncAirbnbReservations = async () => {
           }
         }
 
-        // Remove reservas canceladas (não presentes no calendário)
-        const hoje = new Date();
-        hoje.setHours(0, 0, 0, 0);
-        
-        if (currentCodReservas.size > 0) {
-          await connection.execute(
-            `DELETE FROM reservas 
-             WHERE apartamento_id = ? 
-             AND cod_reserva NOT IN (${Array.from(currentCodReservas).map(() => '?').join(',')}) 
-             AND start_date > ?`,
-            [apartamento.id, ...Array.from(currentCodReservas), hoje]
-          );
-        } else {
-          await connection.execute(
-            'DELETE FROM reservas WHERE apartamento_id = ? AND start_date > ?',
-            [apartamento.id, hoje]
-          );
-        }
+          // Marca reservas canceladas (não presentes no calendário e com end_data no futuro)
+          const hoje = new Date();
+          hoje.setHours(0, 0, 0, 0);
+          
+          if (currentCodReservas.size > 0) {
+            await connection.execute(
+              `UPDATE reservas 
+              SET description = 'CANCELADA' 
+              WHERE apartamento_id = ? 
+              AND cod_reserva NOT IN (${Array.from(currentCodReservas).map(() => '?').join(',')}) 
+              AND end_data > ?`,
+              [apartamento.id, ...Array.from(currentCodReservas), hoje]
+            );
+          } else {
+            await connection.execute(
+              `UPDATE reservas 
+              SET description = 'CANCELADA' 
+              WHERE apartamento_id = ? 
+              AND end_data > ?`,
+              [apartamento.id, hoje]
+            );
+          }
+
 
       } catch (error) {
         console.error(`Erro no apartamento ${apartamento.id}:`, error.message);
