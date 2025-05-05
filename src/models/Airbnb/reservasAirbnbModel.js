@@ -281,8 +281,7 @@ const startAutoSync = () => {
 };
 
 // Inicia o processo
-//startAutoSync();
-
+startAutoSync();
 // Função para buscar uma reserva pelo ID
 const getReservaById = async (id) => {
   const query = `
