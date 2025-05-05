@@ -56,10 +56,22 @@ const createReserva = async (reserva) => {
   ];
 
   try {
+    // 1) Insere a reserva
     const [result] = await connection.execute(insertReservaQuery, values);
-    return { insertId: result.insertId };
+    const newReservaId = result.insertId;
+
+    // 2) Atualiza qualquer checkin que tenha o mesmo cod_reserva
+    const updateCheckinQuery = `
+      UPDATE checkin
+      SET reserva_id = ?
+      WHERE cod_reserva = ?
+    `;
+    await connection.execute(updateCheckinQuery, [newReservaId, cod_reserva]);
+
+    // 3) Retorna o ID da nova reserva
+    return { insertId: newReservaId };
   } catch (error) {
-    console.error('Erro ao inserir reserva:', error);
+    console.error('Erro ao inserir reserva ou vincular checkin:', error);
     throw error;
   }
 };
