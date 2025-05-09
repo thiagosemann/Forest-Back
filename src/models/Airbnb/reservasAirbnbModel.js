@@ -160,8 +160,7 @@ const syncAirbnbReservations = async () => {
             }
           }
         }
-
-          // Marca reservas canceladas (não presentes no calendário e com end_data no futuro)
+      /*    // Marca reservas canceladas (não presentes no calendário e com end_data no futuro)
           const hoje = new Date();
           hoje.setHours(0, 0, 0, 0);
           
@@ -183,8 +182,7 @@ const syncAirbnbReservations = async () => {
               [apartamento.id, hoje]
             );
           }
-
-
+      */
       } catch (error) {
         console.error(`Erro no apartamento ${apartamento.id}:`, error.message);
       }

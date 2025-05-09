@@ -99,6 +99,18 @@ const getCheckinByReservaIdOrCodReserva = async (req, res) => {
     }
   };
 
+  const getCheckinsByUserId = async (request, response) => {
+    try {
+      const { userId } = request.params;
+      const checkins = await checkinModel.getCheckinsByUserId(userId);
+      return response.status(200).json(checkins);
+    } catch (error) {
+      console.error('Erro ao obter check-ins por usuário:', error);
+      return response.status(500).json({ error: 'Erro ao obter check-ins por usuário' });
+    }
+  };
+  
+
 module.exports = {
   getAllCheckins,
   createCheckin,
@@ -106,5 +118,6 @@ module.exports = {
   getCheckinsByReservaId,
   updateCheckin,
   deleteCheckin,
-  getCheckinByReservaIdOrCodReserva
+  getCheckinByReservaIdOrCodReserva,
+  getCheckinsByUserId
 };

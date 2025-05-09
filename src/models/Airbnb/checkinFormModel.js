@@ -197,6 +197,33 @@ const getCheckinByReservaIdOrCodReserva = async (reservaId, codReserva) => {
   return checkinsByCodReserva.length > 0 ? checkinsByCodReserva : null;
 };
 
+const getCheckinsByUserId = async (userId) => {
+  const [checkins] = await connection.execute(
+    `SELECT
+       c.id,
+       c.cod_reserva,
+       c.CPF,
+       c.tipo,
+       c.reserva_id,
+       a.nome AS apartamento_nome,
+       u.first_name,
+       u.last_name,
+       u.Telefone,
+       uf.imagemBase64,
+       uf.documentBase64
+     FROM checkin c
+     LEFT JOIN reservas r     ON c.reserva_id   = r.id
+     LEFT JOIN apartamentos a ON r.apartamento_id = a.id
+     LEFT JOIN users u        ON c.user_id       = u.id
+     LEFT JOIN user_files uf  ON u.id            = uf.user_id
+     WHERE c.user_id = ?
+     ORDER BY c.id ASC`,
+    [userId]
+  );
+  return checkins;
+};
+
+
 module.exports = {
   getAllCheckins,
   createCheckin,
@@ -204,5 +231,6 @@ module.exports = {
   getCheckinsByReservaId,
   updateCheckin,
   deleteCheckin,
-  getCheckinByReservaIdOrCodReserva
+  getCheckinByReservaIdOrCodReserva,
+  getCheckinsByUserId
 };

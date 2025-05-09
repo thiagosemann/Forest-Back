@@ -258,7 +258,7 @@ router.get('/checkins/search/:reservaId/:codReserva', verifyToken, checkinFormCo
 router.post('/checkins', checkinFormController.createCheckin); // Criar um novo check-in
 router.put('/checkins/:id', verifyToken, checkinFormController.updateCheckin); // Atualizar um check-in por ID
 router.delete('/checkins/:id', verifyToken, checkinFormController.deleteCheckin); // Deletar um check-in por ID
-
+router.get('/checkins/user/:userId',verifyToken,checkinFormController.getCheckinsByUserId);
 
 module.exports = router;
 
