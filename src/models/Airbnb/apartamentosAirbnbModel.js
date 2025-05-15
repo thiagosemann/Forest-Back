@@ -229,14 +229,47 @@ const getApartamentosByPredioId = async (predioId) => {
 
 // Função para deletar um apartamento pelo ID
 const deleteApartamento = async (id) => {
-  const deleteApartamentoQuery = 'DELETE FROM apartamentos WHERE id = ?';
-
+  const conn = await connection.getConnection();
   try {
-    const [result] = await connection.execute(deleteApartamentoQuery, [id]);
-    return result.affectedRows > 0; // Retorna true se o apartamento foi deletado com sucesso
-  } catch (error) {
-    console.error('Erro ao deletar apartamento:', error);
-    throw error;
+    await conn.beginTransaction();
+
+    // 1) busca IDs de reservas do apt
+    const [reservas] = await conn.execute(
+      'SELECT id FROM reservas WHERE apartamento_id = ?',
+      [id]
+    );
+    const reservaIds = reservas.map(r => r.id);
+    
+    if (reservaIds.length > 0) {
+      const placeholders = reservaIds.map(() => '?').join(',');
+      
+      // 2) deleta check-ins
+      await conn.execute(
+        `DELETE FROM checkin WHERE reserva_id IN (${placeholders})`,
+        reservaIds
+      );
+      
+      // 3) deleta reservas
+      await conn.execute(
+        `DELETE FROM reservas WHERE id IN (${placeholders})`,
+        reservaIds
+      );
+    }
+
+    // 4) finalmente deleta o apartamento
+    const [result] = await conn.execute(
+      'DELETE FROM apartamentos WHERE id = ?',
+      [id]
+    );
+
+    await conn.commit();
+    return result.affectedRows > 0;
+  } catch (err) {
+    await conn.rollback();
+    console.error('Erro ao deletar apartamento:', err);
+    throw err;
+  } finally {
+    conn.release();
   }
 };
 
