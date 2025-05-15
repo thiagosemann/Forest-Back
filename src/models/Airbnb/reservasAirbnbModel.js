@@ -175,16 +175,18 @@ const syncAirbnbReservations = async () => {
               faxina_userId,
             });
           } else {
-            // 5.4.10 Reserva existente: atualiza datas se mudaram
+            // 5.4.10 Reserva existente: atualiza datas e description se mudaram
             const dbStart = existing[0].start_date;
             const dbEnd = existing[0].end_data;
+            const summary = vevent.getFirstPropertyValue('summary');
             if (
               dbStart.getTime() !== start.getTime() ||
-              dbEnd.getTime() !== end.getTime()
+              dbEnd.getTime() !== end.getTime() ||
+              summary !== existing[0].description
             ) {
               await connection.execute(
-                'UPDATE reservas SET start_date = ?, end_data = ? WHERE id = ?',
-                [start, end, existing[0].id]
+                'UPDATE reservas SET start_date = ?, end_data = ?, description = ? WHERE id = ?',
+                [start, end, summary, existing[0].id]
               );
             }
           }
