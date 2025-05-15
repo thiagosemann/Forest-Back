@@ -423,8 +423,7 @@ const getReservasPorPeriodo = async (startDate, endDate) => {
   const [reservas] = await connection.execute(query, [startDate, endDate]);
   return reservas;
 };
-
-// Função para buscar reservas com start_date hoje e verificação de checkin
+// Função para buscar reservas com start_date igual a hoje
 const getReservasHoje = async () => {
   const hoje = moment().tz('America/Sao_Paulo').format('YYYY-MM-DD');
   const query = `
@@ -439,9 +438,24 @@ const getReservasHoje = async () => {
   return reservas;
 };
 
-// Função para buscar reservas futuras com verificação de checkin
+// Função para buscar reservas com start_date igual a amanhã
+const getReservasAmanha = async () => {
+  const amanha = moment().tz('America/Sao_Paulo').add(1, 'day').format('YYYY-MM-DD');
+  const query = `
+    SELECT r.*, 
+           COALESCE(a.nome, 'Apartamento não encontrado') AS apartamento_nome,
+           EXISTS (SELECT 1 FROM checkin c WHERE c.reserva_id = r.id) AS documentosEnviados
+    FROM reservas r
+    LEFT JOIN apartamentos a ON r.apartamento_id = a.id
+    WHERE DATE(r.start_date) = ?
+  `;
+  const [reservas] = await connection.execute(query, [amanha]);
+  return reservas;
+};
+
+// Função para buscar reservas futuras, excluindo hoje e amanhã
 const getProximasReservas = async () => {
-  const hoje = moment().tz('America/Sao_Paulo').format('YYYY-MM-DD');
+  const amanha = moment().tz('America/Sao_Paulo').add(1, 'day').format('YYYY-MM-DD');
   const query = `
     SELECT r.*, 
            COALESCE(a.nome, 'Apartamento não encontrado') AS apartamento_nome,
@@ -451,7 +465,7 @@ const getProximasReservas = async () => {
     WHERE DATE(r.start_date) > ?
     ORDER BY r.start_date ASC
   `;
-  const [reservas] = await connection.execute(query, [hoje]);
+  const [reservas] = await connection.execute(query, [amanha]);
   return reservas;
 };
 
@@ -495,6 +509,7 @@ module.exports = {
   deleteReserva,
   getReservasPorPeriodo,
   getReservasHoje,
+  getReservasAmanha,
   getProximasReservas,
   getReservasFinalizadas,
   getReservasEmAndamento

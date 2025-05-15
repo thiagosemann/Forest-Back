@@ -246,6 +246,7 @@ router.get('/reservas-airbnb/apartamentos/:apartamentoId', reservasAirbnbControl
 router.put('/reservas-airbnb/:id', reservasAirbnbController.updateReserva);
 router.delete('/reservas-airbnb/:id', reservasAirbnbController.deleteReserva);
 router.get('/reservas-airbnb/filtro/hoje', reservasAirbnbController.getReservasHoje);
+router.get('/reservas-airbnb/filtro/amanha', reservasAirbnbController.getReservasAmanha);
 router.get('/reservas-airbnb/filtro/proximas', reservasAirbnbController.getProximasReservas);
 router.get('/reservas-airbnb/filtro/finalizadas', reservasAirbnbController.getReservasFinalizadas);
 router.get('/reservas-airbnb/filtro/em-andamento', reservasAirbnbController.getReservasEmAndamento);

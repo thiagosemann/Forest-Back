@@ -112,6 +112,17 @@ const getReservasHoje = async (request, response) => {
   }
 };
 
+const getReservasAmanha = async (request, response) => {
+  try {
+    const reservas = await reservaModel.getReservasAmanha();
+    return response.status(200).json(reservas);
+  } catch (error) {
+    console.error('Erro ao buscar reservas de amanha:', error);
+    return response.status(500).json({ error: 'Erro ao buscar reservas de amanha' });
+  }
+};
+
+
 const getProximasReservas = async (request, response) => {
   try {
     const reservas = await reservaModel.getProximasReservas();
@@ -150,6 +161,7 @@ module.exports = {
   deleteReserva,
   getReservasPorPeriodo,
   getReservasHoje,
+  getReservasAmanha,
   getProximasReservas,
   getReservasFinalizadas,
   getReservasEmAndamento
