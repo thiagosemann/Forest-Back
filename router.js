@@ -31,6 +31,7 @@ const predioAirbnbController = require('./src/controllers/Airbnb/predioAirbnbCon
 const apartamentosAirbnbController = require('./src/controllers/Airbnb/apartamentosAirbnbController');
 const reservasAirbnbController = require('./src/controllers/Airbnb/reservasAirbnbController');
 const checkinFormController = require('./src/controllers/Airbnb/checkinFormController'); // Import do checkinController
+const vistoriaController = require('./src/controllers/Airbnb/vistoriaController'); // Import do vistoriaController
 
 
 
@@ -260,6 +261,13 @@ router.post('/checkins', checkinFormController.createCheckin); // Criar um novo 
 router.put('/checkins/:id', verifyToken, checkinFormController.updateCheckin); // Atualizar um check-in por ID
 router.delete('/checkins/:id', verifyToken, checkinFormController.deleteCheckin); // Deletar um check-in por ID
 router.get('/checkins/user/:userId',verifyToken,checkinFormController.getCheckinsByUserId);
+
+// Rotas de Vistorias
+router.get('/vistorias', verifyToken, vistoriaController.getAllVistorias);
+router.get('/vistorias/:id',verifyToken, vistoriaController.getVistoriaById);
+router.post('/vistorias', verifyToken, vistoriaController.createVistoria);
+router.put('/vistorias/:id',  verifyToken, vistoriaController.updateVistoria);
+router.delete('/vistorias/:id',  verifyToken, vistoriaController.deleteVistoria);
 
 module.exports = router;
 
