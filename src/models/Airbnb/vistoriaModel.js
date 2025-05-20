@@ -1,12 +1,17 @@
+// src/models/Airbnb/vistoriaModel.js
+
 const connection = require('../connection2');
 
 // 1) Lista todas as vistorias (já com colunas de itens)
 const getAllVistorias = async () => {
   const [rows] = await connection.execute(`
-    SELECT v.*, a.nome AS apartamento_nome, u.nome AS usuario_nome
+    SELECT 
+      v.*,
+      a.nome AS apartamento_nome,
+      u.first_name AS usuario_nome    
     FROM vistoria v
     LEFT JOIN apartamentos a ON v.apartamento_id = a.id
-    LEFT JOIN users u ON v.user_id = u.id
+    LEFT JOIN users u       ON v.user_id       = u.id
   `);
   return rows;
 };
@@ -22,13 +27,11 @@ const getVistoriaById = async (id) => {
 
 // 3) Cria uma nova vistoria COM todos os campos de itens
 const createVistoria = async (dataObj) => {
-  // campos obrigatórios
-  const { apartamento_id, user_id } = dataObj;
-  if (!apartamento_id || !user_id ) {
+  const { apartamento_id, user_id, data } = dataObj;
+  if (!apartamento_id || !user_id || !data) {
     throw new Error("Campos 'apartamento_id', 'user_id' e 'data' são obrigatórios.");
   }
 
-  // monta lista de colunas e placeholders dinamicamente
   const cols = Object.keys(dataObj).join(', ');
   const placeholders = Object.keys(dataObj).map(() => '?').join(', ');
   const values = Object.values(dataObj);
