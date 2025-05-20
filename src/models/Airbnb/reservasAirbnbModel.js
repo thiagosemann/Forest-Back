@@ -426,17 +426,42 @@ const getReservasPorPeriodo = async (startDate, endDate) => {
   return reservas;
 };
 // Função para buscar reservas com start_date igual a hoje
+// Função para buscar reservas com start_date igual a hoje, agora enriquecida
+// com qtd_hospedes e array de horarioPrevistoChegada
 const getReservasHoje = async () => {
+  // 1) formata 'hoje' em SP
   const hoje = moment().tz('America/Sao_Paulo').format('YYYY-MM-DD');
+
+  // 2) busca as reservas do dia
   const query = `
-    SELECT r.*, 
-           COALESCE(a.nome, 'Apartamento não encontrado') AS apartamento_nome,
-           EXISTS (SELECT 1 FROM checkin c WHERE c.reserva_id = r.id) AS documentosEnviados
+    SELECT 
+      r.*,
+      COALESCE(a.nome, 'Apartamento não encontrado') AS apartamento_nome,
+      EXISTS (
+        SELECT 1 
+          FROM checkin c 
+         WHERE c.reserva_id = r.id
+      ) AS documentosEnviados
     FROM reservas r
     LEFT JOIN apartamentos a ON r.apartamento_id = a.id
     WHERE DATE(r.start_date) = ?
   `;
   const [reservas] = await connection.execute(query, [hoje]);
+
+  // 3) para cada reserva, busca os check-ins associados
+  for (const reserva of reservas) {
+    const [checkins] = await connection.execute(
+      `SELECT horarioPrevistoChegada
+         FROM checkin
+        WHERE reserva_id = ?`,
+      [reserva.id]
+    );
+
+    // 4) adiciona as propriedades desejadas
+    reserva.qtd_hospedes = checkins.length;
+    reserva.horarioPrevistoChegada = checkins.map(ci => ci.horarioPrevistoChegada);
+  }
+
   return reservas;
 };
 

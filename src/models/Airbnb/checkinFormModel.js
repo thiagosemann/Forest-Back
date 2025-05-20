@@ -6,20 +6,15 @@ const usersModel = require('../Airbnb/usersAirbnbModel');
 const getAllCheckins = async () => {
   const [checkins] = await connection.execute(
     `SELECT 
-       c.id,
-       c.cod_reserva,
-       c.CPF,
-       c.tipo,
-       c.reserva_id,
-       c.horarioPrevistoChegada,
+       c.*,                        -- inclui id, cod_reserva, CPF, tipo, reserva_id, horarioPrevistoChegada, created_at, updated_at
        u.first_name,
        u.last_name,
        u.Telefone,
        uf.imagemBase64,
        uf.documentBase64
      FROM checkin c
-     LEFT JOIN users u      ON c.user_id = u.id
-     LEFT JOIN user_files uf ON u.id = uf.user_id`
+     LEFT JOIN users u       ON c.user_id = u.id
+     LEFT JOIN user_files uf ON u.id    = uf.user_id`
   );
   return checkins;
 };
@@ -75,14 +70,13 @@ const createCheckin = async (checkinData) => {
     [cod_reserva, CPF]
   );
   if (existingCheckins.length > 0) {
-      // Se já existe, faz UPDATE no registro existente
     const existingId = existingCheckins[0].id;
     await connection.execute(
       `UPDATE checkin
-         SET tipo = ?, 
-             reserva_id = ?, 
-             horarioPrevistoChegada = ?, 
-             user_id = ?
+         SET tipo                  = ?,
+             reserva_id            = ?,
+             horarioPrevistoChegada = ?,
+             user_id               = ?
        WHERE id = ?`,
       [tipo, reserva_id, horarioPrevistoChegada, user.id, existingId]
     );
@@ -93,7 +87,7 @@ const createCheckin = async (checkinData) => {
     };
   }
 
-  // 4) Insere novo check-in, incluindo horário previsto de chegada
+  // 4) Insere novo check-in
   const insertCheckinQuery = `
     INSERT INTO checkin
       (cod_reserva, CPF, tipo, reserva_id, user_id, horarioPrevistoChegada)
@@ -122,12 +116,7 @@ const createCheckin = async (checkinData) => {
 const getCheckinById = async (id) => {
   const [rows] = await connection.execute(
     `SELECT
-       c.id,
-       c.cod_reserva,
-       c.CPF,
-       c.tipo,
-       c.reserva_id,
-       c.horarioPrevistoChegada,
+       c.*,                      -- inclui created_at e updated_at
        u.first_name,
        u.last_name,
        u.Telefone,
@@ -144,12 +133,7 @@ const getCheckinById = async (id) => {
 const getCheckinsByReservaId = async (reservaId) => {
   const [checkins] = await connection.execute(
     `SELECT
-       c.id,
-       c.cod_reserva,
-       c.CPF,
-       c.tipo,
-       c.reserva_id,
-       c.horarioPrevistoChegada,
+       c.*,                      -- inclui created_at e updated_at
        u.first_name,
        u.last_name,
        u.Telefone,
@@ -192,13 +176,13 @@ const updateCheckin = async (checkin) => {
     cpf: CPF
   });
 
-  // Atualiza colunas do check-in, incluindo horário
+  // Atualiza colunas do check-in
   const [result] = await connection.execute(
     `UPDATE checkin
-     SET cod_reserva = ?,
-         CPF = ?,
-         tipo = ?,
-         reserva_id = ?,
+     SET cod_reserva            = ?,
+         CPF                    = ?,
+         tipo                   = ?,
+         reserva_id             = ?,
          horarioPrevistoChegada = ?
      WHERE id = ?`,
     [cod_reserva, CPF, tipo, reserva_id, horarioPrevistoChegada, id]
@@ -216,45 +200,33 @@ const deleteCheckin = async (id) => {
 };
 
 const getCheckinByReservaIdOrCodReserva = async (reservaId, codReserva) => {
-  // Primeiro tenta por reserva_id
   const [byResId] = await connection.execute(
     `SELECT
-       c.id,
-       c.cod_reserva,
-       c.CPF,
-       c.tipo,
-       c.reserva_id,
-       c.horarioPrevistoChegada,
+       c.*,                      -- inclui created_at e updated_at
        u.first_name,
        u.last_name,
        u.Telefone,
        uf.imagemBase64,
        uf.documentBase64
      FROM checkin c
-     LEFT JOIN users u      ON c.user_id = u.id
-     LEFT JOIN user_files uf ON u.id = uf.user_id
+     LEFT JOIN users u       ON c.user_id = u.id
+     LEFT JOIN user_files uf ON u.id    = uf.user_id
      WHERE c.reserva_id = ?`,
     [reservaId]
   );
   if (byResId.length) return byResId;
 
-  // Senão por cod_reserva
   const [byCod] = await connection.execute(
     `SELECT
-       c.id,
-       c.cod_reserva,
-       c.CPF,
-       c.tipo,
-       c.reserva_id,
-       c.horarioPrevistoChegada,
+       c.*,                      -- inclui created_at e updated_at
        u.first_name,
        u.last_name,
        u.Telefone,
        uf.imagemBase64,
        uf.documentBase64
      FROM checkin c
-     LEFT JOIN users u      ON c.user_id = u.id
-     LEFT JOIN user_files uf ON u.id = uf.user_id
+     LEFT JOIN users u       ON c.user_id = u.id
+     LEFT JOIN user_files uf ON u.id    = uf.user_id
      WHERE c.cod_reserva = ?`,
     [codReserva]
   );
@@ -264,14 +236,9 @@ const getCheckinByReservaIdOrCodReserva = async (reservaId, codReserva) => {
 const getCheckinsByUserId = async (userId) => {
   const [checkins] = await connection.execute(
     `SELECT
-       c.id,
-       c.cod_reserva,
-       c.CPF,
-       c.tipo,
-       c.reserva_id,
-       c.horarioPrevistoChegada,
+       c.*,                      -- inclui created_at e updated_at
        r.apartamento_id,
-       a.nome AS apartamento_nome,
+       a.nome        AS apartamento_nome,
        u.first_name,
        u.last_name,
        u.Telefone,
