@@ -158,7 +158,7 @@ const syncAirbnbReservations = async () => {
 
           if (existing.length === 0) {
             // 5.4.9 Nova reserva: insere no banco
-            const faxina_userId = await getFaxineiraId(end, apartamento.id);
+            const faxina_userId = null;
             await createReserva({
               apartamento_id: apartamento.id,
               description: vevent.getFirstPropertyValue('summary'),
@@ -420,6 +420,7 @@ const getReservasPorPeriodo = async (startDate, endDate) => {
     FROM reservas r
     LEFT JOIN apartamentos a ON r.apartamento_id = a.id
     WHERE r.end_data BETWEEN ? AND ?
+      AND r.cod_reserva NOT LIKE CONCAT('%', COALESCE(a.nome, 'Apartamento não encontrado'), '%')
     ORDER BY r.end_data ASC
   `;
   const [reservas] = await connection.execute(query, [startDate, endDate]);
@@ -437,14 +438,12 @@ const getReservasHoje = async () => {
     SELECT 
       r.*,
       COALESCE(a.nome, 'Apartamento não encontrado') AS apartamento_nome,
-      EXISTS (
-        SELECT 1 
-          FROM checkin c 
-         WHERE c.reserva_id = r.id
-      ) AS documentosEnviados
+      a.senha_porta AS apartamento_senha,
+      EXISTS (SELECT 1 FROM checkin c WHERE c.reserva_id = r.id) AS documentosEnviados
     FROM reservas r
     LEFT JOIN apartamentos a ON r.apartamento_id = a.id
     WHERE DATE(r.start_date) = ?
+      AND r.cod_reserva NOT LIKE CONCAT('%', COALESCE(a.nome, 'Apartamento não encontrado'), '%')
   `;
   const [reservas] = await connection.execute(query, [hoje]);
 
@@ -471,10 +470,12 @@ const getReservasAmanha = async () => {
   const query = `
     SELECT r.*, 
            COALESCE(a.nome, 'Apartamento não encontrado') AS apartamento_nome,
+            a.senha_porta AS apartamento_senha,
            EXISTS (SELECT 1 FROM checkin c WHERE c.reserva_id = r.id) AS documentosEnviados
     FROM reservas r
     LEFT JOIN apartamentos a ON r.apartamento_id = a.id
     WHERE DATE(r.start_date) = ?
+      AND r.cod_reserva NOT LIKE CONCAT('%', COALESCE(a.nome, 'Apartamento não encontrado'), '%')
   `;
   const [reservas] = await connection.execute(query, [amanha]);
   return reservas;
@@ -486,10 +487,12 @@ const getProximasReservas = async () => {
   const query = `
     SELECT r.*, 
            COALESCE(a.nome, 'Apartamento não encontrado') AS apartamento_nome,
+            a.senha_porta AS apartamento_senha,
            EXISTS (SELECT 1 FROM checkin c WHERE c.reserva_id = r.id) AS documentosEnviados
     FROM reservas r
     LEFT JOIN apartamentos a ON r.apartamento_id = a.id
     WHERE DATE(r.start_date) > ?
+      AND r.cod_reserva NOT LIKE CONCAT('%', COALESCE(a.nome, 'Apartamento não encontrado'), '%')
     ORDER BY r.start_date ASC
   `;
   const [reservas] = await connection.execute(query, [amanha]);
@@ -502,10 +505,12 @@ const getReservasFinalizadas = async () => {
   const query = `
     SELECT r.*, 
            COALESCE(a.nome, 'Apartamento não encontrado') AS apartamento_nome,
+            a.senha_porta AS apartamento_senha,
            EXISTS (SELECT 1 FROM checkin c WHERE c.reserva_id = r.id) AS documentosEnviados
     FROM reservas r
     LEFT JOIN apartamentos a ON r.apartamento_id = a.id
     WHERE DATE(r.end_data) < ?
+      AND r.cod_reserva NOT LIKE CONCAT('%', COALESCE(a.nome, 'Apartamento não encontrado'), '%')
     ORDER BY r.end_data DESC
   `;
   const [reservas] = await connection.execute(query, [hoje]);
@@ -518,14 +523,108 @@ const getReservasEmAndamento = async () => {
   const query = `
     SELECT r.*, 
            COALESCE(a.nome, 'Apartamento não encontrado') AS apartamento_nome,
+            a.senha_porta AS apartamento_senha,
            EXISTS (SELECT 1 FROM checkin c WHERE c.reserva_id = r.id) AS documentosEnviados
     FROM reservas r
     LEFT JOIN apartamentos a ON r.apartamento_id = a.id
     WHERE r.start_date < ? AND r.end_data > ?
+      AND r.cod_reserva NOT LIKE CONCAT('%', COALESCE(a.nome, 'Apartamento não encontrado'), '%')
   `;
   const [reservas] = await connection.execute(query, [agoraSP, agoraSP]);
   return reservas;
 };
+
+// 1. Reservas que encerram hoje
+const getReservasEncerraHoje = async () => {
+  const hoje = moment().tz('America/Sao_Paulo').format('YYYY-MM-DD');
+  const query = `
+    SELECT 
+      r.*,
+      a.nome AS apartamento_nome,
+      a.senha_porta AS apartamento_senha,
+      a.valor_limpeza,
+      EXISTS (SELECT 1 FROM checkin c WHERE c.reserva_id = r.id) AS documentosEnviados,
+      EXISTS (SELECT 1 FROM reservas r2 WHERE r2.apartamento_id = r.apartamento_id AND DATE(r2.start_date) = DATE(r.end_data) AND r2.id != r.id) AS check_in_mesmo_dia
+    FROM reservas r
+    LEFT JOIN apartamentos a ON a.id = r.apartamento_id
+    WHERE DATE(r.end_data) = ?
+      AND r.cod_reserva NOT LIKE CONCAT('%', COALESCE(a.nome, 'Apartamento não encontrado'), '%')
+    ORDER BY r.end_data ASC
+  `;
+  const [reservas] = await connection.execute(query, [hoje]);
+  return reservas;
+};
+// 2. Reservas que encerram na “semana” (hoje até domingo)
+const getReservasEncerraSemana = async () => {
+  const hoje = moment().tz('America/Sao_Paulo');
+  const inicio = hoje.clone().format('YYYY-MM-DD');
+  // isoWeekday(7) → domingo da semana atual
+  const domingo = hoje.clone().isoWeekday(7).format('YYYY-MM-DD');
+  const query = `
+    SELECT 
+      r.*,
+      a.nome AS apartamento_nome,
+      a.senha_porta AS apartamento_senha,
+      a.valor_limpeza,
+      EXISTS (SELECT 1 FROM checkin c WHERE c.reserva_id = r.id) AS documentosEnviados,
+      EXISTS (SELECT 1 FROM reservas r2 WHERE r2.apartamento_id = r.apartamento_id AND DATE(r2.start_date) = DATE(r.end_data) AND r2.id != r.id) AS check_in_mesmo_dia
+    FROM reservas r
+    LEFT JOIN apartamentos a ON a.id = r.apartamento_id
+    WHERE DATE(r.end_data) BETWEEN ? AND ?
+      AND r.cod_reserva NOT LIKE CONCAT('%', COALESCE(a.nome, 'Apartamento não encontrado'), '%')
+    ORDER BY r.end_data ASC
+  `;
+  const [reservas] = await connection.execute(query, [inicio, domingo]);
+  return reservas;
+};
+
+// Nova: reservas que encerram **na próxima semana** (segunda a domingo da semana que vem)
+const getReservasEncerraSemanaQueVem = async () => {
+  const hoje = moment().tz('America/Sao_Paulo');
+  // pega próxima segunda-feira
+  const proximaSegunda = hoje.clone().add(1, 'week').isoWeekday(1).format('YYYY-MM-DD');
+  // domingo seguinte (fim da próxima semana)
+  const domingoQueVem = hoje.clone().add(1, 'week').isoWeekday(7).format('YYYY-MM-DD');
+  const query = `
+    SELECT
+      r.*,
+      a.nome AS apartamento_nome,
+      a.senha_porta AS apartamento_senha,
+      a.valor_limpeza,
+      EXISTS (SELECT 1 FROM checkin c WHERE c.reserva_id = r.id) AS documentosEnviados,
+      EXISTS (SELECT 1 FROM reservas r2 WHERE r2.apartamento_id = r.apartamento_id AND DATE(r2.start_date) = DATE(r.end_data) AND r2.id != r.id) AS check_in_mesmo_dia
+    FROM reservas r
+    LEFT JOIN apartamentos a ON a.id = r.apartamento_id
+    WHERE DATE(r.end_data) BETWEEN ? AND ?
+      AND r.cod_reserva NOT LIKE CONCAT('%', COALESCE(a.nome, 'Apartamento não encontrado'), '%')
+    ORDER BY r.end_data ASC
+  `;
+  const [reservas] = await connection.execute(query, [proximaSegunda, domingoQueVem]);
+  return reservas;
+};
+
+// 3. Faxinas futuras de 1 mês em diante
+const getFaxinasFuturasUmMes = async () => {
+  const limite = moment().tz('America/Sao_Paulo').add(1, 'month').format('YYYY-MM-DD');
+  const query = `
+    SELECT 
+      r.*,
+      a.nome AS apartamento_nome,
+      a.senha_porta AS apartamento_senha,
+      a.valor_limpeza,
+      EXISTS (SELECT 1 FROM checkin c WHERE c.reserva_id = r.id) AS documentosEnviados,
+      EXISTS (SELECT 1 FROM reservas r2 WHERE r2.apartamento_id = r.apartamento_id AND DATE(r2.start_date) = DATE(r.end_data) AND r2.id != r.id) AS check_in_mesmo_dia
+    FROM reservas r
+    LEFT JOIN apartamentos a ON a.id = r.apartamento_id
+    WHERE DATE(r.end_data) >= ?
+      AND r.cod_reserva NOT LIKE CONCAT('%', COALESCE(a.nome, 'Apartamento não encontrado'), '%')
+    ORDER BY r.end_data ASC
+  `;
+  const [reservas] = await connection.execute(query, [limite]);
+  return reservas;
+};
+
+
 
 module.exports = {
   getAllReservas,
@@ -539,5 +638,9 @@ module.exports = {
   getReservasAmanha,
   getProximasReservas,
   getReservasFinalizadas,
-  getReservasEmAndamento
+  getReservasEmAndamento,
+  getReservasEncerraHoje,
+  getReservasEncerraSemana,
+  getFaxinasFuturasUmMes,
+  getReservasEncerraSemanaQueVem
 };
