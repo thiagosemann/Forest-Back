@@ -78,14 +78,6 @@ const createUser = async (user) => {
       [userId, imagemBase64 || null, documentBase64 || null]
     );
 
-    // If terceirizado, initialize daily quota
-    if (roleValue === 'tercerizado') {
-      await connection.execute(
-        'INSERT INTO quant_limpezas_por_dia (user_id) VALUES (?)',
-        [userId]
-      );
-    }
-
     return { insertId: userId };
   } catch (error) {
     console.error('Erro ao inserir usuário:', error);
@@ -201,38 +193,6 @@ const updateUser = async (id, userData) => {
       }
     }
 
-    // Handle terceirizado daily quotas
-    if (role === 'tercerizado') {
-      await connection.execute(
-        `INSERT INTO quant_limpezas_por_dia
-           (user_id, segunda, terca, quarta, quinta, sexta, sabado, domingo)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-         ON DUPLICATE KEY UPDATE
-           segunda = VALUES(segunda),
-           terca = VALUES(terca),
-           quarta = VALUES(quarta),
-           quinta = VALUES(quinta),
-           sexta = VALUES(sexta),
-           sabado = VALUES(sabado),
-           domingo = VALUES(domingo)`,
-        [
-          id,
-          segunda || 0,
-          terca || 0,
-          quarta || 0,
-          quinta || 0,
-          sexta || 0,
-          sabado || 0,
-          domingo || 0
-        ]
-      );
-    } else {
-      await connection.execute(
-        'DELETE FROM quant_limpezas_por_dia WHERE user_id = ?',
-        [id]
-      );
-    }
-
     return { message: 'Usuário atualizado com sucesso.' };
   } catch (error) {
     console.error('Erro ao atualizar usuário:', error);
@@ -243,7 +203,6 @@ const updateUser = async (id, userData) => {
 const deleteUser = async (id) => {
   // Delete files and quotas first
   await connection.execute('DELETE FROM user_files WHERE user_id = ?', [id]);
-  await connection.execute('DELETE FROM quant_limpezas_por_dia WHERE user_id = ?', [id]);
 
   const deleteUserQuery = 'DELETE FROM users WHERE id = ?';
   try {
@@ -261,46 +220,9 @@ const getUserByCPF = async (cpf) => {
 };
 
 const getUsersByRole = async (role) => {
-  let query;
   let params = [role];
-
-  if (role === 'tercerizado') {
-    query = `
-      SELECT 
-        users.*,
-        quant_limpezas_por_dia.segunda,
-        quant_limpezas_por_dia.terca,
-        quant_limpezas_por_dia.quarta,
-        quant_limpezas_por_dia.quinta,
-        quant_limpezas_por_dia.sexta,
-        quant_limpezas_por_dia.sabado,
-        quant_limpezas_por_dia.domingo
-      FROM users
-      LEFT JOIN quant_limpezas_por_dia 
-        ON users.id = quant_limpezas_por_dia.user_id
-      WHERE users.role = ?
-    `;
-  } else {
-    query = 'SELECT * FROM users WHERE role = ?';
-  }
-
   try {
-    const [users] = await connection.execute(query, params);
-    
-    // Garante valores padrão 0 para dias sem registro
-    if (role === 'tercerizado') {
-      return users.map(user => ({
-        ...user,
-        segunda: user.segunda || 0,
-        terca: user.terca || 0,
-        quarta: user.quarta || 0,
-        quinta: user.quinta || 0,
-        sexta: user.sexta || 0,
-        sabado: user.sabado || 0,
-        domingo: user.domingo || 0
-      }));
-    }
-    
+    const [users] = await connection.execute('SELECT * FROM users WHERE role = ?', params);
     return users;
   } catch (error) {
     console.error('Erro ao buscar usuários por role:', error);
