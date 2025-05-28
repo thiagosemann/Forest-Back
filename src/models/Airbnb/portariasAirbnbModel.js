@@ -8,7 +8,6 @@ const getAllPortarias = async () => {
 
 // Criar uma nova portaria
 const createPortaria = async (portaria) => {
-  console.log(portaria)
   const {
     nome,
     telefone_principal,
