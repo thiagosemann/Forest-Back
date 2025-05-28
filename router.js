@@ -32,7 +32,8 @@ const apartamentosAirbnbController = require('./src/controllers/Airbnb/apartamen
 const reservasAirbnbController = require('./src/controllers/Airbnb/reservasAirbnbController');
 const checkinFormController = require('./src/controllers/Airbnb/checkinFormController'); // Import do checkinController
 const vistoriaController = require('./src/controllers/Airbnb/vistoriaController'); // Import do vistoriaController
-
+const portariasController = require('./src/controllers/Airbnb/portariasAirbnbController'); // Import do vistoriaController
+const predioPortariaController = require('./src/controllers/Airbnb/predioPortariaController');
 
 
 // User routes
@@ -276,6 +277,21 @@ router.get('/vistorias/:id',verifyToken, vistoriaController.getVistoriaById);
 router.post('/vistorias', verifyToken, vistoriaController.createVistoria);
 router.put('/vistorias/:id',  verifyToken, vistoriaController.updateVistoria);
 router.delete('/vistorias/:id',  verifyToken, vistoriaController.deleteVistoria);
+
+// Rotas de Portarias
+router.get('/portarias', verifyToken, portariasController.getAllPortarias);
+router.get('/portarias/:id', verifyToken, portariasController.getPortariaById);
+router.post('/portarias', verifyToken, portariasController.createPortaria);
+router.put('/portarias/:id', verifyToken, portariasController.updatePortaria);
+router.delete('/portarias/:id', verifyToken, portariasController.deletePortaria);
+
+// Rotas de Associação Prédio-Portaria
+router.get('/predio-portaria', verifyToken, predioPortariaController.getAllPredioPortaria);
+router.get('/predio-portaria/predio/:predioId', verifyToken, predioPortariaController.getPortariasByPredio);
+router.get('/predio-portaria/portaria/:portariaId', verifyToken, predioPortariaController.getPrediosByPortaria);
+router.post('/predio-portaria', verifyToken, predioPortariaController.linkPortariaToPredio);
+router.delete('/predio-portaria', verifyToken, predioPortariaController.unlinkPortariaFromPredio);
+
 
 module.exports = router;
 
