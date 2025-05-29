@@ -34,6 +34,8 @@ const checkinFormController = require('./src/controllers/Airbnb/checkinFormContr
 const vistoriaController = require('./src/controllers/Airbnb/vistoriaController'); // Import do vistoriaController
 const portariasController = require('./src/controllers/Airbnb/portariasAirbnbController'); // Import do vistoriaController
 const predioPortariaController = require('./src/controllers/Airbnb/predioPortariaController');
+const mensagemAutomatica    =require('./src/mensagemAutomatica')
+const limpezaExtraController = require('./src/controllers/Airbnb/limpezaExtraAirbnbController');
 
 
 // User routes
@@ -291,6 +293,19 @@ router.get('/predio-portaria/predio/:predioId', verifyToken, predioPortariaContr
 router.get('/predio-portaria/portaria/:portariaId', verifyToken, predioPortariaController.getPrediosByPortaria);
 router.post('/predio-portaria', verifyToken, predioPortariaController.linkPortariaToPredio);
 router.delete('/predio-portaria', verifyToken, predioPortariaController.unlinkPortariaFromPredio);
+
+// Rotas de Limpezas extras
+
+router.get('/limpeza-extra/', limpezaExtraController.getAllLimpezasExtras);
+router.get('/limpeza-extra/hoje',           limpezaExtraController.getLimpezasExtrasHoje);
+router.get('/limpeza-extra/semana',         limpezaExtraController.getLimpezasExtrasSemana);
+router.get('/limpeza-extra/semana-que-vem', limpezaExtraController.getLimpezasExtrasSemanaQueVem);
+router.get('/limpeza-extra/por-periodo', limpezaExtraController.getLimpezasExtrasPorPeriodo);
+
+router.get('/limpeza-extra/:id', limpezaExtraController.getLimpezaExtraById);
+router.post('/limpeza-extra/', limpezaExtraController.createLimpezaExtra);
+router.put('/limpeza-extra/:id', limpezaExtraController.updateLimpezaExtra);
+router.delete('/limpeza-extra/:id', limpezaExtraController.deleteLimpezaExtra);
 
 
 module.exports = router;

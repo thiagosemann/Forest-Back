@@ -131,20 +131,24 @@ const getCheckinById = async (id) => {
 };
 
 const getCheckinsByReservaId = async (reservaId) => {
-  const [checkins] = await connection.execute(
+  const [byResId] = await connection.execute(
     `SELECT
        c.*,                      -- inclui created_at e updated_at
        u.first_name,
        u.last_name,
        u.Telefone,
-       u.imagemBase64,
-       u.documentBase64
+       uf.imagemBase64,
+       uf.documentBase64
      FROM checkin c
-     LEFT JOIN users u ON c.user_id = u.id
+     LEFT JOIN users u       ON c.user_id = u.id
+     LEFT JOIN user_files uf ON u.id    = uf.user_id
      WHERE c.reserva_id = ?`,
     [reservaId]
   );
-  return checkins;
+  if (byResId.length){
+     return byResId
+  }
+  return []
 };
 
 const updateCheckin = async (checkin) => {

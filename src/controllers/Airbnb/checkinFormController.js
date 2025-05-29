@@ -1,4 +1,7 @@
 const checkinModel = require('../../models/Airbnb/checkinFormModel');
+const reservasModel = require('../../models/Airbnb/reservasAirbnbModel');
+
+const whatsAPI = require('../../whats-api')
 
 const getAllCheckins = async (request, response) => {
   try {
@@ -13,6 +16,12 @@ const getAllCheckins = async (request, response) => {
 const createCheckin = async (request, response) => {
   try {
     const createdCheckin = await checkinModel.createCheckin(request.body);
+    let objeto={
+      cod_reserva:request.body.cod_reserva,
+      telefone_hospede: request.body.Telefone
+    }
+     whatsAPI.envioCadastroConcluido(objeto);
+
     return response.status(201).json(createdCheckin);
   } catch (error) {
     console.error('Erro ao criar check-in:', error);
@@ -51,11 +60,15 @@ const updateCheckin = async (request, response) => {
   try {
     const { id } = request.params;
     const checkin = { ...request.body, id };
+    let objeto={cod_reserva:request.body.cod_reserva,imageBase64:request.body.imagemBase64}
+     whatsAPI.sendMachineOnNotification(objeto,"criarMensagemCadastroConcluido");
 
     const wasUpdated = await checkinModel.updateCheckin(checkin);
 
     if (wasUpdated) {
+      // Chamar função do whats
       return response.status(200).json({ message: 'Check-in atualizado com sucesso' });
+      
     } else {
       return response.status(404).json({ message: 'Check-in não encontrado' });
     }
