@@ -3,7 +3,7 @@ const apartamentoModel = require('./models/Airbnb/apartamentosAirbnbModel');
 const predioPortariaModel = require('./models/Airbnb/prediosPortariasModel')
 const whatsApi = require('./whats-api')
 const checkinModel  = require('./models/Airbnb/checkinFormModel')
-const cron = require('node-cron');
+//const cron = require('node-cron');
 
 async function envioCredenciaisHoje() {
   try {
@@ -90,10 +90,11 @@ async function envioMensagensInstrucoesEntrada() {
 
 //envioMensagensInstrucoesEntrada();
 // ------------------------------------Envio Progamado-----------------------------------------//
-
+/*
 cron.schedule('0 10 * * *', async () => {
   console.log('Executando envioCredenciaisHoje às 10:00...');
   await envioCredenciaisHoje();
 });
+*/
 
 
