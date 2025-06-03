@@ -36,6 +36,7 @@ const portariasController = require('./src/controllers/Airbnb/portariasAirbnbCon
 const predioPortariaController = require('./src/controllers/Airbnb/predioPortariaController');
 const mensagemAutomatica    =require('./src/mensagemAutomatica')
 const limpezaExtraController = require('./src/controllers/Airbnb/limpezaExtraAirbnbController');
+const pagamentosController = require('./src/controllers/Airbnb/pagamento_por_reservaController');
 
 
 // User routes
@@ -217,12 +218,12 @@ router.get('/prestacaoCobrancaBoletos/building/:predio_id/month/:month/year/:yea
 
 // User routes
 router.get('/users-airbnb', verifyToken, usersAirbnbController.getAllUsers);
+router.put('/users-airbnb/:id', verifyToken, usersAirbnbController.updateUser);
 router.get('/users-airbnb/:id', verifyToken, usersAirbnbController.getUser);
 router.get('/users-airbnb/role/:role', verifyToken, usersAirbnbController.getUsersByRole);
 router.post('/login-airbnb', usersAirbnbController.loginUser);
 router.post('/users-airbnb', usersAirbnbController.createUser);
 router.post('/users-airbnb/batch', verifyToken, usersAirbnbController.createUsersBatch);
-router.put('/users-airbnb/:id', verifyToken, usersAirbnbController.updateUser);
 router.delete('/users-airbnb/:id', verifyToken, usersAirbnbController.deleteUser);
 
 // PredioAirbnb routes
@@ -307,6 +308,18 @@ router.post('/limpeza-extra/', limpezaExtraController.createLimpezaExtra);
 router.put('/limpeza-extra/:id', limpezaExtraController.updateLimpezaExtra);
 router.delete('/limpeza-extra/:id', limpezaExtraController.deleteLimpezaExtra);
 
+// Rotas de Pagamentos
+router.get('/pagamentos', verifyToken, pagamentosController.getAllPagamentos); // Listar todos
+router.get('/pagamentos/:id', verifyToken, pagamentosController.getPagamentoById); // Buscar por ID
+router.post('/pagamentos', verifyToken, pagamentosController.createPagamento); // Criar
+router.put('/pagamentos/:id', verifyToken, pagamentosController.updatePagamento); // Atualizar
+router.delete('/pagamentos/:id', verifyToken, pagamentosController.deletePagamento); // Deletar
+// Buscar por código de reserva (individual)
+router.get('/pagamentos/reserva/:cod_reserva', verifyToken, pagamentosController.getByCodReserva);
+// Buscar por lista de códigos de reserva (array no body)
+router.post('/pagamentos/reservas/lista', verifyToken, pagamentosController.getByCodReservaList);
+// Buscar todos os pagamentos por apartamento_id
+router.get('/pagamentos/apartamento/:apartamento_id', verifyToken, pagamentosController.getByApartamentoId);
 
 module.exports = router;
 

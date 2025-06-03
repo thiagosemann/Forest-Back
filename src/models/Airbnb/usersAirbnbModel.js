@@ -126,13 +126,6 @@ const updateUser = async (id, userData) => {
     Telefone,
     imagemBase64,
     documentBase64,
-    segunda,
-    terca,
-    quarta,
-    quinta,
-    sexta,
-    sabado,
-    domingo
   } = merged;
 
   // Hash password if updated

@@ -69,17 +69,16 @@ async function envioPortaria(objeto) {
         const apartamento = objeto.apartamento_name
 
         let message = `*Apartamento:* ${apartamento}\n*Nome:* ${nome}\n*CPF:* ${cpf}\n*Telefone:* ${telefone}\n*Entrada:* ${checkin}\n*Saída:* ${checkout}`;
+        console.log(objeto)
         if(objeto.imagemBase64){
             if(objeto.telefone_principal){
-                //await sendWapiImage(objeto.telefone_principal, objeto.imagemBase64,message); // Substituir pelo número correto do usuário
-                await sendWapiImage("41991017913", objeto.imagemBase64,message); // Substituir pelo número correto do usuário
+                await sendWapiImage(objeto.telefone_principal, objeto.imagemBase64,message); // 
             }
             if(objeto.telefone_secundario){
-                //await sendWapiImage(objeto.telefone_secundario, objeto.imagemBase64,message); // Substituir pelo número correto do usuário
-                await sendWapiImage("41991017913", objeto.imagemBase64,message); // Substituir pelo número correto do usuário
+                await sendWapiImage(objeto.telefone_secundario, objeto.imagemBase64,message); // 
             }
         }else{
-            await sendWapiMessage("41991017913", message); // Substituir pelo número correto do usuário
+            await sendWapiMessage("41991017913", message); // 
         }
         
     } catch (error) {
@@ -90,8 +89,8 @@ async function envioPortaria(objeto) {
 async function envioCadastroConcluido(objeto) {
     try {
         let message = `Seu cadastro no sistema da *Forest* foi concluído com sucesso para a reserva: *(${objeto.cod_reserva})*`
-        await sendWapiMessage(objeto.telefone_hospede, message); // Substituir pelo número correto do usuário
-        // await sendWapiMessage("41991017913", message); // Substituir pelo número correto do usuário
+        await sendWapiMessage(objeto.telefone_hospede, message); // 
+        // await sendWapiMessage("41991017913", message); // 
     } catch (error) {
         await sendWapiMessageAdmin("41991017913", objeto);
     }
@@ -106,8 +105,8 @@ async function envioInstrucoesEntrada(objeto) {
             message = `Olá *${objeto.nome}*,\n\nO seu check in é a partir das *${objeto.horario_check_in}*.\nO check out deve ser realizado *${objeto.horario_check_out}*.\n*Endereço:*\nO Apartamento fica na *${objeto.apartamento_logradouro}, ${objeto.apartamento_bairro}*. Sua facial foi cadastrada no sistema, caso ela não funcione por favor entre em contato.\n*Entrada:*\nO Ap fica no *${objeto.andar_apartamento} ANDAR* , ao chegar na porta você encontrará uma fechadura eletronica, insira a *SENHA DA PORTA ${objeto.senha_porta}* tecla de confirmação ou *.\n*WIFI:*\nRede Internet: *${objeto.apartamento_wifi}*\nSenha:  *${objeto.apartamento_wifi_senha}*\nEm caso de dúvidas estamos a disposição!`
 
         }
-        //await sendWapiMessage(objeto.telefone_hospede, message); // Substituir pelo número correto do usuário
-        await sendWapiMessage("41991017913", message); // Substituir pelo número correto do usuário
+        //await sendWapiMessage(objeto.telefone_hospede, message); // 
+        await sendWapiMessage("41991017913", message); // 
     } catch (error) {
         await sendWapiMessageAdmin("41991017913", objeto);
     }
@@ -135,13 +134,13 @@ async function sendMachineOnNotification(objeto, type) {
   try {
     if(objeto.imagemBase64){
         if(objeto.telefone_principal){
-            await sendWapiImage(objeto.telefone_principal, objeto.imagemBase64,message); // Substituir pelo número correto do usuário
+            await sendWapiImage(objeto.telefone_principal, objeto.imagemBase64,message); // 
         }
         if(objeto.telefone_secundario){
-            await sendWapiImage(objeto.telefone_principal, objeto.imagemBase64,message); // Substituir pelo número correto do usuário
+            await sendWapiImage(objeto.telefone_principal, objeto.imagemBase64,message); // 
         }
     }else{
-        await sendWapiMessage("41991017913", message); // Substituir pelo número correto do usuário
+        await sendWapiMessage("41991017913", message); // 
     }
     
   } catch (error) {
@@ -192,9 +191,6 @@ function criarMensagemInstrucoesSaida(objeto){
             Até breve !
             Equipe Forest. `
 }
-
-
-
 
 
 
