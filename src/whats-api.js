@@ -67,9 +67,7 @@ async function envioPortaria(objeto) {
         const checkin = formatarData(objeto.dataEntrada);
         const checkout = formatarData(objeto.dataSaida);
         const apartamento = objeto.apartamento_name
-
         let message = `*Apartamento:* ${apartamento}\n*Nome:* ${nome}\n*CPF:* ${cpf}\n*Telefone:* ${telefone}\n*Entrada:* ${checkin}\n*Saída:* ${checkout}`;
-        console.log(objeto)
         if(objeto.imagemBase64){
             if(objeto.telefone_principal){
                 await sendWapiImage(objeto.telefone_principal, objeto.imagemBase64,message); // 
@@ -82,7 +80,8 @@ async function envioPortaria(objeto) {
         }
         
     } catch (error) {
-        await sendWapiMessageAdmin("41991017913", objeto);
+      console.error(error)
+       // await sendWapiMessageAdmin("41991017913", objeto);
     }
 }
 
