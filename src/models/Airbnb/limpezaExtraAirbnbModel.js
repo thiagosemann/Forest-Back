@@ -3,12 +3,11 @@ const connection = require('../connection2');
 // Buscar todas as limpezas extras
 const getAllLimpezasExtras = async () => {
   const query = `
-    SELECT le.*, 
+    SELECT le.*,
            COALESCE(a.nome, 'Apartamento não encontrado') AS apartamento_nome,
-           COALESCE(u.first_name, 'Funcionário não encontrado') AS nome_funcionario
+           COALESCE(a.senha_porta, '')            AS apartamento_senha
     FROM limpeza_extra le
     LEFT JOIN apartamentos a ON le.apartamento_id = a.id
-    LEFT JOIN users u ON le.faxina_userId = u.id
     ORDER BY le.end_data DESC
   `;
   const [rows] = await connection.execute(query);
@@ -18,12 +17,11 @@ const getAllLimpezasExtras = async () => {
 // Buscar uma limpeza extra por ID
 const getLimpezaExtraById = async (id) => {
   const query = `
-    SELECT le.*, 
+    SELECT le.*,
            COALESCE(a.nome, 'Apartamento não encontrado') AS apartamento_nome,
-           COALESCE(u.first_name, 'Funcionário não encontrado') AS nome_funcionario
+           COALESCE(a.senha_porta, '')            AS apartamento_senha
     FROM limpeza_extra le
     LEFT JOIN apartamentos a ON le.apartamento_id = a.id
-    LEFT JOIN users u ON le.faxina_userId = u.id
     WHERE le.id = ?
   `;
   const [rows] = await connection.execute(query, [id]);
@@ -47,7 +45,7 @@ const createLimpezaExtra = async (limpeza) => {
       Observacoes,
       limpeza_realizada,
       faxina_userId
-    ) VALUES (?, ?, ?, ?, ?, ?)
+    ) VALUES (?, ?, ?, ?, ?)
   `;
 
   const values = [
@@ -72,7 +70,7 @@ const updateLimpezaExtra = async (limpeza) => {
     limpeza_realizada,
     faxina_userId
   } = limpeza;
-  console.log(limpeza)
+
   const query = `
     UPDATE limpeza_extra
     SET apartamento_id    = ?,
@@ -103,16 +101,15 @@ const deleteLimpezaExtra = async (id) => {
   return result.affectedRows > 0;
 };
 
+// Buscar limpezas extras por período
 const getLimpezasExtrasPorPeriodo = async (startDate, endDate) => {
   const query = `
     SELECT le.*,
            COALESCE(a.nome, 'Apartamento não encontrado')       AS apartamento_nome,
-          COALESCE(a.valor_limpeza, 'Apartamento não encontrado') AS valor_limpeza,
-
-           COALESCE(u.first_name, 'Funcionário não encontrado') AS nome_funcionario
+           COALESCE(a.valor_limpeza, 0)                        AS valor_limpeza,
+           COALESCE(a.senha_porta, '')                          AS apartamento_senha
     FROM limpeza_extra le
     LEFT JOIN apartamentos a ON le.apartamento_id = a.id
-    LEFT JOIN users u       ON le.faxina_userId    = u.id
     WHERE le.end_data BETWEEN ? AND ?
     ORDER BY le.end_data ASC
   `;
@@ -120,15 +117,14 @@ const getLimpezasExtrasPorPeriodo = async (startDate, endDate) => {
   return rows;
 };
 
-
+// Buscar limpezas extras de hoje
 const getLimpezasExtrasHoje = async () => {
   const query = `
-    SELECT le.*, 
+    SELECT le.*,
            COALESCE(a.nome, 'Apartamento não encontrado') AS apartamento_nome,
-           COALESCE(u.first_name, 'Funcionário não encontrado') AS nome_funcionario
+           COALESCE(a.senha_porta, '')                     AS apartamento_senha
     FROM limpeza_extra le
     LEFT JOIN apartamentos a ON le.apartamento_id = a.id
-    LEFT JOIN users u ON le.faxina_userId = u.id
     WHERE DATE(le.end_data) = CURDATE()
     ORDER BY le.end_data ASC
   `;
@@ -136,14 +132,14 @@ const getLimpezasExtrasHoje = async () => {
   return rows;
 };
 
+// Buscar limpezas extras desta semana
 const getLimpezasExtrasSemana = async () => {
   const query = `
-    SELECT le.*, 
+    SELECT le.*,
            COALESCE(a.nome, 'Apartamento não encontrado') AS apartamento_nome,
-           COALESCE(u.first_name, 'Funcionário não encontrado') AS nome_funcionario
+           COALESCE(a.senha_porta, '')                     AS apartamento_senha
     FROM limpeza_extra le
     LEFT JOIN apartamentos a ON le.apartamento_id = a.id
-    LEFT JOIN users u ON le.faxina_userId = u.id
     WHERE YEARWEEK(le.end_data, 1) = YEARWEEK(CURDATE(), 1)
     ORDER BY le.end_data ASC
   `;
@@ -151,23 +147,21 @@ const getLimpezasExtrasSemana = async () => {
   return rows;
 };
 
+// Buscar limpezas extras da semana que vem
 const getLimpezasExtrasSemanaQueVem = async () => {
   const query = `
-    SELECT le.*, 
-           COALESCE(a.nome, 'Apartamento não encontrado') AS apartamento_nome,
-           COALESCE(a.valor_limpeza, 'Apartamento não encontrado') AS valor_limpeza,
-           
-           COALESCE(u.first_name, 'Funcionário não encontrado') AS nome_funcionario
+    SELECT le.*,
+           COALESCE(a.nome, 'Apartamento não encontrado')       AS apartamento_nome,
+           COALESCE(a.valor_limpeza, 0)                        AS valor_limpeza,
+           COALESCE(a.senha_porta, '')                          AS apartamento_senha
     FROM limpeza_extra le
     LEFT JOIN apartamentos a ON le.apartamento_id = a.id
-    LEFT JOIN users u ON le.faxina_userId = u.id
     WHERE YEARWEEK(le.end_data, 1) = YEARWEEK(CURDATE(), 1) + 1
     ORDER BY le.end_data ASC
   `;
   const [rows] = await connection.execute(query);
   return rows;
 };
-
 
 module.exports = {
   getAllLimpezasExtras,
