@@ -51,7 +51,7 @@ const createLimpezaExtra = async (limpeza) => {
   const values = [
     apartamento_id,
     end_data,
-    Observacoes,
+    Observacoes || '',
     limpeza_realizada ? 1 : 0,
     faxina_userId || null
   ];
