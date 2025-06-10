@@ -163,6 +163,7 @@ const getLimpezasExtrasSemanaQueVem = async () => {
   return rows;
 };
 
+
 module.exports = {
   getAllLimpezasExtras,
   getLimpezaExtraById,

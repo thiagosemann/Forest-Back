@@ -153,45 +153,24 @@ const getReservasEmAndamento = async (request, response) => {
   }
 };
 
-// Novas funções para faxina
-const getReservasEncerraHoje = async (request, response) => {
-  try {
-    const reservas = await reservaModel.getReservasEncerraHoje();
-    return response.status(200).json(reservas);
-  } catch (error) {
-    console.error('Erro ao buscar faxinas que encerram hoje:', error);
-    return response.status(500).json({ error: 'Erro ao buscar faxinas que encerram hoje' });
-  }
-};
 
-const getReservasEncerraSemana = async (request, response) => {
+const getFaxinasPorPeriodo = async (request, response) => {
   try {
-    const reservas = await reservaModel.getReservasEncerraSemana();
-    return response.status(200).json(reservas);
-  } catch (error) {
-    console.error('Erro ao buscar faxinas que encerram na semana:', error);
-    return response.status(500).json({ error: 'Erro ao buscar faxinas que encerram na semana' });
-  }
-};
+    const { start, end } = request.query;
+    if (!start || !end) {
+      return response.status(400).json({ 
+        error: 'Datas inicial e final são obrigatórias' 
+      });
+    }
 
-// Próxima semana (segunda a domingo)
-const getReservasEncerraSemanaQueVem = async (request, response) => {
-  try {
-    const reservas = await reservaModel.getReservasEncerraSemanaQueVem();
+    const reservas = await reservaModel.getFaxinasPorPeriodo(start, end);
     return response.status(200).json(reservas);
+    
   } catch (error) {
-    console.error('Erro ao buscar faxinas da próxima semana:', error);
-    return response.status(500).json({ error: 'Erro ao buscar faxinas da próxima semana' });
-  }
-};
-
-const getFaxinasFuturasUmMes = async (request, response) => {
-  try {
-    const reservas = await reservaModel.getFaxinasFuturasUmMes();
-    return response.status(200).json(reservas);
-  } catch (error) {
-    console.error('Erro ao buscar faxinas futuras a partir de um mês:', error);
-    return response.status(500).json({ error: 'Erro ao buscar faxinas futuras a partir de um mês' });
+    console.error('Erro ao buscar reservas por período:', error);
+    return response.status(500).json({ 
+      error: 'Erro ao buscar reservas por período' 
+    });
   }
 };
 
@@ -208,8 +187,5 @@ module.exports = {
   getProximasReservas,
   getReservasFinalizadas,
   getReservasEmAndamento,
-  getReservasEncerraHoje,
-  getReservasEncerraSemana,
-  getFaxinasFuturasUmMes,
-  getReservasEncerraSemanaQueVem
+  getFaxinasPorPeriodo
 };

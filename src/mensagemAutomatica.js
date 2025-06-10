@@ -104,10 +104,10 @@ async function envioMensagensInstrucoesEntrada() {
  //envioMensagensInstrucoesEntrada();
  //envioCredenciaisHoje();
 // ------------------------------------Envio Progamado-----------------------------------------//
-
+/*
 cron.schedule('0 10 * * *', async () => {
   await envioCredenciaisHoje();
 });
-
+*/
 
 

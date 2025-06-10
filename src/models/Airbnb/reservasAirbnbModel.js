@@ -455,97 +455,25 @@ const getReservasEmAndamento = async () => {
   return reservas;
 };
 
-// 1. Reservas que encerram hoje
-const getReservasEncerraHoje = async () => {
-  const hoje = moment().tz('America/Sao_Paulo').format('YYYY-MM-DD');
+
+const getFaxinasPorPeriodo = async (inicio_end_data, fim_end_date) => {
   const query = `
     SELECT 
       r.*,
       a.nome AS apartamento_nome,
       a.senha_porta AS apartamento_senha,
       a.valor_limpeza,
-      EXISTS (SELECT 1 FROM checkin c WHERE c.reserva_id = r.id) AS documentosEnviados,
-      EXISTS (SELECT 1 FROM reservas r2 WHERE r2.apartamento_id = r.apartamento_id AND DATE(r2.start_date) = DATE(r.end_data) AND r2.id != r.id) AS check_in_mesmo_dia
+      EXISTS (SELECT 1 FROM checkin c WHERE c.reserva_id = r.id) AS documentosEnviados
     FROM reservas r
-    LEFT JOIN apartamentos a ON a.id = r.apartamento_id
-    WHERE DATE(r.end_data) = ?
-      AND r.cod_reserva NOT LIKE CONCAT('%', COALESCE(a.nome, 'Apartamento não encontrado'), '%')
+    LEFT JOIN apartamentos a ON r.apartamento_id = a.id
+    WHERE r.faxina_userId IS NOT NULL
+      AND r.end_data BETWEEN ? AND ?
     ORDER BY r.end_data ASC
   `;
-  const [reservas] = await connection.execute(query, [hoje]);
+  
+  const [reservas] = await connection.execute(query, [inicio_end_data, fim_end_date]);
   return reservas;
 };
-// 2. Reservas que encerram na “semana” (hoje até domingo)
-const getReservasEncerraSemana = async () => {
-  const hoje = moment().tz('America/Sao_Paulo');
-  const inicio = hoje.clone().format('YYYY-MM-DD');
-  // isoWeekday(7) → domingo da semana atual
-  const domingo = hoje.clone().isoWeekday(7).format('YYYY-MM-DD');
-  const query = `
-    SELECT 
-      r.*,
-      a.nome AS apartamento_nome,
-      a.senha_porta AS apartamento_senha,
-      a.valor_limpeza,
-      EXISTS (SELECT 1 FROM checkin c WHERE c.reserva_id = r.id) AS documentosEnviados,
-      EXISTS (SELECT 1 FROM reservas r2 WHERE r2.apartamento_id = r.apartamento_id AND DATE(r2.start_date) = DATE(r.end_data) AND r2.id != r.id) AS check_in_mesmo_dia
-    FROM reservas r
-    LEFT JOIN apartamentos a ON a.id = r.apartamento_id
-    WHERE DATE(r.end_data) BETWEEN ? AND ?
-      AND r.cod_reserva NOT LIKE CONCAT('%', COALESCE(a.nome, 'Apartamento não encontrado'), '%')
-    ORDER BY r.end_data ASC
-  `;
-  const [reservas] = await connection.execute(query, [inicio, domingo]);
-  return reservas;
-};
-
-// Nova: reservas que encerram **na próxima semana** (segunda a domingo da semana que vem)
-const getReservasEncerraSemanaQueVem = async () => {
-  const hoje = moment().tz('America/Sao_Paulo');
-  // pega próxima segunda-feira
-  const proximaSegunda = hoje.clone().add(1, 'week').isoWeekday(1).format('YYYY-MM-DD');
-  // domingo seguinte (fim da próxima semana)
-  const domingoQueVem = hoje.clone().add(1, 'week').isoWeekday(7).format('YYYY-MM-DD');
-  const query = `
-    SELECT
-      r.*,
-      a.nome AS apartamento_nome,
-      a.senha_porta AS apartamento_senha,
-      a.valor_limpeza,
-      EXISTS (SELECT 1 FROM checkin c WHERE c.reserva_id = r.id) AS documentosEnviados,
-      EXISTS (SELECT 1 FROM reservas r2 WHERE r2.apartamento_id = r.apartamento_id AND DATE(r2.start_date) = DATE(r.end_data) AND r2.id != r.id) AS check_in_mesmo_dia
-    FROM reservas r
-    LEFT JOIN apartamentos a ON a.id = r.apartamento_id
-    WHERE DATE(r.end_data) BETWEEN ? AND ?
-      AND r.cod_reserva NOT LIKE CONCAT('%', COALESCE(a.nome, 'Apartamento não encontrado'), '%')
-    ORDER BY r.end_data ASC
-  `;
-  const [reservas] = await connection.execute(query, [proximaSegunda, domingoQueVem]);
-  return reservas;
-};
-
-// 3. Faxinas futuras de 1 mês em diante
-const getFaxinasFuturasUmMes = async () => {
-  const limite = moment().tz('America/Sao_Paulo').add(1, 'month').format('YYYY-MM-DD');
-  const query = `
-    SELECT 
-      r.*,
-      a.nome AS apartamento_nome,
-      a.senha_porta AS apartamento_senha,
-      a.valor_limpeza,
-      EXISTS (SELECT 1 FROM checkin c WHERE c.reserva_id = r.id) AS documentosEnviados,
-      EXISTS (SELECT 1 FROM reservas r2 WHERE r2.apartamento_id = r.apartamento_id AND DATE(r2.start_date) = DATE(r.end_data) AND r2.id != r.id) AS check_in_mesmo_dia
-    FROM reservas r
-    LEFT JOIN apartamentos a ON a.id = r.apartamento_id
-    WHERE DATE(r.end_data) >= ?
-      AND r.cod_reserva NOT LIKE CONCAT('%', COALESCE(a.nome, 'Apartamento não encontrado'), '%')
-    ORDER BY r.end_data ASC
-  `;
-  const [reservas] = await connection.execute(query, [limite]);
-  return reservas;
-};
-
-
 
 module.exports = {
   getAllReservas,
@@ -560,8 +488,5 @@ module.exports = {
   getProximasReservas,
   getReservasFinalizadas,
   getReservasEmAndamento,
-  getReservasEncerraHoje,
-  getReservasEncerraSemana,
-  getFaxinasFuturasUmMes,
-  getReservasEncerraSemanaQueVem
+  getFaxinasPorPeriodo
 };

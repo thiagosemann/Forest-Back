@@ -258,10 +258,7 @@ router.get('/reservas-airbnb/filtro/finalizadas', reservasAirbnbController.getRe
 router.get('/reservas-airbnb/filtro/em-andamento', reservasAirbnbController.getReservasEmAndamento);
 
 // Novos filtros de faxina
-router.get('/reservas-airbnb/filtro/encerra-hoje', reservasAirbnbController.getReservasEncerraHoje);
-router.get('/reservas-airbnb/filtro/encerra-semana', reservasAirbnbController.getReservasEncerraSemana);
-router.get('/reservas-airbnb/filtro/encerra-semana-que-vem', reservasAirbnbController.getReservasEncerraSemanaQueVem);
-router.get('/reservas-airbnb/filtro/futuras-um-mes', reservasAirbnbController.getFaxinasFuturasUmMes);
+router.get('/reservas-airbnb/filtro/por-periodo', reservasAirbnbController.getFaxinasPorPeriodo);
 
 
 // Rotas de Check-in
