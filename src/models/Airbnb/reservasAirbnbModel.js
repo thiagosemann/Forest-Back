@@ -457,6 +457,7 @@ const getReservasEmAndamento = async () => {
 
 
 const getFaxinasPorPeriodo = async (inicio_end_data, fim_end_date) => {
+
   const query = `
     SELECT 
       r.*,
@@ -466,14 +467,16 @@ const getFaxinasPorPeriodo = async (inicio_end_data, fim_end_date) => {
       EXISTS (SELECT 1 FROM checkin c WHERE c.reserva_id = r.id) AS documentosEnviados
     FROM reservas r
     LEFT JOIN apartamentos a ON r.apartamento_id = a.id
-    WHERE r.faxina_userId IS NOT NULL
+    WHERE r.description = 'Reserved'
       AND r.end_data BETWEEN ? AND ?
     ORDER BY r.end_data ASC
   `;
-  
+
   const [reservas] = await connection.execute(query, [inicio_end_data, fim_end_date]);
+  console.log(reservas);
   return reservas;
 };
+
 
 module.exports = {
   getAllReservas,
