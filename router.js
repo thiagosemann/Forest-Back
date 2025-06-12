@@ -270,6 +270,7 @@ router.post('/checkins', checkinFormController.createCheckin); // Criar um novo 
 router.put('/checkins/:id', verifyToken, checkinFormController.updateCheckin); // Atualizar um check-in por ID
 router.delete('/checkins/:id', verifyToken, checkinFormController.deleteCheckin); // Deletar um check-in por ID
 router.get('/checkins/user/:userId',verifyToken,checkinFormController.getCheckinsByUserId);
+router.post( '/checkins/envio', verifyToken, checkinFormController.envioPorCheckins);
 
 // Rotas de Vistorias
 router.get('/vistorias', verifyToken, vistoriaController.getAllVistorias);

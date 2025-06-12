@@ -120,10 +120,11 @@ const getCheckinById = async (id) => {
        u.first_name,
        u.last_name,
        u.Telefone,
-       u.imagemBase64,
-       u.documentBase64
+       uf.imagemBase64,
+       uf.documentBase64
      FROM checkin c
-     LEFT JOIN users u ON c.user_id = u.id
+     LEFT JOIN users u       ON c.user_id = u.id
+     LEFT JOIN user_files uf ON u.id    = uf.user_id
      WHERE c.id = ?`,
     [id]
   );

@@ -1,7 +1,9 @@
 const checkinModel = require('../../models/Airbnb/checkinFormModel');
 const reservasModel = require('../../models/Airbnb/reservasAirbnbModel');
+const apartamentoModel = require('../../models/Airbnb/apartamentosAirbnbModel');
 
-const whatsAPI = require('../../whats-api')
+const whatsAPI           = require('../../whats-api');
+
 
 const getAllCheckins = async (request, response) => {
   try {
@@ -112,6 +114,7 @@ const getCheckinByReservaIdOrCodReserva = async (req, res) => {
     }
   };
 
+
   const getCheckinsByUserId = async (request, response) => {
     try {
       const { userId } = request.params;
@@ -123,6 +126,47 @@ const getCheckinByReservaIdOrCodReserva = async (req, res) => {
     }
   };
   
+const envioPorCheckins = async (request, response) => {
+  try {
+    const { checkinIds } = request.body;
+    if (!Array.isArray(checkinIds) || checkinIds.length === 0) {
+      return response
+        .status(400)
+        .json({ error: 'checkinIds deve ser um array não-vazio' });
+    }
+
+    // Para cada ID, busca o check-in e dispara o envio
+    for (const checkinId of checkinIds) {
+      const checkin = await checkinModel.getCheckinById(checkinId);
+      const reserva = await reservasModel.getReservaById(checkin.reserva_id);
+      const apartamento = await apartamentoModel.getApartamentoById(reserva.apartamento_id)
+      if (!checkinId) {
+        console.warn(`Check-in ${checkinId} não encontrado`);
+        continue;
+      }
+      let objeto={
+        dataEntrada:reserva.start_date,
+        dataSaida:   reserva.end_data,  // ou reserva.end_date, conforme o nome correto
+        apartamento_name: apartamento.nome,
+        name:            checkin.first_name,
+        cpf:             checkin.CPF,
+        telefone_hospede:        checkin.Telefone,
+        imagemBase64:        checkin.imagemBase64,
+      }    
+
+       await whatsAPI.envioForest(objeto);
+    }
+
+    return response
+      .status(200)
+      .json({ message: 'Processamento de envioPorCheckins concluído.' });
+  } catch (error) {
+    console.error('Erro em envioPorCheckins:', error);
+    return response
+      .status(500)
+      .json({ error: 'Erro interno ao processar o envio.' });
+  }
+};
 
 module.exports = {
   getAllCheckins,
@@ -132,5 +176,6 @@ module.exports = {
   updateCheckin,
   deleteCheckin,
   getCheckinByReservaIdOrCodReserva,
-  getCheckinsByUserId
+  getCheckinsByUserId,
+  envioPorCheckins
 };

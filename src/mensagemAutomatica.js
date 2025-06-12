@@ -101,6 +101,9 @@ async function envioMensagensInstrucoesEntrada() {
   }
 }
 
+
+
+
  //envioMensagensInstrucoesEntrada();
  //envioCredenciaisHoje();
 // ------------------------------------Envio Progamado-----------------------------------------//

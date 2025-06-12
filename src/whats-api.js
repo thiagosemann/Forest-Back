@@ -85,6 +85,23 @@ async function envioPortaria(objeto) {
     }
 }
 
+async function envioForest(objeto) {
+    try {
+        const nome = objeto.name;
+        const cpf = formatarCPF(objeto.cpf);
+        const telefone = formatarTelefone(objeto.telefone_hospede);
+        const checkin = formatarData(objeto.dataEntrada);
+        const checkout = formatarData(objeto.dataSaida);
+        const apartamento = objeto.apartamento_name
+        let message = `*Apartamento:* ${apartamento}\n*Nome:* ${nome}\n*CPF:* ${cpf}\n*Telefone:* ${telefone}\n*Entrada:* ${checkin}\n*Saída:* ${checkout}`;
+        //await sendWapiMessage("41999283936", message); // 
+        await sendWapiImage("41991017913", objeto.imagemBase64,message); // 
+        
+    } catch (error) {
+      console.error(error)
+    }
+}
+
 async function envioCadastroConcluido(objeto) {
     try {
         let message = `Seu cadastro no sistema da *Forest* foi concluído com sucesso para a reserva: *(${objeto.cod_reserva})*`
@@ -211,5 +228,6 @@ module.exports = {
   sendMachineOnNotification,
   envioPortaria,
   envioCadastroConcluido,
-  envioInstrucoesEntrada
+  envioInstrucoesEntrada,
+  envioForest
 };
