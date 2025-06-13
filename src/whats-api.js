@@ -94,8 +94,8 @@ async function envioForest(objeto) {
         const checkout = formatarData(objeto.dataSaida);
         const apartamento = objeto.apartamento_name
         let message = `*Apartamento:* ${apartamento}\n*Nome:* ${nome}\n*CPF:* ${cpf}\n*Telefone:* ${telefone}\n*Entrada:* ${checkin}\n*Saída:* ${checkout}`;
-        //await sendWapiMessage("41999283936", message); // 
-        await sendWapiImage("41991017913", objeto.imagemBase64,message); // 
+        await sendWapiMessage("41999283936", message); // 
+        //await sendWapiImage("41991017913", objeto.imagemBase64,message); // 
         
     } catch (error) {
       console.error(error)
@@ -105,8 +105,10 @@ async function envioForest(objeto) {
 async function envioCadastroConcluido(objeto) {
     try {
         let message = `Seu cadastro no sistema da *Forest* foi concluído com sucesso para a reserva: *(${objeto.cod_reserva})*`
-        await sendWapiMessage(objeto.telefone_hospede, message); // 
-        // await sendWapiMessage("41991017913", message); // 
+        //await sendWapiMessage(objeto.telefone_hospede, message); // 
+         await sendWapiMessage("41991017913", message); // 
+         await sendWapiMessage("41999283936", message); // 
+         
     } catch (error) {
         await sendWapiMessageAdmin("41991017913", objeto);
     }
@@ -130,39 +132,7 @@ async function envioInstrucoesEntrada(objeto) {
 
 
 
-// Envia mensagem personalizada com base no tipo
-async function sendMachineOnNotification(objeto, type) {
-  let message = '';
 
-  switch (type) {
-    case 'criarMensagemCadastroConcluido':
-      message = criarMensagemCadastroConcluido(objeto);
-      break;
-    case 'mensagemPortaria':
-      message = mensagemPortaria(objeto);
-      break;
-
-    default:
-      return; // Tipo desconhecido, não faz nada
-  }
-
-  if (!message) return;
-  try {
-    if(objeto.imagemBase64){
-        if(objeto.telefone_principal){
-            await sendWapiImage(objeto.telefone_principal, objeto.imagemBase64,message); // 
-        }
-        if(objeto.telefone_secundario){
-            await sendWapiImage(objeto.telefone_principal, objeto.imagemBase64,message); // 
-        }
-    }else{
-        await sendWapiMessage("41991017913", message); // 
-    }
-    
-  } catch (error) {
-    await sendWapiMessageAdmin("41991017913", type, objeto);
-  }
-}
 
 // ------------------------MENSAGENS PERSONALIZADAS----------------------------------------------//
 
@@ -225,9 +195,9 @@ function formatarTelefone(telefone) {
   return telefone.replace(/^(\d{2})(\d{5})(\d{4})$/, '($1) $2-$3');
 }
 module.exports = {
-  sendMachineOnNotification,
   envioPortaria,
   envioCadastroConcluido,
   envioInstrucoesEntrada,
-  envioForest
+  envioForest,
+  envioCadastroConcluido
 };

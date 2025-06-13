@@ -62,11 +62,12 @@ const updateCheckin = async (request, response) => {
   try {
     const { id } = request.params;
     const checkin = { ...request.body, id };
-    let objeto={cod_reserva:request.body.cod_reserva,imageBase64:request.body.imagemBase64}
-     whatsAPI.sendMachineOnNotification(objeto,"criarMensagemCadastroConcluido");
-
     const wasUpdated = await checkinModel.updateCheckin(checkin);
-
+    let objeto={
+      cod_reserva:request.body.cod_reserva,
+      telefone_hospede: request.body.Telefone
+    }
+     whatsAPI.envioCadastroConcluido(objeto);
     if (wasUpdated) {
       // Chamar função do whats
       return response.status(200).json({ message: 'Check-in atualizado com sucesso' });
