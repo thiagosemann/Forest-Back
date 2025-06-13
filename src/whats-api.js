@@ -94,9 +94,7 @@ async function envioForest(objeto) {
         const checkout = formatarData(objeto.dataSaida);
         const apartamento = objeto.apartamento_name
         let message = `*Apartamento:* ${apartamento}\n*Nome:* ${nome}\n*CPF:* ${cpf}\n*Telefone:* ${telefone}\n*Entrada:* ${checkin}\n*Saída:* ${checkout}`;
-        await sendWapiImage("41999283936", objeto.imagemBase64,message); // 
-        //await sendWapiImage("41991017913", objeto.imagemBase64,message); // 
-        
+        await sendWapiImage("41999283936", objeto.imagemBase64,message); //         
     } catch (error) {
       console.error(error)
     }
@@ -125,10 +123,36 @@ async function envioInstrucoesEntrada(objeto) {
         }
         //await sendWapiMessage(objeto.telefone_hospede, message); // 
         await sendWapiMessage("41991017913", message); // 
+        await sendWapiMessage("41999283936", message); // 
+        
     } catch (error) {
         await sendWapiMessageAdmin("41991017913", objeto);
     }
 }
+
+async function envioMensagemBoasVindas(objeto) {
+    try {
+        let message=`Olá ${objeto.nome},
+            Obrigado por escolher nosso espaço para se hospedar!
+            Esperamos que você desfrute da sua estadia conosco e se sinta em casa.
+            No dia ${checkin} enviaremos aqui, todas as instruções para o ingresso no apartamento. 
+            O horário de entrada é as ${objeto.horario_check_in}.
+            Disponibilizamos jogo de cama, banho, travesseiros e cobertores. 
+            Pedimos que façam bom uso dos mesmos. Manchas de maquiagem, sangue, café e afins, serão cobradas ao final da estadia.
+            Se precisar de qualquer coisa antes, durante e depois de sua estadia, não hesite em nos contactar.
+            Em caso de dúvidas, pode responder nesse mesmo contato.
+            Atenciosamente,
+            Equipe Forest e Ana Cristina`
+    
+        //await sendWapiMessage(objeto.telefone_hospede, message); // 
+        await sendWapiMessage("41991017913", message); // 
+        await sendWapiMessage("41999283936", message); // 
+        
+    } catch (error) {
+        await sendWapiMessageAdmin("41991017913", objeto);
+    }
+}
+
 
 
 
