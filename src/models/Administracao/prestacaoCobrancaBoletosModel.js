@@ -31,7 +31,7 @@ const getPrestacaoCobrancaBoletoById = async (id) => {
     boleto.pdf = boleto.pdf || null;
     return boleto;
   } else {
-    console.log('Nenhum boleto encontrado com o ID:', id);
+    console.error('Nenhum boleto encontrado com o ID:', id);
     return null;
   }
 };

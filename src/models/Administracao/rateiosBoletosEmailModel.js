@@ -15,7 +15,6 @@ const createRateioBoletoEmail = async ({
   rateioPdfFileName,
   boletoPdfFileName
 }) => {
-  console.log("Entrou")
   const query = `
     INSERT INTO rateioBoletoEmail
       (rateioPdf, boletoPdf, rateioPdfFileName, boletoPdfFileName)

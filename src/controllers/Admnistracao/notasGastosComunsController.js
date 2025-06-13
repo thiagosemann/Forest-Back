@@ -12,7 +12,6 @@ const getAllNotasGastosComuns = async (request, response) => {
 
 const createNotasGastosComuns = async (request, response) => {
   try {
-    console.log(request.body);
     if (!request.body || !request.body.documentBlob) {
       return response.status(400).json({ error: 'Arquivo não fornecido' });
     }

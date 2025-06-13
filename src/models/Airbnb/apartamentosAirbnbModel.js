@@ -13,8 +13,6 @@ const getAllApartamentos = async () => {
 
 // Função para criar um novo apartamento com valores opcionais
 const createApartamento = async (apartamento) => {
-  console.log("Dados recebidos para inserção:", apartamento);
-
   if (!apartamento.nome || !apartamento.predio_id) {
     throw new Error("Os campos 'nome' e 'predio_id' são obrigatórios.");
   }
@@ -104,7 +102,6 @@ const createApartamento = async (apartamento) => {
 
   try {
     const [result] = await connection.execute(insertApartamentoQuery, values);
-    console.log("Apartamento inserido com sucesso, ID:", result.insertId);
     return { insertId: result.insertId };
   } catch (error) {
     console.error("Erro ao inserir apartamento:", error);

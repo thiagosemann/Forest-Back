@@ -19,7 +19,6 @@ const getAllCommonExpenses = async () => {
 };
 
 const createCommonExpense = async (expense) => {
-  console.log(expense);
   const {
     data_gasto,
     nome_original,

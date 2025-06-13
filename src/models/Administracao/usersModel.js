@@ -12,7 +12,6 @@ const getAllUsers = async () => {
 const saltRounds = 10;
 
 const createUser = async (user) => {
-  console.log(user)
   const { first_name, last_name, cpf, email, password, role, building_id } = user;
 
   // Gere o hash da senha
@@ -144,7 +143,6 @@ const createUsersBatch = async (users) => {
   try {
     for (let user of users) {
       const { first_name, last_name, cpf, email, role, building_id } = user;
-      console.log(user)
       // Verifica se o usuário já existe pelo CPF ou e-mail
       const checkUserExistsQuery = 'SELECT * FROM users WHERE cpf = ? OR email = ?';
       const [existingUsers] = await connection.execute(checkUserExistsQuery, [cpf, email]);

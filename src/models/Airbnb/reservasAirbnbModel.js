@@ -473,7 +473,6 @@ const getFaxinasPorPeriodo = async (inicio_end_data, fim_end_date) => {
   `;
 
   const [reservas] = await connection.execute(query, [inicio_end_data, fim_end_date]);
-  console.log(reservas);
   return reservas;
 };
 

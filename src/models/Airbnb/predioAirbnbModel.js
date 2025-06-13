@@ -83,7 +83,6 @@ const getPredioById = async (id) => {
 
 // Função para atualizar um prédio
 const updatePredio = async (predio) => {
-  console.log(predio)
   const {
     id,
     nome,

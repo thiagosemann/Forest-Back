@@ -9,7 +9,6 @@ const getAllNotasGastosComuns = async () => {
 
 // Cria um novo documento
 const createNotasGastosComuns = async (document) => {
-  console.log(document)
   const { documentBlob, commonExpense_id } = document;
 
   const insertDocumentQuery = 'INSERT INTO notasGastosComuns (document, commonExpense_id) VALUES (?, ?)';
@@ -38,7 +37,7 @@ const getNotasGastosComunsById = async (id) => {
     }
     return document;
   } else {
-    console.log('Nenhum documento encontrado com o ID:', id);
+    console.error('Nenhum documento encontrado com o ID:', id);
     return null;
   }
 };
@@ -70,7 +69,7 @@ const getNotasGastosComunsByBuildingAndMonth = async (predio_id, month, year) =>
         documentBlob: doc.document ? doc.document.toString('utf8') : null,
       }));
     } else {
-      console.log('Nenhum documento encontrado para o prédio, mês e ano fornecidos.');
+      console.error('Nenhum documento encontrado para o prédio, mês e ano fornecidos.');
       return [];
     }
   } catch (error) {

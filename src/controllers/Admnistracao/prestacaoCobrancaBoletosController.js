@@ -14,8 +14,6 @@ const getAllPrestacaoCobrancaBoletos = async (req, res) => {
 // Cria um novo boleto
 const createPrestacaoCobrancaBoletos = async (req, res) => {
   try {
-    console.log(req.body);
-
     // Verificação básica dos parâmetros obrigatórios: predio_id e dataEnvio (pdf pode ser nulo)
     if (!req.body || !req.body.predio_id || !req.body.month || !req.body.year ) {
       return res.status(400).json({ error: 'Parâmetros predio_id e dataEnvio são obrigatórios' });

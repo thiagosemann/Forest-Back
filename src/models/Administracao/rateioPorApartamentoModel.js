@@ -309,7 +309,6 @@ const atualizarDataPagamentoEValor = async (pagamentosConsolidados) => {
   try {
     for (const pagamento of pagamentosConsolidados) {
       const { id, data_pagamento, valor_pagamento } = pagamento;
-      console.log('Atualizando pagamento:', pagamento);
 
       const updateQuery = `
         UPDATE rateio_por_apartamento
@@ -319,10 +318,8 @@ const atualizarDataPagamentoEValor = async (pagamentosConsolidados) => {
       `;
 
       await connection.execute(updateQuery, [data_pagamento, valor_pagamento, id]);
-      console.log(`ID ${id} — data_pagamento: ${data_pagamento}, valor_pagamento: ${valor_pagamento}`);
     }
 
-    console.log('Atualização de data_pagamento e valor_pagamento concluída com sucesso.');
   } catch (error) {
     console.error('Erro ao atualizar data_pagamento/valor_pagamento:', error);
     throw error;
