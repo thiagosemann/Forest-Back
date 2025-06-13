@@ -94,7 +94,7 @@ async function envioForest(objeto) {
         const checkout = formatarData(objeto.dataSaida);
         const apartamento = objeto.apartamento_name
         let message = `*Apartamento:* ${apartamento}\n*Nome:* ${nome}\n*CPF:* ${cpf}\n*Telefone:* ${telefone}\n*Entrada:* ${checkin}\n*Saída:* ${checkout}`;
-        await sendWapiMessage("41999283936", message); // 
+        await sendWapiImage("41999283936", message); // 
         //await sendWapiImage("41991017913", objeto.imagemBase64,message); // 
         
     } catch (error) {
