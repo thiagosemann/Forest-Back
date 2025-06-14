@@ -105,7 +105,7 @@ async function envioCadastroConcluido(objeto) {
         let message = `Seu cadastro no sistema da *Forest* foi concluído com sucesso para a reserva: *(${objeto.cod_reserva})*`
         //await sendWapiMessage(objeto.telefone_hospede, message); // 
          await sendWapiMessage("41991017913", message); // 
-         await sendWapiMessage("41999283936", message); // 
+         await sendWapiMessage(objeto.telefone_hospede, message); // 
          
     } catch (error) {
         await sendWapiMessageAdmin("41991017913", objeto);
