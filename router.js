@@ -37,6 +37,7 @@ const predioPortariaController = require('./src/controllers/Airbnb/predioPortari
 const mensagemAutomatica    =require('./src/mensagemAutomatica')
 const limpezaExtraController = require('./src/controllers/Airbnb/limpezaExtraAirbnbController');
 const pagamentosController = require('./src/controllers/Airbnb/pagamento_por_reservaController');
+//const mercadoPagoApi = require('./src/mercadoPago');
 
 
 // User routes
