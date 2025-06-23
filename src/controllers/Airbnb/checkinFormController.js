@@ -2,7 +2,7 @@ const checkinModel = require('../../models/Airbnb/checkinFormModel');
 const reservasModel = require('../../models/Airbnb/reservasAirbnbModel');
 const apartamentoModel = require('../../models/Airbnb/apartamentosAirbnbModel');
 
-const whatsAPI           = require('../../whats-api');
+const whatsControle   = require('../../WhatsApp/whats_Controle');
 
 
 const getAllCheckins = async (request, response) => {
@@ -22,7 +22,7 @@ const createCheckin = async (request, response) => {
       cod_reserva:request.body.cod_reserva,
       telefone_hospede: request.body.Telefone
     }
-     whatsAPI.envioCadastroConcluido(objeto);
+     whatsControle.envioCadastroConcluido(objeto);
 
     return response.status(201).json(createdCheckin);
   } catch (error) {
@@ -67,7 +67,7 @@ const updateCheckin = async (request, response) => {
       cod_reserva:request.body.cod_reserva,
       telefone_hospede: request.body.Telefone
     }
-     whatsAPI.envioCadastroConcluido(objeto);
+     whatsControle.envioCadastroConcluido(objeto);
     if (wasUpdated) {
       // Chamar função do whats
       return response.status(200).json({ message: 'Check-in atualizado com sucesso' });
@@ -155,7 +155,7 @@ const envioPorCheckins = async (request, response) => {
         imagemBase64:        checkin.imagemBase64,
       }    
 
-       await whatsAPI.envioForest(objeto);
+       await whatsControle.envioForest(objeto);
     }
 
     return response

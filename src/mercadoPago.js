@@ -1,24 +1,34 @@
 const { MercadoPagoConfig, Preference } = require('mercadopago');
-const PaymentModel = require('./models/Airbnb/paymentModel');
-const usersModel = require('./models/Airbnb/usersAirbnbModel')
-const apartamentosModel = require('./models/Airbnb/apartamentosAirbnbModel')
-
+const pagamentoModel = require('./models/Airbnb/pagamento_por_reserva_extraModel');
+const usersModel = require('./models/Airbnb/usersAirbnbModel');
+const apartamentosModel = require('./models/Airbnb/apartamentosAirbnbModel');
+const reservasModel = require('./models/Airbnb/reservasAirbnbModel');
+const { envioPagamentoEarly } = require('./WhatsApp/whats_Controle');
 
 const axios = require('axios');
 require('dotenv').config();
-
 
 // Configuração do MercadoPago
 const client = new MercadoPagoConfig({ accessToken: process.env.access_token });
 const preference = new Preference(client);
 
-// Função para criar a preferência e obter o link de redirecionamento
+/**
+ * Cria preferência de pagamento e envia link via WhatsApp para early check-in
+ */
 async function criarPreferencia(req, res) {
   try {
-     const {user_id,apartamento_id,cod_reserva,valorReais} = req.body;
-     const apartamento = await apartamentosModel.getApartamentoById(apartamento_id);
-     const message = `Early Checkin - ${apartamento.nome} código da reserva: ${cod_reserva}`;
-     const body = {
+    const { user_id, apartamento_id, cod_reserva, valorReais, tipo } = req.body;
+
+    // Busca dados do usuário e do apartamento
+    const user = await usersModel.getUser(user_id);
+    const telefoneHospede = user.telefone_hospede || user.telefone;
+    const nomeHospede = user.first_name || user.name;
+    const emailComprador = user.email || null;
+
+    const apartamento = await apartamentosModel.getApartamentoById(apartamento_id);
+    const message = `Early Checkin - ${apartamento.nome} / Reserva: ${cod_reserva}`;
+
+    const body = {
       additional_info: message,
       auto_return: 'approved',
       back_urls: {
@@ -26,143 +36,93 @@ async function criarPreferencia(req, res) {
         pending: 'https://www.foreasy.com.br/content',
         success: 'https://www.foreasy.com.br/content'
       },
-      date_created: new Date().toISOString(),
-      items: [
-        {
-          id: '001',
-          title: message,
-          category_id: 'eletronicos',
-          currency_id: 'BRL',
-          description: message,
-          quantity: 1,
-          unit_price: valorReais 
-        }
-      ],
+      items: [{
+        id: cod_reserva,
+        title: message,
+        category_id: 'others',
+        currency_id: 'BRL',
+        description: message,
+        quantity: 1,
+        unit_price: valorReais
+      }],
       payment_methods: {
         excluded_payment_methods: [],
         excluded_payment_types: [
-            { id: "prepaid_card" },
-            { id: "ticket" },
-            { id: "atm" }
-          ],
-        installments: null,
-        default_installments: null
+          { id: 'prepaid_card' },
+          { id: 'ticket' },
+          { id: 'atm' }
+        ]
       },
       marketplace: 'NONE',
-      metadata: {
-        user_id: user_id,
-        date: new Date(),
-        valor_real:valorReais
-      },
+      metadata: { user_id, email_comprador: emailComprador, apartamento_id, cod_reserva, valor_real: valorReais, tipo },
       operation_type: 'regular_payment',
-      total_amount: valorReais,
-      site_id: 'MLB',
-      user_id: user_id
+      site_id: 'MLB'
     };
-    const preferenceResponse = await preference.create({ body });
-    const redirectUrl = preferenceResponse.init_point;
-    console.log(redirectUrl)
+
+    const { init_point: redirectUrl } = await preference.create({ body });
+
+    // Responde imediatamente ao front
     res.json({ redirectUrl });
+
+    // Envia link de pagamento via WhatsApp (background)
+    envioPagamentoEarly({
+      //telefone_hospede: telefoneHospede,
+      telefone_hospede: '41991017913',
+      nome: nomeHospede,
+      apartamento: apartamento.nome,
+      cod_reserva,
+      valor: valorReais,
+      linkPagamento: redirectUrl
+    }).catch(err => console.error('[ERRO] envioPagamentoEarly:', err));
+
   } catch (error) {
-    console.error('Erro ao criar preferência:', error);
-    res.status(500).json({ error: 'Erro ao processar a requisição' });
+    console.error('Erro ao criar preferência MP:', error);
+    res.status(500).json({ error: 'Não foi possível criar preferência.' });
   }
 }
-
 
 
 async function processarWebhookMercadoPago(req, res) {
   try {
     const { data } = req.body;
-    const { id } = data;
+    const paymentId = data.id;
 
-    // Faz a consulta à API do MercadoPago para obter informações sobre o pagamento
-    const url = `https://api.mercadopago.com/v1/payments/${id}?access_token=${process.env.access_token}`;
-    const response = await axios.get(url, { timeout: 10000 }); // Adicione um timeout aqui
+    const url = `https://api.mercadopago.com/v1/payments/${paymentId}?access_token=${process.env.access_token}`;
+    const { data: paymentInfo, status } = await axios.get(url, { timeout: 10000 });
 
-    if (response.status === 200) {
-      const paymentInfo = response.data;
-      if(paymentInfo.status === "approved") {
-        const dateCriado = paymentInfo.metadata.date.slice(0, 19).replace('T', ' ');
-        console.log(paymentInfo.metadata)
-        const payment = {
-          user_id: paymentInfo.metadata.user_id,
-          valor_total: paymentInfo.transaction_amount,
-          tipo_pagamento: paymentInfo.payment_type_id,
-          email_comprador: paymentInfo.metadata.user_email,
-          date_criado: dateCriado,
-          valor_real:paymentInfo.metadata.valor_real
-
-        };
-        if(paymentInfo.metadata.ligar_auto){
-          payment.ligar_auto = paymentInfo.metadata.ligar_auto;
-        }
-        if(paymentInfo.metadata.machine_id){
-          payment.machine_id = paymentInfo.metadata.machine_id;
-        }
-        // Tente criar o pagamento e atualizar o crédito do usuário de forma assíncrona
-        processPaymentAndUpdateUser(payment)
-          .then(() => {
-            res.status(200).send('Webhook processado com sucesso.');
-          })
-          .catch((error) => {
-            console.error('Erro ao processar pagamento:', error);
-            res.status(500).send('Erro ao processar webhook do MercadoPago.');
-          });
-      } else {
-        res.status(400).send('Pagamento não aprovado.');
-      }
-    } else {
-      console.error('Erro ao processar webhook do MercadoPago:', response.statusText);
-      res.status(500).send('Erro ao processar webhook do MercadoPago.');
+    if (status !== 200 || paymentInfo.status !== 'approved') {
+      return res.status(400).send('Pagamento não aprovado ou erro MP');
     }
-  } catch (error) {
-    console.error('Erro ao processar webhook do MercadoPago:', error);
-    res.status(500).send('Erro ao processar webhook do MercadoPago.');
+
+    const md = paymentInfo.metadata || {};
+    // Busca reserva usando código
+    const reserva = await reservasModel.getReservaByCod(md.cod_reserva);
+
+    const dateCriado = paymentInfo.date_created
+      ? paymentInfo.date_created.slice(0, 19).replace('T', ' ')
+      : new Date().toISOString().slice(0, 19).replace('T', ' ');
+
+    const payment = {
+      user_id:        md.user_id,
+      email_comprador: md.email_comprador,
+      valor_total:    paymentInfo.transaction_amount,
+      tipo_pagamento: paymentInfo.payment_type_id,
+      date_criado:    dateCriado,
+      valor_real:     md.valor_real,
+      tipo:           md.tipo,
+      reserva_id:     reserva.id,
+      apartamento_id: md.apartamento_id,
+      cod_reserva:    md.cod_reserva
+    };
+
+    await pagamentoModel.criarPagamentoPorReservaExtra(payment);
+
+    return res.status(200).send('Webhook MP processado com sucesso.');
+  }
+  catch (err) {
+    console.error('Erro no webhook MP:', err);
+    return res.status(500).send('Falha ao processar webhook.');
   }
 }
 
-async function processPaymentAndUpdateUser(payment) {
-  // Criar pagamento
-  const pagamentoCriado = await PaymentModel.criarPagamento(payment);
-  if (pagamentoCriado !== null) {
-
-  }
-}
-/*
-async function testeCriarPreferencia() {
-  // monta um req simulado
-  const req = {
-    body: {
-      valorReais: 30,
-      user_id: 1,
-      apartamento_id: 2,
-      cod_reserva:'HM39YAKBSM'
-    }
-  };
-
-  // monta um res simulado que só imprime no console
-  const res = {
-    json: (payload) => console.log('[TESTE] redirectUrl =>', payload.redirectUrl),
-    status: (code) => ({
-      json: (err) => console.error('[TESTE] status', code, err)
-    })
-  };
-
-  try {
-    await criarPreferencia(req, res);
-  } catch (err) {
-    console.error('[TESTE] erro inesperado', err);
-  }
-}
-
-*/
-
-module.exports = {
-  criarPreferencia,
-  processarWebhookMercadoPago
-};
-
-
-
-
+module.exports = { criarPreferencia, processarWebhookMercadoPago };

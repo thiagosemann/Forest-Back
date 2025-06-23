@@ -37,7 +37,7 @@ const predioPortariaController = require('./src/controllers/Airbnb/predioPortari
 const mensagemAutomatica    =require('./src/mensagemAutomatica')
 const limpezaExtraController = require('./src/controllers/Airbnb/limpezaExtraAirbnbController');
 const pagamentosController = require('./src/controllers/Airbnb/pagamento_por_reservaController');
-//const mercadoPagoApi = require('./src/mercadoPago');
+const mercadoPagoApi = require('./src/mercadoPago');
 
 
 // User routes
@@ -319,6 +319,12 @@ router.get('/pagamentos/reserva/:cod_reserva', verifyToken, pagamentosController
 router.post('/pagamentos/reservas/lista', verifyToken, pagamentosController.getByCodReservaList);
 // Buscar todos os pagamentos por apartamento_id
 router.get('/pagamentos/apartamento/:apartamento_id', verifyToken, pagamentosController.getByApartamentoId);
+
+
+// MercadoPago routes
+router.post('/mercadoPago/processar-webhook', mercadoPagoApi.processarWebhookMercadoPago);
+router.post('/mercadopago/preference',  verifyToken, mercadoPagoApi.criarPreferencia);
+
 
 module.exports = router;
 

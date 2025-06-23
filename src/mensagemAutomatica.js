@@ -1,7 +1,7 @@
 const reservasModel = require('./models/Airbnb/reservasAirbnbModel');
 const apartamentoModel = require('./models/Airbnb/apartamentosAirbnbModel');
 const predioPortariaModel = require('./models/Airbnb/prediosPortariasModel')
-const whatsApi = require('./whats-api')
+const whatsControle = require('./WhatsApp/whats_Controle')
 const checkinModel  = require('./models/Airbnb/checkinFormModel')
 const cron = require('node-cron');
 
@@ -56,7 +56,7 @@ async function envioCredenciaisHoje() {
                       telefone_secundario: portaria.telefone_secundario,
                       imagemBase64:        user.imagemBase64,
                     };
-                return whatsApi.envioPortaria(mensagem);
+                return whatsControle.envioPortaria(mensagem);
               })
             );
           })
@@ -93,7 +93,7 @@ async function envioMensagensInstrucoesEntrada() {
                             apartamento_wifi_senha:apartamento.senha_wifi,
                             qtdPortarias: 0
                         }
-                        whatsApi.envioInstrucoesEntrada(objeto)
+                        whatsControle.envioInstrucoesEntrada(objeto)
           }
     }
   } catch (error) {

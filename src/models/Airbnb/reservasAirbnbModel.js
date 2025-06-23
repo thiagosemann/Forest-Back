@@ -258,6 +258,19 @@ const getReservaById = async (id) => {
   const [reservas] = await connection.execute(query, [id]);
   return reservas[0] || null;
 };
+
+// Função para buscar uma reserva pelo ID
+const getReservaByCod = async (cod_reserva) => {
+  const query = `
+    SELECT r.*, 
+           EXISTS (SELECT 1 FROM checkin c WHERE c.cod_reserva = r.cod_reserva) AS documentosEnviados 
+    FROM reservas r 
+    WHERE r.cod_reserva = ?
+  `;
+  const [reservas] = await connection.execute(query, [cod_reserva]);
+  return reservas[0] || null;
+};
+
 // Função para buscar reservas pelo ID do apartamento
 const getReservasByApartamentoId = async (apartamentoId) => {
   const query = `
@@ -481,6 +494,7 @@ module.exports = {
   getAllReservas,
   createReserva,
   getReservaById,
+  getReservaByCod,
   getReservasByApartamentoId,
   updateReserva,
   deleteReserva,
