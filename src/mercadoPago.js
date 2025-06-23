@@ -93,7 +93,7 @@ async function processarWebhookMercadoPago(req, res) {
     if (status !== 200 || paymentInfo.status !== 'approved') {
       return res.status(400).send('Pagamento não aprovado ou erro MP');
     }
-
+    console.log(data)
     const md = paymentInfo.metadata || {};
     // Busca reserva usando código
     const reserva = await reservasModel.getReservaByCod(md.cod_reserva);
