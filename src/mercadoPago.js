@@ -67,7 +67,7 @@ async function criarPreferencia(req, res) {
     // Envia link de pagamento via WhatsApp (background)
     envioPagamentoEarly({
       //telefone_hospede: telefoneHospede,
-      telefone_hospede: '41991017913',
+      telefone_hospede: telefoneHospede,
       nome: nomeHospede,
       apartamento: apartamento.nome,
       cod_reserva,

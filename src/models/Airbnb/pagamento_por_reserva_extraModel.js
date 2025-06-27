@@ -13,14 +13,15 @@ async function criarPagamentoPorReservaExtra(pagamento) {
     cod_reserva
   } = pagamento;
 
-  // 1) Verifica duplicidade por cod_reserva
-  if (cod_reserva) {
+  // 1) Verifica duplicidade por reserva_id e tipo
+  if (reserva_id && tipo) {
     const verificaQuery = `
       SELECT COUNT(*) AS total
         FROM pagamento_por_reserva_extra
-       WHERE cod_reserva = ?
+       WHERE reserva_id = ?
+         AND tipo = ?
     `;
-    const [rows] = await connection.execute(verificaQuery, [cod_reserva]);
+    const [rows] = await connection.execute(verificaQuery, [reserva_id, tipo]);
     if (rows[0].total > 0) {
       return null;
     }
@@ -59,7 +60,6 @@ async function buscarPagamentoPorId(id) {
   return rows[0] || null;
 }
 
-
 async function buscarPagamentosPorReservaId(reserva_id) {
   const query = `
     SELECT *
@@ -69,7 +69,6 @@ async function buscarPagamentosPorReservaId(reserva_id) {
   const [rows] = await connection.execute(query, [reserva_id]);
   return rows;
 }
-
 
 async function buscarPagamentosPorApartamentoId(apartamento_id) {
   const query = `

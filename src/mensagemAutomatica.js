@@ -7,8 +7,13 @@ const cron = require('node-cron');
 
 async function envioCredenciaisHoje() {
   try {
-    const reservasHoje = await reservasModel.getReservasHoje();
+    const data = new Date();
+    const ano = data.getFullYear();
+    const mes = (data.getMonth() + 1).toString().padStart(2, '0');
+    const dia = data.getDate().toString().padStart(2, '0');
+    const startDate= `${ano}-${mes}-${dia}`;
 
+    const reservasHoje = await reservasModel.getReservasPorPeriodo(startDate,startDate);
     // Filtra apenas reservas ativas
     const reservasAtivas = reservasHoje.filter(r => r.description !== 'CANCELADA');
 

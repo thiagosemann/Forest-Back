@@ -346,127 +346,72 @@ const deleteReserva = async (id) => {
     throw error;
   }
 };
-// Adicione no ReservasModel
-const getReservasPorPeriodo = async (startDate, endDate) => {
-  const query = `
-    SELECT r.*, a.nome AS apartamento_nome, a.valor_limpeza,
-           EXISTS (SELECT 1 FROM checkin c WHERE c.reserva_id = r.id) AS documentosEnviados
-    FROM reservas r
-    LEFT JOIN apartamentos a ON r.apartamento_id = a.id
-    WHERE r.end_data BETWEEN ? AND ?
-      AND r.cod_reserva NOT LIKE CONCAT('%', COALESCE(a.nome, 'Apartamento não encontrado'), '%')
-    ORDER BY r.end_data ASC
-  `;
-  const [reservas] = await connection.execute(query, [startDate, endDate]);
-  return reservas;
-};
-// Função para buscar reservas com start_date igual a hoje
-// Função para buscar reservas com start_date igual a hoje, agora enriquecida
-// com qtd_hospedes e array de horarioPrevistoChegada
-const getReservasHoje = async () => {
-  // 1) formata 'hoje' em SP
-  const hoje = moment().tz('America/Sao_Paulo').format('YYYY-MM-DD');
 
-  // 2) busca as reservas do dia
+// Função para buscar reservas por período incluindo pagamentos via subquery
+async function getReservasPorPeriodo(startDate, endDate) {
   const query = `
-    SELECT 
+    SELECT
       r.*,
       COALESCE(a.nome, 'Apartamento não encontrado') AS apartamento_nome,
-      a.senha_porta AS apartamento_senha,
-      EXISTS (SELECT 1 FROM checkin c WHERE c.reserva_id = r.id) AS documentosEnviados
+      EXISTS(
+        SELECT 1 FROM checkin c WHERE c.reserva_id = r.id
+      ) AS documentosEnviados,
+      (
+        SELECT COUNT(*)
+        FROM checkin c2
+        WHERE c2.reserva_id = r.id
+      ) AS qtd_hospedes,
+      (
+        SELECT JSON_ARRAYAGG(c2.horarioPrevistoChegada)
+        FROM checkin c2
+        WHERE c2.reserva_id = r.id
+      ) AS horarioPrevistoChegada,
+      (
+        SELECT JSON_ARRAYAGG(
+          JSON_OBJECT(
+            'id', p.id,
+            'user_id', p.user_id,
+            'valor_total', p.valor_total,
+            'tipo_pagamento', p.tipo_pagamento,
+            'tipo', p.tipo,
+            'email_comprador', p.email_comprador,
+            'date_criado', p.date_criado,
+            'apartamento_id', p.apartamento_id,
+            'cod_reserva', p.cod_reserva
+          )
+        )
+        FROM pagamento_por_reserva_extra p
+        WHERE p.reserva_id = r.id
+      ) AS pagamentos
     FROM reservas r
-    LEFT JOIN apartamentos a ON r.apartamento_id = a.id
-    WHERE DATE(r.start_date) = ?
-      AND r.cod_reserva NOT LIKE CONCAT('%', COALESCE(a.nome, 'Apartamento não encontrado'), '%')
+    LEFT JOIN apartamentos a ON a.id = r.apartamento_id
+    WHERE DATE(r.start_date) BETWEEN ? AND ?
+    ORDER BY r.start_date ASC;
   `;
-  const [reservas] = await connection.execute(query, [hoje]);
 
-  // 3) para cada reserva, busca os check-ins associados
-  for (const reserva of reservas) {
-    const [checkins] = await connection.execute(
-      `SELECT horarioPrevistoChegada
-         FROM checkin
-        WHERE reserva_id = ?`,
-      [reserva.id]
-    );
+  const [rows] = await connection.execute(query, [startDate, endDate]);
 
-    // 4) adiciona as propriedades desejadas
-    reserva.qtd_hospedes = checkins.length;
-    reserva.horarioPrevistoChegada = checkins.map(ci => ci.horarioPrevistoChegada);
-  }
+  // Trata possíveis formatos de retorno de JSON_ARRAYAGG do MySQL
+  return rows.map(row => {
+    const reservasObj = { ...row };
 
-  return reservas;
-};
+    // Horários de chegada
+    if (!Array.isArray(reservasObj.horarioPrevistoChegada) && typeof reservasObj.horarioPrevistoChegada === 'string') {
+      try { reservasObj.horarioPrevistoChegada = JSON.parse(reservasObj.horarioPrevistoChegada); }
+      catch (e) { console.warn('Erro parse horarioPrevistoChegada:', e); reservasObj.horarioPrevistoChegada = []; }
+    }
+    if (!reservasObj.horarioPrevistoChegada) reservasObj.horarioPrevistoChegada = [];
 
-// Função para buscar reservas com start_date igual a amanhã
-const getReservasAmanha = async () => {
-  const amanha = moment().tz('America/Sao_Paulo').add(1, 'day').format('YYYY-MM-DD');
-  const query = `
-    SELECT r.*, 
-           COALESCE(a.nome, 'Apartamento não encontrado') AS apartamento_nome,
-            a.senha_porta AS apartamento_senha,
-           EXISTS (SELECT 1 FROM checkin c WHERE c.reserva_id = r.id) AS documentosEnviados
-    FROM reservas r
-    LEFT JOIN apartamentos a ON r.apartamento_id = a.id
-    WHERE DATE(r.start_date) = ?
-      AND r.cod_reserva NOT LIKE CONCAT('%', COALESCE(a.nome, 'Apartamento não encontrado'), '%')
-  `;
-  const [reservas] = await connection.execute(query, [amanha]);
-  return reservas;
-};
+    // Pagamentos
+    if (!Array.isArray(reservasObj.pagamentos) && typeof reservasObj.pagamentos === 'string') {
+      try { reservasObj.pagamentos = JSON.parse(reservasObj.pagamentos); }
+      catch (e) { console.warn('Erro parse pagamentos:', e); reservasObj.pagamentos = []; }
+    }
+    if (!reservasObj.pagamentos) reservasObj.pagamentos = [];
 
-// Função para buscar reservas futuras, excluindo hoje e amanhã
-const getProximasReservas = async () => {
-  const amanha = moment().tz('America/Sao_Paulo').add(1, 'day').format('YYYY-MM-DD');
-  const query = `
-    SELECT r.*, 
-           COALESCE(a.nome, 'Apartamento não encontrado') AS apartamento_nome,
-            a.senha_porta AS apartamento_senha,
-           EXISTS (SELECT 1 FROM checkin c WHERE c.reserva_id = r.id) AS documentosEnviados
-    FROM reservas r
-    LEFT JOIN apartamentos a ON r.apartamento_id = a.id
-    WHERE DATE(r.start_date) > ?
-      AND r.cod_reserva NOT LIKE CONCAT('%', COALESCE(a.nome, 'Apartamento não encontrado'), '%')
-    ORDER BY r.start_date ASC
-  `;
-  const [reservas] = await connection.execute(query, [amanha]);
-  return reservas;
-};
-
-// Função para buscar reservas finalizadas com verificação de checkin
-const getReservasFinalizadas = async () => {
-  const hoje = moment().tz('America/Sao_Paulo').format('YYYY-MM-DD');
-  const query = `
-    SELECT r.*, 
-           COALESCE(a.nome, 'Apartamento não encontrado') AS apartamento_nome,
-            a.senha_porta AS apartamento_senha,
-           EXISTS (SELECT 1 FROM checkin c WHERE c.reserva_id = r.id) AS documentosEnviados
-    FROM reservas r
-    LEFT JOIN apartamentos a ON r.apartamento_id = a.id
-    WHERE DATE(r.end_data) < ?
-      AND r.cod_reserva NOT LIKE CONCAT('%', COALESCE(a.nome, 'Apartamento não encontrado'), '%')
-    ORDER BY r.end_data DESC
-  `;
-  const [reservas] = await connection.execute(query, [hoje]);
-  return reservas;
-};
-
-// Função para buscar reservas em andamento com verificação de checkin
-const getReservasEmAndamento = async () => {
-  const agoraSP = moment().tz('America/Sao_Paulo').format('YYYY-MM-DD HH:mm:ss');
-  const query = `
-    SELECT r.*, 
-           COALESCE(a.nome, 'Apartamento não encontrado') AS apartamento_nome,
-            a.senha_porta AS apartamento_senha,
-           EXISTS (SELECT 1 FROM checkin c WHERE c.reserva_id = r.id) AS documentosEnviados
-    FROM reservas r
-    LEFT JOIN apartamentos a ON r.apartamento_id = a.id
-    WHERE r.start_date < ? AND r.end_data > ?
-      AND r.cod_reserva NOT LIKE CONCAT('%', COALESCE(a.nome, 'Apartamento não encontrado'), '%')
-  `;
-  const [reservas] = await connection.execute(query, [agoraSP, agoraSP]);
-  return reservas;
-};
+    return reservasObj;
+  });
+}
 
 
 const getFaxinasPorPeriodo = async (inicio_end_data, fim_end_date) => {
@@ -499,10 +444,5 @@ module.exports = {
   updateReserva,
   deleteReserva,
   getReservasPorPeriodo,
-  getReservasHoje,
-  getReservasAmanha,
-  getProximasReservas,
-  getReservasFinalizadas,
-  getReservasEmAndamento,
   getFaxinasPorPeriodo
 };

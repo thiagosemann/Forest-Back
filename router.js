@@ -244,7 +244,6 @@ router.delete('/apartamentos-airbnb/:id', verifyToken, apartamentosAirbnbControl
 
 // ReservasAirbnb routes
 router.get('/reservas-airbnb', reservasAirbnbController.getAllReservas);
-router.get('/reservas-airbnb/por-periodo', reservasAirbnbController.getReservasPorPeriodo);
 router.get('/reservas-airbnb/:id', reservasAirbnbController.getReservaById);
 router.post('/reservas-airbnb', reservasAirbnbController.createReserva);
 router.get('/reservas-airbnb/apartamentos/:apartamentoId', reservasAirbnbController.getReservasByApartamentoId);
@@ -252,14 +251,10 @@ router.put('/reservas-airbnb/:id', reservasAirbnbController.updateReserva);
 router.delete('/reservas-airbnb/:id', reservasAirbnbController.deleteReserva);
 
 // Filtros de reservas
-router.get('/reservas-airbnb/filtro/hoje', reservasAirbnbController.getReservasHoje);
-router.get('/reservas-airbnb/filtro/amanha', reservasAirbnbController.getReservasAmanha);
-router.get('/reservas-airbnb/filtro/proximas', reservasAirbnbController.getProximasReservas);
-router.get('/reservas-airbnb/filtro/finalizadas', reservasAirbnbController.getReservasFinalizadas);
-router.get('/reservas-airbnb/filtro/em-andamento', reservasAirbnbController.getReservasEmAndamento);
+router.get('/reservas-airbnb/reservas/por-periodo', reservasAirbnbController.getReservasPorPeriodo);
 
 // Novos filtros de faxina
-router.get('/reservas-airbnb/filtro/por-periodo', reservasAirbnbController.getFaxinasPorPeriodo);
+router.get('/reservas-airbnb/faxinas/por-periodo', reservasAirbnbController.getFaxinasPorPeriodo);
 
 
 // Rotas de Check-in
