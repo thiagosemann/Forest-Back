@@ -120,6 +120,7 @@ async function envioMensagemInstrucoesSaida(obj) {
 }
 
 async function envioPagamentoEarly({ telefone_hospede, nome, apartamento, cod_reserva, valor, linkPagamento }) {
+  console.log(telefone_hospede)
   const text = mensagens.criarMensagemPagamentoEarly({
     nome,
     apartamento,
@@ -130,7 +131,7 @@ async function envioPagamentoEarly({ telefone_hospede, nome, apartamento, cod_re
   try {
     await axios.post(W_API_URL_TEXT, { phone: telefone_hospede, message: text }, { headers: HEADERS });
   } catch (err) {
-    console.error('[ERRO] envioPagamentoEarly:', telefone, err.response?.data || err.message);
+    console.error('[ERRO] envioPagamentoEarly:', '41991017913', err.response?.data || err.message);
   }
 }
 

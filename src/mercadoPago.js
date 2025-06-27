@@ -21,7 +21,7 @@ async function criarPreferencia(req, res) {
 
     // Busca dados do usuário e do apartamento
     const user = await usersModel.getUser(user_id);
-    const telefoneHospede = user.telefone_hospede || user.telefone;
+    const telefoneHospede = user.Telefone;
     const nomeHospede = user.first_name || user.name;
     const emailComprador = user.email || null;
 
