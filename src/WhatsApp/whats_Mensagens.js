@@ -52,11 +52,15 @@ function criarMensagemPagamentoEarly({ nome, apartamento, cod_reserva, valor, li
     : `https://${linkPagamento}`;
 
   return [
-    `🔔 *Early Check-in - Taxa Extra* 🔔`,
+    `*TAXA OPCIONAL*`,
     ``,
-    `Olá *${nome}*!`,
-    `Para antecipar sua entrada no apartamento *${apartamento}* (reserva: *${cod_reserva}*),`,
+    `🔔 *Você gostaria de entrar antes no apartamento?* 🔔`,
+    ``,
+    `Olá ${nome}`,
+    `Este apartamento já está limpo e pronto para recebe-los.`,
+    `Se deseja antecipar sua entrada no apartamento *${apartamento}* (reserva: *${cod_reserva}*),`,
     `basta clicar no link abaixo e efetuar o pagamento de *R$ ${valor.toFixed(2)}*:`,
+    ``,
     ``,
     `${url}`,
     ``,
