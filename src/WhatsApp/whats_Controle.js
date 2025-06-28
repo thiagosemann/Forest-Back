@@ -135,6 +135,16 @@ async function envioPagamentoEarly({ telefone_hospede, nome, apartamento, cod_re
   }
 }
 
+async function envioEarlyPago(obj) {
+  const text = mensagens.criarMensagemEarlyPago(obj);
+  try {
+    await sendWapiMessage('41991017913', text);
+    await sendWapiMessage('41999283936', text);
+  } catch (err) {
+    await sendWapiMessageAdmin('41991017913', 'envioCadastroConcluido', obj);
+  }
+}
+
 
 module.exports = {
   sendWapiMessage,
@@ -147,5 +157,6 @@ module.exports = {
   envioMensagemBoasVindas,
   envioMensagemLimpezaExtra,
   envioMensagemInstrucoesSaida,
-  envioPagamentoEarly
+  envioPagamentoEarly,
+  envioEarlyPago
 };

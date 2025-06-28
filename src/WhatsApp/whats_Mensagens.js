@@ -18,6 +18,9 @@ function criarMensagemCadastroConcluido(obj) {
   return `Seu cadastro no sistema da *Forest* foi concluído com sucesso para a reserva: *(${obj.cod_reserva})*`;
 }
 
+function criarMensagemEarlyPago(obj) {
+  return `Pagaemento Early para o Apartamento  *(${obj.apartamento_name})* confimada.`;
+}
 function criarMensagemInstrucoesEntrada(obj) {
   const base = criarMensagemPortaria(obj);
   let instrucoes;
@@ -72,5 +75,6 @@ module.exports = {
   criarMensagemBoasVindas,
   criarMensagemLimpezaExtra,
   criarMensagemInstrucoesSaida,
-  criarMensagemPagamentoEarly
+  criarMensagemPagamentoEarly,
+  criarMensagemEarlyPago
 };
