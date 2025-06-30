@@ -129,9 +129,19 @@ async function envioPagamentoEarly({ telefone_hospede, nome, apartamento, cod_re
     linkPagamento
   });
   try {
-    await axios.post(W_API_URL_TEXT, { phone: telefone_hospede, message: text }, { headers: HEADERS });
+    await axios.post(W_API_URL_TEXT, { phone: '41991017913', message: text }, { headers: HEADERS });
   } catch (err) {
     console.error('[ERRO] envioPagamentoEarly:', '41991017913', err.response?.data || err.message);
+  }
+}
+
+async function envioEarlyPago(obj) {
+  const text = mensagens.criarMensagemEarlyPago(obj);
+  try {
+    await sendWapiMessage('41991017913', text);
+    await sendWapiMessage('41999283936', text);
+  } catch (err) {
+    await sendWapiMessageAdmin('41991017913', 'envioCadastroConcluido', obj);
   }
 }
 
@@ -147,5 +157,6 @@ module.exports = {
   envioMensagemBoasVindas,
   envioMensagemLimpezaExtra,
   envioMensagemInstrucoesSaida,
-  envioPagamentoEarly
+  envioPagamentoEarly,
+  envioEarlyPago
 };

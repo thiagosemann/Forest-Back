@@ -3,8 +3,7 @@ const pagamentoModel = require('./models/Airbnb/pagamento_por_reserva_extraModel
 const usersModel = require('./models/Airbnb/usersAirbnbModel');
 const apartamentosModel = require('./models/Airbnb/apartamentosAirbnbModel');
 const reservasModel = require('./models/Airbnb/reservasAirbnbModel');
-const { envioPagamentoEarly } = require('./WhatsApp/whats_Controle');
-
+const whatsControle = require('./WhatsApp/whats_Controle')
 const axios = require('axios');
 require('dotenv').config();
 
@@ -65,7 +64,7 @@ async function criarPreferencia(req, res) {
     res.json({ redirectUrl });
 
     // Envia link de pagamento via WhatsApp (background)
-    envioPagamentoEarly({
+    whatsControle.envioPagamentoEarly({
       //telefone_hospede: telefoneHospede,
       telefone_hospede: telefoneHospede,
       nome: nomeHospede,
@@ -116,7 +115,14 @@ async function processarWebhookMercadoPago(req, res) {
     };
 
     await pagamentoModel.criarPagamentoPorReservaExtra(payment);
-
+    const apartamento = await apartamentosModel.getApartamentoById(md.apartamento_id);
+    const objeto={
+      
+    }
+    whatsControle.envioEarlyPago({
+      apartamento_name:apartamento.nome
+    }).catch(err => console.error('[ERRO] envioPagamentoEarly:', err));
+    
     return res.status(200).send('Webhook MP processado com sucesso.');
   }
   catch (err) {
