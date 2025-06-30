@@ -76,157 +76,136 @@ const createReserva = async (reserva) => {
   }
 };
 
-const syncAirbnbReservations = async () => {
-  try {
-    // 1. Recupera todos os apartamentos do banco
-    const apartamentos = await apartamentosModel.getAllApartamentos();
-    // 2. Filtra apenas os que têm link de calendário Airbnb configurado
-    const apartmentsComLinks = apartamentos.filter(
-      (a) => a.link_airbnb_calendario
-    );
 
-    // 3. Define o limite de busca: hoje + 3 meses
-    const dataLimite = new Date();
-    dataLimite.setMonth(dataLimite.getMonth() + 3);
+  // 1) Recupera e filtra apartamentos com link de calendário
+  async function getApartamentosComLink() {
+    const todos = await apartamentosModel.getAllApartamentos();
+    return todos.filter(a => a.link_airbnb_calendario || a.link_booking_calendario);
+  }
 
-    // 4. 'hoje' zerado em horas para comparações apenas por data
-    const hoje = new Date();
-    hoje.setHours(0, 0, 0, 0);
 
-    // 5. Itera sobre cada apartamento com link de calendário
-    for (const apartamento of apartmentsComLinks) {
-      try {
-        // 5.1 Faz requisição HTTP ao ICS do Airbnb
-        const response = await axios.get(apartamento.link_airbnb_calendario);
-        // 5.2 Parseia o conteúdo iCal para objeto manipulável
-        const jcalData = new ical.parse(response.data);
-        const comp = new ical.Component(jcalData);
-        const vevents = comp.getAllSubcomponents('vevent');
+  /**
+   * 2. Calcula datas de referência: hoje (zerado em horas) e limite (hoje + 3 meses)
+   */
+  function getDatasReferencia() {
+    const hoje = new Date(); hoje.setHours(0,0,0,0);
+    const dataLimite = new Date(); dataLimite.setMonth(dataLimite.getMonth() + 3);
+    return { hoje, dataLimite };
+  }
 
-        // 5.3 Conjunto para guardar códigos de reservas ainda ativas
-        const currentCodReservas = new Set();
+  /**
+   * 3. Busca e parseia o ICS de um apartamento em uma lista de vevents
+   */
+    async function fetchVevents(icsUrl) {
+      const res = await axios.get(icsUrl);
+      const jcal = ical.parse(res.data);
+      const comp = new ical.Component(jcal);
+      return comp.getAllSubcomponents('vevent');
+    }
 
-        // 5.4 Processa cada evento (reserva) do iCal
-        for (const vevent of vevents) {
-          // 5.4.1 Extrai datas de início e fim, já convertidas para fuso de São Paulo
-          const start = moment(
-            vevent.getFirstPropertyValue('dtstart').toString()
-          )
-            .tz('America/Sao_Paulo')
-            .toDate();
-          const end = moment(
-            vevent.getFirstPropertyValue('dtend').toString()
-          )
-            .tz('America/Sao_Paulo')
-            .toDate();
+  /**
+   * 4b) Extrai e normaliza os dados de um vevent
+   */
+    function parseEventoAirbnb(vevent, apartamento) {
+      const toDate = prop => moment(prop.toString()).tz('America/Sao_Paulo').toDate();
+      const start = toDate(vevent.getFirstPropertyValue('dtstart'));
+      const end = toDate(vevent.getFirstPropertyValue('dtend'));
+      const summary = vevent.getFirstPropertyValue('summary') || '';
+      let cod_reserva, link_reserva;
+      const desc = vevent.getFirstPropertyValue('description') || '';
+      if (desc) {
+        cod_reserva = desc.match(/\/details\/([A-Z0-9]+)/)?.[1];
+        link_reserva = desc.match(/https:\/\/www\.airbnb\.com\/hosting\/reservations\/details\/[A-Z0-9]+/)?.[0];
+      }
+      if (!cod_reserva || !link_reserva) {
+        const fmt = d => `${String(d.getDate()).padStart(2,'0')}-${String(d.getMonth()+1).padStart(2,'0')}-${d.getFullYear()}`;
+        cod_reserva = `${apartamento.nome}/${fmt(end)}`;
+        link_reserva = 'https://www.admforest.com.br/';
+      }
+      return { start, end, summary, cod_reserva, link_reserva };
+    }
+  
+  // 4b) Parser específico para Booking
+    function parseEventoBooking(vevent, apartamento) {
+      const toDate = prop =>
+        moment(prop.toString(), 'YYYYMMDD').tz('America/Sao_Paulo').startOf('day').toDate();
+      const start = toDate(vevent.getFirstPropertyValue('dtstart'));
+      const end = toDate(vevent.getFirstPropertyValue('dtend'));
+      const summary = 'Reserved';
+      const fmt = d => `${String(d.getDate()).padStart(2,'0')}${String(d.getMonth()+1).padStart(2,'0')}${d.getFullYear()}`;
+      const cod_reserva = `B-${apartamento.nome}${fmt(start)}`;
+      const link_reserva = apartamento.link_booking_calendario || '';
+      return { start, end, summary, cod_reserva, link_reserva };
+    }
 
-          // 5.4.2 Ignora reservas concluídas (end <= hoje)
-          if (end <= hoje) continue;
-          // 5.4.3 Ignora reservas além do limite de 3 meses
-          if (start > dataLimite) continue;
+  //5. Processa todos os eventos de um apartamento:
 
-          // 5.4.4 Extrai código e link da descrição (UID personalizado)
-          let cod_reserva, link_reserva;
-          const desc = vevent.getFirstPropertyValue('description') || '';
-          if (desc) {
-            const mCode = desc.match(/\/details\/([A-Z0-9]+)/);
-            const mLink = desc.match(
-              /(https:\/\/www\.airbnb\.com\/hosting\/reservations\/details\/[A-Z0-9]+)/
-            );
-            cod_reserva = mCode?.[1];
-            link_reserva = mLink?.[1];
-          } else {
-            // 5.4.5 Fallback: gera código a partir do nome e data fim
-            const fmt = (d) =>
-              `${String(d.getDate()).padStart(2, '0')}-${String(
-                d.getMonth() + 1
-              ).padStart(2, '0')}-${d.getFullYear()}`;
-            cod_reserva = `${apartamento.nome}/${fmt(end)}`;
-            link_reserva = 'https://www.admforest.com.br/';
-          }
-          // 5.4.6 Se faltar dados, pula o evento
-          if (!cod_reserva || !link_reserva) continue;
-
-          // 5.4.7 Adiciona ao conjunto de reservas ativas
-          currentCodReservas.add(cod_reserva);
-
-          // 5.4.8 Verifica se já existe no banco
-          const [existing] = await connection.execute(
-            'SELECT id, start_date, end_data FROM reservas WHERE cod_reserva = ?',
-            [cod_reserva]
-          );
-
-          if (existing.length === 0) {
-            // 5.4.9 Nova reserva: insere no banco
-            const faxina_userId = null;
-            await createReserva({
-              apartamento_id: apartamento.id,
-              description: vevent.getFirstPropertyValue('summary'),
-              start_date: start,
-              end_data: end,
-              Observacoes: '',
-              cod_reserva,
-              link_reserva,
-              limpeza_realizada: false,
-              credencial_made: false,
-              informed: false,
-              check_in: '15:00',
-              check_out: '11:00',
-              faxina_userId,
-            });
-          } else {
-            // 5.4.10 Reserva existente: atualiza datas e description se mudaram
-            const dbStart = existing[0].start_date;
-            const dbEnd = existing[0].end_data;
-            const summary = vevent.getFirstPropertyValue('summary');
-            if (
-              dbStart.getTime() !== start.getTime() ||
-              dbEnd.getTime() !== end.getTime() ||
-              summary !== existing[0].description
-            ) {
-              await connection.execute(
-                'UPDATE reservas SET start_date = ?, end_data = ?, description = ? WHERE id = ?',
-                [start, end, summary, existing[0].id]
-              );
-            }
-          }
-        }
-
-        // 6. Marca como CANCELADA reservas que sumiram do iCal e ainda são futuras
-        const placeholders = Array.from(currentCodReservas)
-          .map(() => '?')
-          .join(',');
-        if (currentCodReservas.size > 0) {
-          await connection.execute(
-            `UPDATE reservas
-             SET description = 'CANCELADA'
-             WHERE apartamento_id = ?
-               AND cod_reserva NOT IN (${placeholders})
-               AND end_data > ?`,
-            [apartamento.id, ...Array.from(currentCodReservas), hoje]
-          );
+    async function processarEventos(vevents, apartamento, hoje, dataLimite, parserFn) {
+      const ativos = new Set();
+      for (const vevent of vevents) {
+        const { start, end, summary, cod_reserva, link_reserva } = parserFn(vevent, apartamento);
+        if (summary !== 'Reserved') continue; // só cria quando summary == 'Reserved'
+        if (end <= hoje || start > dataLimite) continue;
+        ativos.add(cod_reserva);
+        const [existing] = await connection.execute(
+          'SELECT id, start_date, end_data, description FROM reservas WHERE cod_reserva = ?', [cod_reserva]
+        );
+        if (existing.length === 0) {
+          console.log("Criando",cod_reserva)
+          await createReserva({ apartamento_id: apartamento.id, description: summary, start_date: start, end_data: end, Observacoes: '', cod_reserva, link_reserva, limpeza_realizada: false, credencial_made: false, informed: false, check_in: '15:00', check_out: '11:00', faxina_userId: null });
         } else {
-          // Se não há reservas ativas no iCal, cancela todas as futuras
-          await connection.execute(
-            `UPDATE reservas
-             SET description = 'CANCELADA'
-             WHERE apartamento_id = ?
-               AND end_data > ?`,
-            [apartamento.id, hoje]
-          );
+          const db = existing[0];
+          if (db.start_date.getTime() !== start.getTime() || db.end_data.getTime() !== end.getTime() || db.description !== summary) {
+              console.log("Atualizando",cod_reserva)
+
+            await connection.execute('UPDATE reservas SET start_date = ?, end_data = ?, description = ? WHERE id = ?', [start, end, summary, db.id]);
+          }
         }
-      } catch (err) {
-        console.error(`Erro no apt ${apartamento.id}:`, err.message);
+      }
+      return ativos;
+    }
+
+  /**
+   * 6. Marca como CANCELADA reservas que não aparecem mais no iCal
+   */
+    async function cancelarReservasAusentes(aptoId, ativos, hoje) {
+      if (ativos.size) {
+        const ph = Array.from(ativos).map(() => '?').join(',');
+        await connection.execute(
+          `UPDATE reservas SET description = 'CANCELADA' WHERE apartamento_id = ? AND cod_reserva NOT IN (${ph}) AND end_data > ?`,
+          [aptoId, ...Array.from(ativos), hoje]
+        );
+      } else {
+        await connection.execute(`UPDATE reservas SET description = 'CANCELADA' WHERE apartamento_id = ? AND end_data > ?`, [aptoId, hoje]);
       }
     }
 
-    return { success: true, message: 'Sincronização concluída' };
-  } catch (error) {
-    console.error('Erro geral na sincronização:', error.message);
-    throw error;
-  }
-};
-
+  /**
+   * 7. Função principal de sincronização, agora orquestrando as funções acima
+   */
+    async function syncAirbnbReservations() {
+      const aps = await getApartamentosComLink();
+      const { hoje, dataLimite } = getDatasReferencia();
+      for (const apt of aps) {
+        try {
+          const ativos = new Set();
+          if (apt.link_airbnb_calendario) {
+            const evA = await fetchVevents(apt.link_airbnb_calendario);
+            const codA = await processarEventos(evA, apt, hoje, dataLimite, parseEventoAirbnb);
+            codA.forEach(c => ativos.add(c));
+          }
+          if (apt.link_booking_calendario) {
+            const evB = await fetchVevents(apt.link_booking_calendario);
+            const codB = await processarEventos(evB, apt, hoje, dataLimite, parseEventoBooking);
+            codB.forEach(c => ativos.add(c));
+          }
+          await cancelarReservasAusentes(apt.id, ativos, hoje);
+        } catch (e) {
+          console.error(`Erro no apt ${apt.id}:`, e.message);
+        }
+      }
+      return { success: true, message: 'Sincronização concluída' };
+    }
 
 // Função de sincronização automática
 const startAutoSync = () => {
