@@ -76,7 +76,16 @@ async function envioCredenciaisHoje() {
 async function envioMensagensInstrucoesEntrada() {
 
   try {
-    const reservasHoje = await reservasModel.getReservasHoje();
+    
+    const hoje = new Date();
+    const ano = hoje.getFullYear();
+    const mes = String(hoje.getMonth() + 1).padStart(2, '0');
+    const dia = String(hoje.getDate()).padStart(2, '0');
+    const startDate = `${ano}-${mes}-${dia}`;
+    const endDate   = startDate;
+
+    // Busca reservas no período de hoje
+    const reservasHoje = await reservasModel.getReservasPorPeriodo(startDate, endDate);
     for (const reserva of reservasHoje) {
         if(reserva.description == "CANCELADA"){
             return

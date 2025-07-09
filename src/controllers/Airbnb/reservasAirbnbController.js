@@ -123,6 +123,26 @@ const getFaxinasPorPeriodo = async (request, response) => {
   }
 };
 
+const getReservasPorPeriodoCalendario = async (request, response) => {
+  try {
+    const { start, end } = request.query;
+    if (!start || !end) {
+      return response.status(400).json({
+        error: 'Datas inicial (start) e final (end) são obrigatórias'
+      });
+    }
+
+    const reservas = await reservaModel.getReservasPorPeriodoCalendario(start, end);
+    return response.status(200).json(reservas);
+
+  } catch (error) {
+    console.error('Erro ao buscar reservas por período completo:', error);
+    return response.status(500).json({
+      error: 'Erro ao buscar reservas por período completo'
+    });
+  }
+};
+
 module.exports = {
   getAllReservas,
   createReserva,
@@ -131,5 +151,6 @@ module.exports = {
   updateReserva,
   deleteReserva,
   getReservasPorPeriodo,
-  getFaxinasPorPeriodo
+  getFaxinasPorPeriodo,
+  getReservasPorPeriodoCalendario
 };

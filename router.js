@@ -38,6 +38,7 @@ const mensagemAutomatica    =require('./src/mensagemAutomatica')
 const limpezaExtraController = require('./src/controllers/Airbnb/limpezaExtraAirbnbController');
 const pagamentosController = require('./src/controllers/Airbnb/pagamento_por_reservaController');
 const mercadoPagoApi = require('./src/mercadoPago');
+const ticketReembolsoController = require('./src/controllers/Airbnb/ticketReembolsoController');
 
 
 // User routes
@@ -249,14 +250,12 @@ router.post('/reservas-airbnb', reservasAirbnbController.createReserva);
 router.get('/reservas-airbnb/apartamentos/:apartamentoId', reservasAirbnbController.getReservasByApartamentoId);
 router.put('/reservas-airbnb/:id', reservasAirbnbController.updateReserva);
 router.delete('/reservas-airbnb/:id', reservasAirbnbController.deleteReserva);
-
 // Filtros de reservas
 router.get('/reservas-airbnb/reservas/por-periodo', reservasAirbnbController.getReservasPorPeriodo);
-
 // Novos filtros de faxina
 router.get('/reservas-airbnb/faxinas/por-periodo', reservasAirbnbController.getFaxinasPorPeriodo);
-
-
+// Novos filtros calendario
+router.get('/reservas-airbnb/reservas/por-periodo-calendario', reservasAirbnbController.getReservasPorPeriodoCalendario);
 // Rotas de Check-in
 router.get('/checkins', verifyToken, checkinFormController.getAllCheckins); // Listar todos os check-ins
 router.get('/checkins/:id', verifyToken, checkinFormController.getCheckinById); // Obter um check-in por ID
@@ -320,6 +319,12 @@ router.get('/pagamentos/apartamento/:apartamento_id', verifyToken, pagamentosCon
 router.post('/mercadoPago/processar-webhook', mercadoPagoApi.processarWebhookMercadoPago);
 router.post('/mercadopago/preference',  verifyToken, mercadoPagoApi.criarPreferencia);
 
+// Rotas para Ticket de Reembolso
+router.get('/ticket-reembolso', verifyToken, ticketReembolsoController.getAllReembolsos);
+router.get('/ticket-reembolso/:id', verifyToken, ticketReembolsoController.getReembolsoById);
+router.post('/ticket-reembolso', verifyToken, ticketReembolsoController.createReembolso);
+router.put('/ticket-reembolso/:id', verifyToken, ticketReembolsoController.updateReembolso);
+router.delete('/ticket-reembolso/:id', verifyToken, ticketReembolsoController.deleteReembolso);
 
 module.exports = router;
 

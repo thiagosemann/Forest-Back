@@ -120,7 +120,6 @@ async function envioMensagemInstrucoesSaida(obj) {
 }
 
 async function envioPagamentoEarly({ telefone_hospede, nome, apartamento, cod_reserva, valor, linkPagamento }) {
-  console.log(telefone_hospede)
   const text = mensagens.criarMensagemPagamentoEarly({
     nome,
     apartamento,
