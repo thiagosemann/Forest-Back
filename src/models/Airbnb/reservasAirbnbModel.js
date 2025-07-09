@@ -397,6 +397,7 @@ async function getReservasPorPeriodoCalendario(startDate, endDate) {
     SELECT
       r.*,
       COALESCE(a.nome, 'Apartamento não encontrado') AS apartamento_nome,
+      a.predio_id,
       EXISTS(
         SELECT 1 FROM checkin c WHERE c.reserva_id = r.id
       ) AS documentosEnviados,
