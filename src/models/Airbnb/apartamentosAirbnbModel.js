@@ -409,22 +409,45 @@ const deleteApartamento = async (id) => {
   try {
     await conn.beginTransaction();
 
-    // 1) busca IDs de reservas do apt
+    // 1) Remove todos os pagamentos associados diretamente ao apartamento
+    await conn.execute(
+      'DELETE FROM pagamento_por_reserva WHERE apartamento_id = ?',
+      [id]
+    );
+    await conn.execute(
+      'DELETE FROM pagamento_por_reserva_extra WHERE apartamento_id = ?',
+      [id]
+    );
+
+    // 2) Busca IDs de reservas do apt para remoção em cascata
     const [reservas] = await conn.execute(
       'SELECT id FROM reservas WHERE apartamento_id = ?',
       [id]
     );
     const reservaIds = reservas.map(r => r.id);
+
     if (reservaIds.length > 0) {
       const placeholders = reservaIds.map(() => '?').join(',');
-      // 2) deleta check-ins
-      await conn.execute(`DELETE FROM checkin WHERE reserva_id IN (${placeholders})`, reservaIds);
-      // 3) deleta reservas
-      await conn.execute(`DELETE FROM reservas WHERE id IN (${placeholders})`, reservaIds);
+
+      // 3) Deleta check-ins vinculados às reservas
+      await conn.execute(
+        `DELETE FROM checkin WHERE reserva_id IN (${placeholders})`,
+        reservaIds
+      );
+
+      // 4) Deleta as próprias reservas
+      await conn.execute(
+        `DELETE FROM reservas WHERE id IN (${placeholders})`,
+        reservaIds
+      );
     }
 
-    // 4) finalmente deleta o apartamento
-    const [result] = await conn.execute('DELETE FROM apartamentos WHERE id = ?', [id]);
+    // 5) Finalmente deleta o apartamento
+    const [result] = await conn.execute(
+      'DELETE FROM apartamentos WHERE id = ?',
+      [id]
+    );
+
     await conn.commit();
     return result.affectedRows > 0;
   } catch (err) {
@@ -435,6 +458,7 @@ const deleteApartamento = async (id) => {
     conn.release();
   }
 };
+
 
 module.exports = {
   getAllApartamentos,
