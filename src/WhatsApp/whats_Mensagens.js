@@ -19,7 +19,7 @@ function criarMensagemCadastroConcluido(obj) {
 }
 
 function criarMensagemEarlyPago(obj) {
-  return `Pagaemento Early para o Apartamento  *(${obj.apartamento_name})* confimada.`;
+  return `Pagamento Early para o Apartamento  *(${obj.apartamento_name})* confimada.`;
 }
 function criarMensagemInstrucoesEntrada(obj) {
   const base = criarMensagemPortaria(obj);
