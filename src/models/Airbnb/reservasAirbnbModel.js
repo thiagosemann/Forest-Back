@@ -106,24 +106,27 @@ const createReserva = async (reserva) => {
   /**
    * 4b) Extrai e normaliza os dados de um vevent
    */
-    function parseEventoAirbnb(vevent, apartamento) {
-      const toDate = prop => moment(prop.toString()).tz('America/Sao_Paulo').toDate();
-      const start = toDate(vevent.getFirstPropertyValue('dtstart'));
-      const end = toDate(vevent.getFirstPropertyValue('dtend'));
-      const summary = vevent.getFirstPropertyValue('summary') || '';
-      let cod_reserva, link_reserva;
-      const desc = vevent.getFirstPropertyValue('description') || '';
-      if (desc) {
-        cod_reserva = desc.match(/\/details\/([A-Z0-9]+)/)?.[1];
-        link_reserva = desc.match(/https:\/\/www\.airbnb\.com\/hosting\/reservations\/details\/[A-Z0-9]+/)?.[0];
-      }
-      if (!cod_reserva || !link_reserva) {
-        const fmt = d => `${String(d.getDate()).padStart(2,'0')}-${String(d.getMonth()+1).padStart(2,'0')}-${d.getFullYear()}`;
-        cod_reserva = `${apartamento.nome}/${fmt(end)}`;
-        link_reserva = 'https://www.admforest.com.br/';
-      }
-      return { start, end, summary, cod_reserva, link_reserva };
+  function parseEventoAirbnb(vevent, apartamento) {
+    const toDate = prop => moment(prop.toString()).tz('America/Sao_Paulo').toDate();
+    const start = toDate(vevent.getFirstPropertyValue('dtstart'));
+    const end = toDate(vevent.getFirstPropertyValue('dtend'));
+    const summary = vevent.getFirstPropertyValue('summary') || '';
+    let cod_reserva, link_reserva;
+
+    const desc = vevent.getFirstPropertyValue('description') || '';
+    if (desc) {
+      cod_reserva = desc.match(/\/details\/([A-Z0-9]+)/)?.[1];
+      link_reserva = desc.match(/https:\/\/www\.airbnb\.com\/hosting\/reservations\/details\/[A-Z0-9]+/)?.[0];
     }
+
+    if (!cod_reserva) return null;
+
+    if (!link_reserva) {
+      link_reserva = 'https://www.admforest.com.br/';
+    }
+
+    return { start, end, summary, cod_reserva, link_reserva };
+  }
   
   // 4b) Parser específico para Booking
     function parseEventoBooking(vevent, apartamento) {
@@ -143,21 +146,20 @@ const createReserva = async (reserva) => {
     async function processarEventos(vevents, apartamento, hoje, dataLimite, parserFn) {
       const ativos = new Set();
       for (const vevent of vevents) {
-        const { start, end, summary, cod_reserva, link_reserva } = parserFn(vevent, apartamento);
-        if (summary !== 'Reserved') continue; // só cria quando summary == 'Reserved'
+        const parsed = parserFn(vevent, apartamento);
+        if (!parsed) continue;
+        const { start, end, summary, cod_reserva, link_reserva } = parsed;
+        if (summary !== 'Reserved') continue; // só cria quando summary == 'Reserved'       
         if (end <= hoje || start > dataLimite) continue;
         ativos.add(cod_reserva);
         const [existing] = await connection.execute(
           'SELECT id, start_date, end_data, description FROM reservas WHERE cod_reserva = ?', [cod_reserva]
         );
         if (existing.length === 0) {
-          console.log("Criando",cod_reserva)
           await createReserva({ apartamento_id: apartamento.id, description: summary, start_date: start, end_data: end, Observacoes: '', cod_reserva, link_reserva, limpeza_realizada: false, credencial_made: false, informed: false, check_in: '15:00', check_out: '11:00', faxina_userId: null });
         } else {
           const db = existing[0];
           if (db.start_date.getTime() !== start.getTime() || db.end_data.getTime() !== end.getTime() || db.description !== summary) {
-              console.log("Atualizando",cod_reserva)
-
             await connection.execute('UPDATE reservas SET start_date = ?, end_data = ?, description = ? WHERE id = ?', [start, end, summary, db.id]);
           }
         }
@@ -187,6 +189,9 @@ const createReserva = async (reserva) => {
       const aps = await getApartamentosComLink();
       const { hoje, dataLimite } = getDatasReferencia();
       for (const apt of aps) {
+        if(apt.nome != 'VDC04'){
+          continue
+        }
         try {
           const ativos = new Set();
           if (apt.link_airbnb_calendario) {
@@ -472,6 +477,23 @@ const getFaxinasPorPeriodo = async (inicio_end_data, fim_end_date) => {
   return reservas;
 };
 
+async function getReservasCanceladasHoje() {
+  // Data de hoje (00:00:00) em São Paulo
+  const hoje = moment().tz('America/Sao_Paulo').startOf('day').format('YYYY-MM-DD');
+
+  const query = `
+    SELECT r.*, 
+           COALESCE(a.nome, 'Apartamento não encontrado') AS apartamento_nome,
+           EXISTS (SELECT 1 FROM checkin c WHERE c.reserva_id = r.id) AS documentosEnviados
+    FROM reservas r
+    LEFT JOIN apartamentos a ON a.id = r.apartamento_id
+    WHERE ? BETWEEN DATE(r.start_date) AND DATE(r.end_data)
+      AND r.description = 'CANCELADA';
+  `;
+
+  const [reservas] = await connection.execute(query, [hoje]);
+  return reservas;
+}
 
 module.exports = {
   getAllReservas,
@@ -483,5 +505,6 @@ module.exports = {
   deleteReserva,
   getReservasPorPeriodo,
   getFaxinasPorPeriodo,
-  getReservasPorPeriodoCalendario
+  getReservasPorPeriodoCalendario,
+  getReservasCanceladasHoje
 };

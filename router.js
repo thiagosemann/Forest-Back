@@ -247,6 +247,8 @@ router.delete('/apartamentos-airbnb/:id', verifyToken, apartamentosAirbnbControl
 router.get('/reservas-airbnb', reservasAirbnbController.getAllReservas);
 router.get('/reservas-airbnb/:id', reservasAirbnbController.getReservaById);
 router.post('/reservas-airbnb', reservasAirbnbController.createReserva);
+router.get('/reservas-airbnb/cancelados/hoje', reservasAirbnbController.getReservasCanceladasHoje);
+
 router.get('/reservas-airbnb/apartamentos/:apartamentoId', reservasAirbnbController.getReservasByApartamentoId);
 router.put('/reservas-airbnb/:id', reservasAirbnbController.updateReserva);
 router.delete('/reservas-airbnb/:id', reservasAirbnbController.deleteReserva);
@@ -256,6 +258,8 @@ router.get('/reservas-airbnb/reservas/por-periodo', reservasAirbnbController.get
 router.get('/reservas-airbnb/faxinas/por-periodo', reservasAirbnbController.getFaxinasPorPeriodo);
 // Novos filtros calendario
 router.get('/reservas-airbnb/reservas/por-periodo-calendario', reservasAirbnbController.getReservasPorPeriodoCalendario);
+
+
 // Rotas de Check-in
 router.get('/checkins', verifyToken, checkinFormController.getAllCheckins); // Listar todos os check-ins
 router.get('/checkins/:id', verifyToken, checkinFormController.getCheckinById); // Obter um check-in por ID

@@ -142,7 +142,15 @@ const getReservasPorPeriodoCalendario = async (request, response) => {
     });
   }
 };
-
+const getReservasCanceladasHoje = async (request, response) => {
+  try {
+    const reservas = await reservaModel.getReservasCanceladasHoje();
+    return response.status(200).json(reservas);
+  } catch (error) {
+    console.error('Erro ao obter reservas canceladas de hoje:', error);
+    return response.status(500).json({ error: 'Erro ao obter reservas canceladas de hoje' });
+  }
+};
 module.exports = {
   getAllReservas,
   createReserva,
@@ -152,5 +160,6 @@ module.exports = {
   deleteReserva,
   getReservasPorPeriodo,
   getFaxinasPorPeriodo,
-  getReservasPorPeriodoCalendario
+  getReservasPorPeriodoCalendario,
+  getReservasCanceladasHoje
 };
