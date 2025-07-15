@@ -495,6 +495,56 @@ async function getReservasCanceladasHoje() {
   return reservas;
 }
 
+async function getReservasPorPeriodoCalendarioPorApartamento(startDate, endDate, apartamentoId) {
+  const query = `
+    SELECT
+      r.*,
+      COALESCE(a.nome, 'Apartamento não encontrado') AS apartamento_nome,
+      a.predio_id,
+      EXISTS (SELECT 1 FROM checkin c WHERE c.reserva_id = r.id)              AS documentosEnviados,
+      (SELECT COUNT(*)          FROM checkin c2 WHERE c2.reserva_id = r.id)   AS qtd_hospedes,
+      (SELECT JSON_ARRAYAGG(c2.horarioPrevistoChegada)
+         FROM checkin c2 WHERE c2.reserva_id = r.id)                          AS horarioPrevistoChegada,
+      (SELECT JSON_ARRAYAGG(
+                JSON_OBJECT(
+                  'id',              p.id,
+                  'user_id',         p.user_id,
+                  'valor_total',     p.valor_total,
+                  'tipo_pagamento',  p.tipo_pagamento,
+                  'tipo',            p.tipo,
+                  'email_comprador', p.email_comprador,
+                  'date_criado',     p.date_criado,
+                  'apartamento_id',  p.apartamento_id,
+                  'cod_reserva',     p.cod_reserva
+                )
+       )
+       FROM pagamento_por_reserva_extra p
+       WHERE p.reserva_id = r.id)                                             AS pagamentos
+    FROM reservas r
+    LEFT JOIN apartamentos a ON a.id = r.apartamento_id
+    WHERE
+      r.apartamento_id = ?                  /* apenas o apartamento desejado */
+      AND DATE(r.start_date) <= ?           /* começa antes do fim do range */
+      AND DATE(r.end_data)  >= ?           /* termina depois do início       */
+    ORDER BY r.start_date ASC;
+  `;
+
+  // atenção à ordem dos parâmetros!
+  const [rows] = await connection.execute(query, [apartamentoId, endDate, startDate]);
+
+  // Normaliza colunas agregadas JSON (caso venham como string)
+  return rows.map(row => {
+    ['horarioPrevistoChegada', 'pagamentos'].forEach(col => {
+      if (row[col] && typeof row[col] === 'string') {
+        try { row[col] = JSON.parse(row[col]); }
+        catch { row[col] = []; }
+      }
+      if (!Array.isArray(row[col])) row[col] = [];
+    });
+    return row;
+  });
+}
+
 module.exports = {
   getAllReservas,
   createReserva,
@@ -506,5 +556,6 @@ module.exports = {
   getReservasPorPeriodo,
   getFaxinasPorPeriodo,
   getReservasPorPeriodoCalendario,
-  getReservasCanceladasHoje
+  getReservasCanceladasHoje,
+  getReservasPorPeriodoCalendarioPorApartamento
 };

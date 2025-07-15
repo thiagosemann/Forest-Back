@@ -151,6 +151,27 @@ const getReservasCanceladasHoje = async (request, response) => {
     return response.status(500).json({ error: 'Erro ao obter reservas canceladas de hoje' });
   }
 };
+
+const getReservasPorPeriodoCalendarioPorApartamento = async (request, response) => {
+  try {
+    const { apartamentoId } = request.params;
+    const { start, end } = request.query;
+
+    if (!apartamentoId) {
+      return response.status(400).json({ error: 'apartamentoId é obrigatório' });
+    }
+    if (!start || !end) {
+      return response.status(400).json({ error: 'Datas inicial (start) e final (end) são obrigatórias' });
+    }
+
+    const reservas = await reservaModel.getReservasPorPeriodoCalendarioPorApartamento(start, end, apartamentoId);
+    return response.status(200).json(reservas);
+
+  } catch (error) {
+    console.error('Erro ao buscar reservas por período/apartamento:', error);
+    return response.status(500).json({ error: 'Erro ao buscar reservas por período/apartamento' });
+  }
+};
 module.exports = {
   getAllReservas,
   createReserva,
@@ -161,5 +182,6 @@ module.exports = {
   getReservasPorPeriodo,
   getFaxinasPorPeriodo,
   getReservasPorPeriodoCalendario,
-  getReservasCanceladasHoje
+  getReservasCanceladasHoje,
+  getReservasPorPeriodoCalendarioPorApartamento
 };
