@@ -12,7 +12,6 @@ const getAllApartamentos = async () => {
   return apartamentos;
 };
 
-// Função para criar um novo apartamento com valores opcionais
 const createApartamento = async (apartamento) => {
   if (!apartamento.nome || !apartamento.predio_id) {
     throw new Error("Os campos 'nome' e 'predio_id' são obrigatórios.");
@@ -72,7 +71,8 @@ const createApartamento = async (apartamento) => {
     air_fryer,
     modificado_user_id,
     data_ultima_modificacao,
-    link_fotos
+    link_fotos,
+    cod_link_proprietario
   } = apartamento;
 
   const insertApartamentoQuery = `
@@ -130,7 +130,8 @@ const createApartamento = async (apartamento) => {
     air_fryer = ?,
     modificado_user_id = ?,
     data_ultima_modificacao = ?,
-    link_fotos = ?;
+    link_fotos = ?,
+    cod_link_proprietario = ?;
   `;
 
   const values = [
@@ -187,7 +188,8 @@ const createApartamento = async (apartamento) => {
     air_fryer ?? null,
     modificado_user_id ?? null,
     getCurrentDateTimeString(),
-    link_fotos ?? null
+    link_fotos ?? null,
+    cod_link_proprietario ?? null
   ];
 
   try {
@@ -202,7 +204,7 @@ const createApartamento = async (apartamento) => {
   }
 };
 
-// Função para atualizar um apartamento com valores opcionais
+// Atualização da função updateApartamento com cod_link_proprietario
 const updateApartamento = async (apartamento) => {
   const {
     id,
@@ -259,7 +261,8 @@ const updateApartamento = async (apartamento) => {
     air_fryer = null,
     modificado_user_id = null,
     data_ultima_modificacao = null,
-    link_fotos = null
+    link_fotos = null,
+    cod_link_proprietario = null
   } = apartamento;
 
   const updateApartamentoQuery = `
@@ -317,7 +320,8 @@ const updateApartamento = async (apartamento) => {
       air_fryer = ?,
       modificado_user_id = ?,
       data_ultima_modificacao = ?,
-      link_fotos = ?
+      link_fotos = ?,
+      cod_link_proprietario = ?
     WHERE id = ?
   `;
 
@@ -376,6 +380,7 @@ const updateApartamento = async (apartamento) => {
     modificado_user_id,
     getCurrentDateTimeString(),
     link_fotos,
+    cod_link_proprietario,
     id
   ];
 
