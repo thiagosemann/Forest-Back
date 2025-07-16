@@ -189,9 +189,6 @@ const createReserva = async (reserva) => {
       const aps = await getApartamentosComLink();
       const { hoje, dataLimite } = getDatasReferencia();
       for (const apt of aps) {
-        if(apt.nome != 'VDC04'){
-          continue
-        }
         try {
           const ativos = new Set();
           if (apt.link_airbnb_calendario) {
