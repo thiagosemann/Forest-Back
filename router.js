@@ -248,6 +248,7 @@ router.get('/reservas-airbnb', reservasAirbnbController.getAllReservas);
 router.get('/reservas-airbnb/:id', reservasAirbnbController.getReservaById);
 router.post('/reservas-airbnb', reservasAirbnbController.createReserva);
 router.get('/reservas-airbnb/cancelados/hoje', reservasAirbnbController.getReservasCanceladasHoje);
+router.get('/reservas-airbnb/reservas/por-periodo-calendario/:apartamentoId', reservasAirbnbController.getReservasPorPeriodoCalendarioPorApartamento);
 
 router.get('/reservas-airbnb/apartamentos/:apartamentoId', reservasAirbnbController.getReservasByApartamentoId);
 router.put('/reservas-airbnb/:id', reservasAirbnbController.updateReserva);
