@@ -401,6 +401,14 @@ const getApartamentoById = async (id) => {
   return apartamentos.length > 0 ? apartamentos[0] : null;
 };
 
+// Função para buscar um apartamento pelo ID
+const getApartamentoByCodProprietario = async (cod_link_proprietario) => {
+  const query = 'SELECT * FROM apartamentos WHERE cod_link_proprietario = ?';
+  const [apartamentos] = await connection.execute(query, [cod_link_proprietario]);
+
+  return apartamentos.length > 0 ? apartamentos[0] : null;
+};
+
 // Função para buscar apartamentos pelo ID do prédio
 const getApartamentosByPredioId = async (predioId) => {
   const query = 'SELECT * FROM apartamentos WHERE predio_id = ?';
@@ -469,6 +477,7 @@ module.exports = {
   getAllApartamentos,
   createApartamento,
   getApartamentoById,
+  getApartamentoByCodProprietario,
   getApartamentosByPredioId,
   updateApartamento,
   deleteApartamento

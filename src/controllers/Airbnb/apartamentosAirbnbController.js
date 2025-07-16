@@ -36,6 +36,22 @@ const getApartamentoById = async (request, response) => {
   }
 };
 
+const getApartamentoByCodProprietario = async (request, response) => {
+  try {
+    const { cod_link_proprietario } = request.params;
+    const apartamento = await apartamentoModel.getApartamentoByCodProprietario(cod_link_proprietario);
+
+    if (apartamento) {
+      return response.status(200).json(apartamento);
+    } else {
+      return response.status(404).json({ message: 'Apartamento não encontrado' });
+    }
+  } catch (error) {
+    console.error('Erro ao obter apartamento:', error);
+    return response.status(500).json({ error: 'Erro ao obter apartamento' });
+  }
+};
+
 const getApartamentosByPredioId = async (request, response) => {
   try {
     const { predioId } = request.params;
@@ -88,6 +104,7 @@ module.exports = {
   createApartamento,
   getApartamentoById,
   getApartamentosByPredioId,
+  getApartamentoByCodProprietario,
   updateApartamento,
   deleteApartamento
 };
