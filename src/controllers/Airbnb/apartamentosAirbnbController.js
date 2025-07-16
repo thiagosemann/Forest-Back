@@ -38,9 +38,8 @@ const getApartamentoById = async (request, response) => {
 
 const getApartamentoByCodProprietario = async (request, response) => {
   try {
-    const { cod_link_proprietario } = request.params;
-    const apartamento = await apartamentoModel.getApartamentoByCodProprietario(cod_link_proprietario);
-
+    const { cod } = request.params;
+    const apartamento = await apartamentoModel.getApartamentoByCodProprietario(cod);
     if (apartamento) {
       return response.status(200).json(apartamento);
     } else {
