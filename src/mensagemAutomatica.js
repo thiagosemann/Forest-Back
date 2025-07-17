@@ -119,7 +119,7 @@ async function envioMensagensInstrucoesEntrada() {
 
 
 // envioMensagensInstrucoesEntrada();
-// envioCredenciaisHoje();
+ envioCredenciaisHoje();
 // ------------------------------------Envio Progamado-----------------------------------------//
 
 cron.schedule('0 10 * * *', async () => {

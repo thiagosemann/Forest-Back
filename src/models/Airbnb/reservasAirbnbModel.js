@@ -214,7 +214,6 @@ const createReserva = async (reserva) => {
             const codB = await processarEventos(evB, apt, hoje, dataLimite, parseEventoBooking);
             codB.forEach(c => ativos.add(c));
           }
-          console.log(ativos)
           await cancelarReservasAusentes(apt.id, ativos, hoje);
         } catch (e) {
           console.error(`Erro no apt ${apt.id}:`, e.message);
