@@ -174,13 +174,26 @@ const createReserva = async (reserva) => {
       if (ativos.size) {
         const ph = Array.from(ativos).map(() => '?').join(',');
         await connection.execute(
-          `UPDATE reservas SET description = 'CANCELADA' WHERE apartamento_id = ? AND cod_reserva NOT IN (${ph}) AND end_data > ?`,
+          `UPDATE reservas 
+          SET description = 'CANCELADA' 
+          WHERE apartamento_id = ? 
+            AND cod_reserva NOT IN (${ph}) 
+            AND end_data > ? 
+            AND description != 'CANCELADA-VERIFICADA'`,
           [aptoId, ...Array.from(ativos), hoje]
         );
       } else {
-        await connection.execute(`UPDATE reservas SET description = 'CANCELADA' WHERE apartamento_id = ? AND end_data > ?`, [aptoId, hoje]);
+        await connection.execute(
+          `UPDATE reservas 
+          SET description = 'CANCELADA' 
+          WHERE apartamento_id = ? 
+            AND end_data > ? 
+            AND description != 'CANCELADA-VERIFICADA'`,
+          [aptoId, hoje]
+        );
       }
     }
+
 
   /**
    * 7. Função principal de sincronização, agora orquestrando as funções acima
@@ -201,6 +214,7 @@ const createReserva = async (reserva) => {
             const codB = await processarEventos(evB, apt, hoje, dataLimite, parseEventoBooking);
             codB.forEach(c => ativos.add(c));
           }
+          console.log(ativos)
           await cancelarReservasAusentes(apt.id, ativos, hoje);
         } catch (e) {
           console.error(`Erro no apt ${apt.id}:`, e.message);
