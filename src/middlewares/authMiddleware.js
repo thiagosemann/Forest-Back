@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 const SECRET_KEY = process.env.SECRET_KEY;
+const SECURE_LINK_KEY = process.env.SECURE_LINK_KEY; // Defina no .env
 
 const verifyToken = (req, res, next) => {
   const token = req.headers['authorization'];
@@ -21,5 +22,15 @@ const verifyToken = (req, res, next) => {
     next();
   });
 };
+const verifySecureLink = (req, res, next) => {
+  const { secureToken } = req.params; // Vem da URL
+  if (!secureToken || secureToken !== SECURE_LINK_KEY) {
+    return res.status(403).json({ message: "Acesso negado. Token inválido!" });
+  }
+  next();
+};
 
-module.exports = verifyToken;
+module.exports ={
+  verifyToken,
+  verifySecureLink
+} 
