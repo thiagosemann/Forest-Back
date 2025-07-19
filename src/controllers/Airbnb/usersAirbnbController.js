@@ -101,7 +101,21 @@ const getUsersByRole = async (request, response) => {
     return response.status(500).json({ error: 'Erro ao obter usuários por papel' });
   }
 };
+const getUserByTelefone = async (request, response) => {
+  try {
+    const { telefone } = request.params; // `telefone` vem da URL
+    const user = await usersModel.getUserByTelefone(telefone);
 
+    if (user) {
+      return response.status(200).json(user);
+    } else {
+      return response.status(404).json({ message: 'Usuário não encontrado' });
+    }
+  } catch (error) {
+    console.error('Erro ao obter usuário por telefone:', error);
+    return response.status(500).json({ error: 'Erro ao obter usuário por telefone' });
+  }
+};
 module.exports = {
   getAllUsers,
   createUser,
@@ -111,4 +125,5 @@ module.exports = {
   deleteUser,
   createUsersBatch,
   getUsersByRole, 
+  getUserByTelefone
 };

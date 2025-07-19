@@ -223,6 +223,7 @@ router.get('/users-airbnb', verifyToken, usersAirbnbController.getAllUsers);
 router.put('/users-airbnb/:id', verifyToken, usersAirbnbController.updateUser);
 router.get('/users-airbnb/:id', verifyToken, usersAirbnbController.getUser);
 router.get('/users-airbnb/role/:role', verifyToken, usersAirbnbController.getUsersByRole);
+router.get('/users-airbnb/telefone/:telefone', verifyToken, usersAirbnbController.getUserByTelefone); // <-- Adicione esta linha
 router.post('/login-airbnb', usersAirbnbController.loginUser);
 router.post('/users-airbnb', usersAirbnbController.createUser);
 router.post('/users-airbnb/batch', verifyToken, usersAirbnbController.createUsersBatch);

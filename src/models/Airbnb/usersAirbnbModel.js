@@ -222,6 +222,13 @@ const getUsersByRole = async (role) => {
     throw error;
   }
 };
+
+const getUserByTelefone = async (telefone) => {
+  const query = 'SELECT * FROM users WHERE Telefone = ?';
+  const [users] = await connection.execute(query, [telefone]);
+  return users[0] || null;
+};
+
 // Other methods (batch inserts, get by CPF/role) left unchanged
 module.exports = {
   getAllUsers,
@@ -232,5 +239,6 @@ module.exports = {
   deleteUser,
   getUserByCPF,
   getUsersByRole,
-  getUserFiles
+  getUserFiles,
+  getUserByTelefone
 };
