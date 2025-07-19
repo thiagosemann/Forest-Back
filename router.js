@@ -238,7 +238,7 @@ router.delete('/predios-airbnb/:id', verifyToken, predioAirbnbController.deleteP
 
 // ApartamentosAirbnb routes
 router.get('/apartamentos-airbnb', verifyToken, apartamentosAirbnbController.getAllApartamentos);
-router.get('/apartamentos-airbnb/:id', verifyToken, apartamentosAirbnbController.getApartamentoById);
+router.get('/apartamentos-airbnb/:id', apartamentosAirbnbController.getApartamentoById);
 router.get('/apartamentos-airbnb/codigo-proprietario/:cod', apartamentosAirbnbController.getApartamentoByCodProprietario);
 
 router.post('/apartamentos-airbnb', verifyToken, apartamentosAirbnbController.createApartamento);
