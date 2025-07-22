@@ -137,13 +137,33 @@ async function envioPagamentoEarly({ telefone_hospede, nome, apartamento, cod_re
 async function envioEarlyPago(obj) {
   const text = mensagens.criarMensagemEarlyPago(obj);
   try {
-    await sendWapiMessage('41991017913', text);
-    await sendWapiMessage('41999283936', text);
+    await sendWapiMessage('5541991017913', text);
+    await sendWapiMessage('5541999283936', text);
   } catch (err) {
-    await sendWapiMessageAdmin('41991017913', 'envioCadastroConcluido', obj);
+    await sendWapiMessageAdmin('5541991017913', 'envioCadastroConcluido', obj);
   }
 }
 
+async function criarMensagemSelecionadaComoTerceirizadaLimpeza(obj) {
+  obj.checkin = formatarData(obj.checkin);
+  const text = mensagens.criarMensagemSelecionadaComoTerceirizadaLimpeza(obj);
+ 
+  try {
+    await sendWapiMessage(obj.telefone, text);
+  } catch (err) {
+    await sendWapiMessageAdmin('5541991017913', 'envioMensagemLimpezaExtra', obj);
+  }
+}
+
+async function criarMensagemDiariaTerceirizadaLimpeza(obj) {
+  const text = mensagens.criarMensagemDiariaTerceirizadaLimpeza(obj);
+ 
+  try {
+    await sendWapiMessage(obj.telefone, text);
+  } catch (err) {
+    await sendWapiMessageAdmin('5541991017913', 'envioMensagemLimpezaExtra', obj);
+  }
+}
 
 module.exports = {
   sendWapiMessage,
@@ -157,5 +177,7 @@ module.exports = {
   envioMensagemLimpezaExtra,
   envioMensagemInstrucoesSaida,
   envioPagamentoEarly,
-  envioEarlyPago
+  envioEarlyPago,
+  criarMensagemSelecionadaComoTerceirizadaLimpeza,
+  criarMensagemDiariaTerceirizadaLimpeza
 };

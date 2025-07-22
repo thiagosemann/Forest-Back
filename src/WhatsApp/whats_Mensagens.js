@@ -1,3 +1,4 @@
+const {formatarData} = require('./whats_Utilidades');
 
 function criarMensagemPortaria(obj) {
   const nome = obj.name;
@@ -45,6 +46,35 @@ function criarMensagemInstrucoesSaida(obj) {
   return `Boa noite ${obj.nome}, amanhã às ${obj.horario_check_out} finaliza sua estadia. Avise ao desocupar para limpeza e vistoria. Até breve!`;
 }
 
+function criarMensagemSelecionadaComoTerceirizadaLimpeza(obj) {
+  const checkin = obj.checkin;
+  let entramHojeMsg = 'Não entram hoje';
+
+  if (obj.entramHoje) {
+    entramHojeMsg = 'Entram hoje';
+  }
+  return `Limpeza marcada para *${obj.diaDaSemana}* (*${checkin}*) no *${obj.apartamento_name}*. *${entramHojeMsg}*. Senha: *${obj.senha_porta}*.`;
+
+}
+function criarMensagemDiariaTerceirizadaLimpeza(obj) {
+  let checkin = formatarData(obj.reservas[0].end_data);
+  let text = `Limpezas para hoje *${obj.diaDaSemana}* (*${checkin}*):\n`;  
+  let entramHojeMsg = '';
+
+  obj.reservas.forEach((reserva) => {
+    if(reserva.entramHoje) {
+      entramHojeMsg = 'Entram hoje';
+    }else{
+      entramHojeMsg = 'Não entram hoje';
+    }
+      text+=`*${reserva.apartamento_nome}*. *${entramHojeMsg}*. Senha: *${reserva.apartamento_senha}*\n`;
+  })
+  return text;
+}
+
+
+
+
 function criarMensagemPagamentoEarly({ nome, apartamento, cod_reserva, valor, linkPagamento }) {
   // garante que comece com https://
   const url = linkPagamento.startsWith('http')
@@ -80,5 +110,7 @@ module.exports = {
   criarMensagemLimpezaExtra,
   criarMensagemInstrucoesSaida,
   criarMensagemPagamentoEarly,
-  criarMensagemEarlyPago
+  criarMensagemEarlyPago,
+  criarMensagemSelecionadaComoTerceirizadaLimpeza,
+  criarMensagemDiariaTerceirizadaLimpeza
 };

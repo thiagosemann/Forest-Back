@@ -1,4 +1,7 @@
 const limpezaExtraModel = require('../../models/Airbnb/limpezaExtraAirbnbModel');
+const usersModel = require('../../models/Airbnb/usersAirbnbModel');
+const reservaModel = require('../../models/Airbnb/reservasAirbnbModel');
+const whatsControle = require('../../WhatsApp/whats_Controle');
 
 const getAllLimpezasExtras = async (request, response) => {
   try {
@@ -29,6 +32,30 @@ const getLimpezaExtraById = async (request, response) => {
 const createLimpezaExtra = async (request, response) => {
   try {
     const created = await limpezaExtraModel.createLimpezaExtra(request.body);
+
+    // Enviar mensagem se faxina_userId estiver presente
+    if (request.body.faxina_userId != null) {
+      const user = await usersModel.getUser(request.body.faxina_userId);
+      let diaDaSemana = new Date(request.body.end_data).toLocaleDateString('pt-BR', { weekday: 'long' });
+      diaDaSemana = diaDaSemana.charAt(0).toUpperCase() + diaDaSemana.slice(1);
+      const hoje = new Date();
+      const today = hoje.toISOString().split('T')[0];
+      let reservasHoje = await reservaModel.getReservasPorPeriodoByApartamentoID(request.body.apartamento_id, today, today);
+      let entramHoje = reservasHoje.length > 0;
+      // Buscar nome e senha do apartamento
+      const apartamento_nome = (reservasHoje[0] && reservasHoje[0].apartamento_nome) || 'Apartamento';
+      const apartamento_senha = (reservasHoje[0] && reservasHoje[0].apartamento_senha) || '';
+      whatsControle.criarMensagemSelecionadaComoTerceirizadaLimpeza({
+        apartamento_name: apartamento_nome,
+        checkin: request.body.end_data,
+        entramHoje: entraHoje,
+        senha_porta: apartamento_senha,
+        //telefone: '5541991017913',
+        telefone: user.Telefone,
+        diaDaSemana: diaDaSemana
+      });
+    }
+
     return response.status(201).json(created);
   } catch (error) {
     console.error('Erro ao criar limpeza extra:', error);
@@ -42,6 +69,29 @@ const updateLimpezaExtra = async (request, response) => {
     const limpeza = { ...request.body, id };
 
     const wasUpdated = await limpezaExtraModel.updateLimpezaExtra(limpeza);
+
+    // Enviar mensagem se faxina_userId estiver presente
+    if (request.body.faxina_userId != null) {
+      const user = await usersModel.getUser(request.body.faxina_userId);
+      let diaDaSemana = new Date(request.body.end_data).toLocaleDateString('pt-BR', { weekday: 'long' });
+      diaDaSemana = diaDaSemana.charAt(0).toUpperCase() + diaDaSemana.slice(1);
+      const hoje = new Date();
+      const today = hoje.toISOString().split('T')[0];
+      let reservasHoje = await reservaModel.getReservasPorPeriodoByApartamentoID(request.body.apartamento_id, today, today);
+      let entraHoje = reservasHoje.length > 0;
+      const apartamento_nome = (limpeza && limpeza.apartamento_nome) || 'Apartamento';
+      const apartamento_senha = (limpeza && limpeza.apartamento_senha) || '';
+   
+      whatsControle.criarMensagemSelecionadaComoTerceirizadaLimpeza({
+        apartamento_name: apartamento_nome,
+        checkin: request.body.end_data,
+        entramHoje: entraHoje,
+        senha_porta: apartamento_senha,
+        //telefone: '5541991017913',
+        telefone: user.Telefone,
+        diaDaSemana: diaDaSemana
+      });
+    }
 
     if (wasUpdated) {
       return response.status(200).json({ message: 'Limpeza extra atualizada com sucesso' });

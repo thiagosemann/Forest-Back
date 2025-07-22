@@ -406,6 +406,71 @@ async function getReservasPorPeriodo(startDate, endDate) {
     return reservasObj;
   });
 }
+async function getReservasPorPeriodoByApartamentoID(apartamentoId, startDate, endDate) {
+  const query = `
+    SELECT
+      r.*,
+      COALESCE(a.nome, 'Apartamento não encontrado') AS apartamento_nome,
+      EXISTS(
+        SELECT 1 FROM checkin c WHERE c.reserva_id = r.id
+      ) AS documentosEnviados,
+      (
+        SELECT COUNT(*)
+        FROM checkin c2
+        WHERE c2.reserva_id = r.id
+      ) AS qtd_hospedes,
+      (
+        SELECT JSON_ARRAYAGG(c2.horarioPrevistoChegada)
+        FROM checkin c2
+        WHERE c2.reserva_id = r.id
+      ) AS horarioPrevistoChegada,
+      (
+        SELECT JSON_ARRAYAGG(
+          JSON_OBJECT(
+            'id', p.id,
+            'user_id', p.user_id,
+            'valor_total', p.valor_total,
+            'tipo_pagamento', p.tipo_pagamento,
+            'tipo', p.tipo,
+            'email_comprador', p.email_comprador,
+            'date_criado', p.date_criado,
+            'apartamento_id', p.apartamento_id,
+            'cod_reserva', p.cod_reserva
+          )
+        )
+        FROM pagamento_por_reserva_extra p
+        WHERE p.reserva_id = r.id
+      ) AS pagamentos
+    FROM reservas r
+    LEFT JOIN apartamentos a ON a.id = r.apartamento_id
+    WHERE r.apartamento_id = ? AND DATE(r.start_date) BETWEEN ? AND ?
+    ORDER BY r.start_date ASC;
+  `;
+
+  const [rows] = await connection.execute(query, [apartamentoId, startDate, endDate]);
+
+  // Trata possíveis formatos de retorno de JSON_ARRAYAGG do MySQL
+  return rows.map(row => {
+    const reservasObj = { ...row };
+
+    // Horários de chegada
+    if (!Array.isArray(reservasObj.horarioPrevistoChegada) && typeof reservasObj.horarioPrevistoChegada === 'string') {
+      try { reservasObj.horarioPrevistoChegada = JSON.parse(reservasObj.horarioPrevistoChegada); }
+      catch (e) { reservasObj.horarioPrevistoChegada = []; }
+    }
+    if (!reservasObj.horarioPrevistoChegada) reservasObj.horarioPrevistoChegada = [];
+
+    // Pagamentos
+    if (!Array.isArray(reservasObj.pagamentos) && typeof reservasObj.pagamentos === 'string') {
+      try { reservasObj.pagamentos = JSON.parse(reservasObj.pagamentos); }
+      catch (e) { reservasObj.pagamentos = []; }
+    }
+    if (!reservasObj.pagamentos) reservasObj.pagamentos = [];
+
+    return reservasObj;
+  });
+}
+
 
 async function getReservasPorPeriodoCalendario(startDate, endDate) {
   const query = `
@@ -567,5 +632,6 @@ module.exports = {
   getFaxinasPorPeriodo,
   getReservasPorPeriodoCalendario,
   getReservasCanceladasHoje,
-  getReservasPorPeriodoCalendarioPorApartamento
+  getReservasPorPeriodoCalendarioPorApartamento,
+  getReservasPorPeriodoByApartamentoID
 };

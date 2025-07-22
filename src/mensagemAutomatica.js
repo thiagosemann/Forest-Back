@@ -1,5 +1,6 @@
 const reservasModel = require('./models/Airbnb/reservasAirbnbModel');
 const apartamentoModel = require('./models/Airbnb/apartamentosAirbnbModel');
+const usersModel = require('./models/Airbnb/usersAirbnbModel');
 const predioPortariaModel = require('./models/Airbnb/prediosPortariasModel')
 const whatsControle = require('./WhatsApp/whats_Controle')
 const checkinModel  = require('./models/Airbnb/checkinFormModel')
@@ -115,6 +116,43 @@ async function envioMensagensInstrucoesEntrada() {
   }
 }
 
+async function envioMensagemDiariaTercerizadas() {
+  try {
+    const hoje = new Date();
+    const today = hoje.toISOString().split('T')[0]; // Formato YYYY-MM-DD
+    const limpezasHoje = await reservasModel.getFaxinasPorPeriodo(today, today);
+    // Separar as limpezes por faxina_userId
+    const limpezasPorUsuario = {};
+    for (const limpeza of limpezasHoje) {
+      // Buscar reservas para o apartamento da limpeza
+      const reservasHoje = await reservasModel.getReservasPorPeriodoByApartamentoID(limpeza.apartamento_id, today, today);
+      // Adiciona a propriedade entramHoje na limpeza
+      limpeza.entramHoje = reservasHoje.length > 0 ? true : false;
+
+      if (!limpezasPorUsuario[limpeza.faxina_userId]) {
+        limpezasPorUsuario[limpeza.faxina_userId] = [];
+      }
+      limpezasPorUsuario[limpeza.faxina_userId].push(limpeza);
+    }
+
+    for (const userId in limpezasPorUsuario) {
+      const user = await usersModel.getUser(userId);
+      let diaDaSemana = new Date().toLocaleDateString('pt-BR', { weekday: 'long' });
+      diaDaSemana = diaDaSemana.charAt(0).toUpperCase() + diaDaSemana.slice(1);
+      console.log(`Enviando mensagem para o usuário ${user.first_name} (${user.Telefone})`);
+      whatsControle.criarMensagemDiariaTerceirizadaLimpeza({
+        reservas: limpezasPorUsuario[userId],
+        telefone: '5541991017913', // Replace with dynamic phone if possible
+        //telefone: user.Telefone,
+        diaDaSemana: diaDaSemana,
+      });
+    }
+  } catch (error) {
+    console.error('Erro ao buscar reservas de hoje:', error);
+  }
+}
+
+
 
 
 
@@ -122,8 +160,18 @@ async function envioMensagensInstrucoesEntrada() {
 // envioCredenciaisHoje();
 // ------------------------------------Envio Progamado-----------------------------------------//
 
+// 09:50 - Envia credenciais
+cron.schedule('50 9 * * *', async () => {
+    await envioMensagemDiariaTercerizadas();
+});
+
+// 10:00 - Envia instruções de entrada
 cron.schedule('0 10 * * *', async () => {
-  await envioCredenciaisHoje();
+ await envioMensagensInstrucoesEntrada();
+});
+
+// 10:10 - Envia mensagem diária terceirizadas
+cron.schedule('10 10 * * *', async () => {
   await envioMensagensInstrucoesEntrada();
 });
 

@@ -1,7 +1,6 @@
 const checkinModel = require('../../models/Airbnb/checkinFormModel');
 const reservasModel = require('../../models/Airbnb/reservasAirbnbModel');
 const apartamentoModel = require('../../models/Airbnb/apartamentosAirbnbModel');
-
 const whatsControle   = require('../../WhatsApp/whats_Controle');
 
 

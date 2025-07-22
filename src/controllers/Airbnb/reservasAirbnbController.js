@@ -1,5 +1,7 @@
 const reservaModel = require('../../models/Airbnb/reservasAirbnbModel');
-
+const usersModel = require('../../models/Airbnb/usersAirbnbModel');
+const whatsControle   = require('../../WhatsApp/whats_Controle');
+const apartamentoModel = require('../../models/Airbnb/apartamentosAirbnbModel');
 const getAllReservas = async (request, response) => {
   try {
     const reservas = await reservaModel.getAllReservas();
@@ -51,9 +53,25 @@ const updateReserva = async (request, response) => {
   try {
     const { id } = request.params;
     const reserva = { ...request.body, id };
-
     const wasUpdated = await reservaModel.updateReserva(reserva);
-
+    if(reserva.faxina_userId !=null){
+    const user = await usersModel.getUser(reserva.faxina_userId);
+    let diaDaSemana = new Date(reserva.end_data).toLocaleDateString('pt-BR', { weekday: 'long' });
+    diaDaSemana = diaDaSemana.charAt(0).toUpperCase() + diaDaSemana.slice(1);
+    const hoje = new Date();
+    const today = hoje.toISOString().split('T')[0]; // Formato YYYY-MM-DD
+    let reservasHoje = await reservaModel.getReservasPorPeriodoByApartamentoID(reserva.apartamento_id, today, today);
+    let entramHoje = reservasHoje.length > 0 ? true : false;
+      whatsControle.criarMensagemSelecionadaComoTerceirizadaLimpeza({
+        apartamento_name: reserva.apartamento_nome,
+        checkin: reserva.end_data,
+        entramHoje:entramHoje,
+        senha_porta: reserva.apartamento_senha,
+        telefone:'5541991017913',
+        //telefone: user.Telefone,
+        diaDaSemana: diaDaSemana
+      });
+    }
     if (wasUpdated) {
       return response.status(200).json({ message: 'Reserva atualizada com sucesso' });
     } else {
