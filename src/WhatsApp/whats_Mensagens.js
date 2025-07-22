@@ -48,12 +48,8 @@ function criarMensagemInstrucoesSaida(obj) {
 
 function criarMensagemSelecionadaComoTerceirizadaLimpeza(obj) {
   const checkin = obj.checkin;
-  let entramHojeMsg = 'Não entram hoje';
 
-  if (obj.entramHoje) {
-    entramHojeMsg = 'Entram hoje';
-  }
-  return `Limpeza marcada para *${obj.diaDaSemana}* (*${checkin}*) no *${obj.apartamento_name}*. *${entramHojeMsg}*. Senha: *${obj.senha_porta}*.`;
+  return `Limpeza marcada para *${obj.diaDaSemana}* (*${checkin}*) no *${obj.apartamento_name}*. Senha: *${obj.senha_porta}*.`;
 
 }
 function criarMensagemDiariaTerceirizadaLimpeza(obj) {
