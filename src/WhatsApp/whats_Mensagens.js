@@ -69,8 +69,6 @@ function criarMensagemDiariaTerceirizadaLimpeza(obj) {
 }
 
 
-
-
 function criarMensagemPagamentoEarly({ nome, apartamento, cod_reserva, valor, linkPagamento }) {
   // garante que comece com https://
   const url = linkPagamento.startsWith('http')

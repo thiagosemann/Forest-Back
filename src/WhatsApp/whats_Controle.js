@@ -42,7 +42,7 @@ async function envioPortaria(obj) {
     }
   } catch (err) {
     console.error(err);
-    await sendWapiMessageAdmin('41991017913', 'envioPortaria', obj);
+    await sendWapiMessageAdmin('5541991017913', 'envioPortaria', obj);
   }
 }
 
@@ -59,17 +59,17 @@ async function envioForest(obj) {
     await sendWapiImage('5541999283936', obj.imagemBase64, text);
   } catch (err) {
     console.error(err);
-    await sendWapiMessageAdmin('41991017913', 'envioForest', obj);
+    await sendWapiMessageAdmin('5541991017913', 'envioForest', obj);
   }
 }
 
 async function envioCadastroConcluido(obj) {
   const text = mensagens.criarMensagemCadastroConcluido(obj);
   try {
-    await sendWapiMessage('41991017913', text);
+    await sendWapiMessage('5541991017913', text);
     await sendWapiMessage(obj.telefone_hospede, text);
   } catch (err) {
-    await sendWapiMessageAdmin('41991017913', 'envioCadastroConcluido', obj);
+    await sendWapiMessageAdmin('5541991017913', 'envioCadastroConcluido', obj);
   }
 }
 
@@ -83,10 +83,10 @@ async function envioInstrucoesEntrada(obj) {
   };
   const text = mensagens.criarMensagemInstrucoesEntrada({ ...base, qtdPortarias: obj.qtdPortarias });
   try {
-    await sendWapiMessage('41991017913', text);
-    await sendWapiMessage('41999283936', text);
+    await sendWapiMessage('5541991017913', text);
+    await sendWapiMessage('5541999283936', text);
   } catch (err) {
-    await sendWapiMessageAdmin('41991017913', 'envioInstrucoesEntrada', obj);
+    await sendWapiMessageAdmin('5541991017913', 'envioInstrucoesEntrada', obj);
   }
 }
 
@@ -94,10 +94,10 @@ async function envioMensagemBoasVindas(obj) {
   const base = { ...obj, checkin: formatarData(obj.dataEntrada) };
   const text = mensagens.criarMensagemBoasVindas(base);
   try {
-    await sendWapiMessage('41991017913', text);
-    await sendWapiMessage('41999283936', text);
+    await sendWapiMessage('5541991017913', text);
+    await sendWapiMessage('5541999283936', text);
   } catch (err) {
-    await sendWapiMessageAdmin('41991017913', 'envioMensagemBoasVindas', obj);
+    await sendWapiMessageAdmin('5541991017913', 'envioMensagemBoasVindas', obj);
   }
 }
 
@@ -106,7 +106,7 @@ async function envioMensagemLimpezaExtra(obj) {
   try {
     await sendWapiMessage(obj.telefone_hospede, text);
   } catch (err) {
-    await sendWapiMessageAdmin('41991017913', 'envioMensagemLimpezaExtra', obj);
+    await sendWapiMessageAdmin('5541991017913', 'envioMensagemLimpezaExtra', obj);
   }
 }
 
@@ -115,7 +115,7 @@ async function envioMensagemInstrucoesSaida(obj) {
   try {
     await sendWapiMessage(obj.telefone_hospede, text);
   } catch (err) {
-    await sendWapiMessageAdmin('41991017913', 'envioMensagemInstrucoesSaida', obj);
+    await sendWapiMessageAdmin('5541991017913', 'envioMensagemInstrucoesSaida', obj);
   }
 }
 
@@ -130,7 +130,7 @@ async function envioPagamentoEarly({ telefone_hospede, nome, apartamento, cod_re
   try {
     await axios.post(W_API_URL_TEXT, { phone: telefone_hospede, message: text }, { headers: HEADERS });
   } catch (err) {
-    console.error('[ERRO] envioPagamentoEarly:', '41991017913', err.response?.data || err.message);
+    console.error('[ERRO] envioPagamentoEarly:', '5541991017913', err.response?.data || err.message);
   }
 }
 

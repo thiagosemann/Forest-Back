@@ -142,8 +142,7 @@ async function envioMensagemDiariaTercerizadas() {
       console.log(`Enviando mensagem para o usuário ${user.first_name} (${user.Telefone})`);
       whatsControle.criarMensagemDiariaTerceirizadaLimpeza({
         reservas: limpezasPorUsuario[userId],
-        telefone: '5541991017913', // Replace with dynamic phone if possible
-        //telefone: user.Telefone,
+        telefone: user.Telefone,
         diaDaSemana: diaDaSemana,
       });
     }
@@ -161,7 +160,7 @@ async function envioMensagemDiariaTercerizadas() {
 // ------------------------------------Envio Progamado-----------------------------------------//
 
 // 09:50 - Envia credenciais
-cron.schedule('50 9 * * *', async () => {
+cron.schedule('55 9 * * *', async () => {
     await envioMensagemDiariaTercerizadas();
 });
 
