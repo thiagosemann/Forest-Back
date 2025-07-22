@@ -533,13 +533,23 @@ async function getReservasPorPeriodoCalendario(startDate, endDate) {
 
 
 const getFaxinasPorPeriodo = async (inicio_end_data, fim_end_date) => {
-
   const query = `
     SELECT 
-      r.*,
+      r.id,
+      r.apartamento_id,
+      r.end_data,
+      r.start_date,
+      r.description,
       a.nome AS apartamento_nome,
       a.senha_porta AS apartamento_senha,
       a.valor_limpeza,
+      EXISTS (
+        SELECT 1 FROM reservas r2
+        WHERE r2.apartamento_id = r.apartamento_id
+          AND r2.start_date >= DATE(r.end_data)
+          AND r2.start_date < DATE(r.end_data) + INTERVAL 1 DAY
+          AND r2.description = 'Reserved'
+      ) AS check_in_mesmo_dia,
       EXISTS (SELECT 1 FROM checkin c WHERE c.reserva_id = r.id) AS documentosEnviados
     FROM reservas r
     LEFT JOIN apartamentos a ON r.apartamento_id = a.id
@@ -548,8 +558,8 @@ const getFaxinasPorPeriodo = async (inicio_end_data, fim_end_date) => {
     ORDER BY r.end_data ASC
   `;
 
-  const [reservas] = await connection.execute(query, [inicio_end_data, fim_end_date]);
-  return reservas;
+  const [faxinas] = await connection.execute(query, [inicio_end_data, fim_end_date]);
+  return faxinas;
 };
 
 async function getReservasCanceladasHoje() {

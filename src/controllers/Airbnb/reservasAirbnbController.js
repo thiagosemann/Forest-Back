@@ -54,6 +54,7 @@ const updateReserva = async (request, response) => {
     const { id } = request.params;
     const reserva = { ...request.body, id };
     const wasUpdated = await reservaModel.updateReserva(reserva);
+    /*
     if(reserva.faxina_userId !=null){
     const user = await usersModel.getUser(reserva.faxina_userId);
     let diaDaSemana = new Date(reserva.end_data).toLocaleDateString('pt-BR', { weekday: 'long' });
@@ -72,6 +73,7 @@ const updateReserva = async (request, response) => {
         diaDaSemana: diaDaSemana
       });
     }
+    */
     if (wasUpdated) {
       return response.status(200).json({ message: 'Reserva atualizada com sucesso' });
     } else {
@@ -130,8 +132,19 @@ const getFaxinasPorPeriodo = async (request, response) => {
       });
     }
 
-    const reservas = await reservaModel.getFaxinasPorPeriodo(start, end);
-    return response.status(200).json(reservas);
+    const faxinas = await reservaModel.getFaxinasPorPeriodo(start, end);
+
+    // Para cada faxina, verifica se existe reserva (check-in) no mesmo apartamento e dia
+    for (const faxina of faxinas) {
+      const reservasMesmoDia = await reservaModel.getReservasPorPeriodoByApartamentoID(
+        faxina.apartamento_id,
+        faxina.end_data,
+        faxina.end_data
+      );
+      faxina.check_in_mesmo_dia = reservasMesmoDia.length > 0;
+    }
+
+    return response.status(200).json(faxinas);
     
   } catch (error) {
     console.error('Erro ao buscar reservas por período:', error);

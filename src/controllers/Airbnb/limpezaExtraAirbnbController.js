@@ -32,7 +32,7 @@ const getLimpezaExtraById = async (request, response) => {
 const createLimpezaExtra = async (request, response) => {
   try {
     const created = await limpezaExtraModel.createLimpezaExtra(request.body);
-
+    /*
     // Enviar mensagem se faxina_userId estiver presente
     if (request.body.faxina_userId != null) {
       const user = await usersModel.getUser(request.body.faxina_userId);
@@ -48,13 +48,14 @@ const createLimpezaExtra = async (request, response) => {
       whatsControle.criarMensagemSelecionadaComoTerceirizadaLimpeza({
         apartamento_name: apartamento_nome,
         checkin: request.body.end_data,
-        entramHoje: entraHoje,
+        entramHoje: entramHoje,
         senha_porta: apartamento_senha,
         //telefone: '5541991017913',
         telefone: user.Telefone,
         diaDaSemana: diaDaSemana
       });
     }
+    */
 
     return response.status(201).json(created);
   } catch (error) {
@@ -70,6 +71,7 @@ const updateLimpezaExtra = async (request, response) => {
 
     const wasUpdated = await limpezaExtraModel.updateLimpezaExtra(limpeza);
 
+    /*
     // Enviar mensagem se faxina_userId estiver presente
     if (request.body.faxina_userId != null) {
       const user = await usersModel.getUser(request.body.faxina_userId);
@@ -92,6 +94,7 @@ const updateLimpezaExtra = async (request, response) => {
         diaDaSemana: diaDaSemana
       });
     }
+      */
 
     if (wasUpdated) {
       return response.status(200).json({ message: 'Limpeza extra atualizada com sucesso' });
