@@ -535,11 +535,7 @@ async function getReservasPorPeriodoCalendario(startDate, endDate) {
 const getFaxinasPorPeriodo = async (inicio_end_data, fim_end_date) => {
   const query = `
     SELECT 
-      r.id,
-      r.apartamento_id,
-      r.end_data,
-      r.start_date,
-      r.description,
+      r.*, 
       a.nome AS apartamento_nome,
       a.senha_porta AS apartamento_senha,
       a.valor_limpeza,

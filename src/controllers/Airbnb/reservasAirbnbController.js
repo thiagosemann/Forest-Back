@@ -134,16 +134,6 @@ const getFaxinasPorPeriodo = async (request, response) => {
 
     const faxinas = await reservaModel.getFaxinasPorPeriodo(start, end);
 
-    // Para cada faxina, verifica se existe reserva (check-in) no mesmo apartamento e dia
-    for (const faxina of faxinas) {
-      const reservasMesmoDia = await reservaModel.getReservasPorPeriodoByApartamentoID(
-        faxina.apartamento_id,
-        faxina.end_data,
-        faxina.end_data
-      );
-      faxina.check_in_mesmo_dia = reservasMesmoDia.length > 0;
-    }
-
     return response.status(200).json(faxinas);
     
   } catch (error) {
