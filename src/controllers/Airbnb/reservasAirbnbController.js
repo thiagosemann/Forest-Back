@@ -72,8 +72,7 @@ const updateReserva = async (request, response) => {
           checkin: reserva.end_data,
           entramHoje: entramHoje,
           senha_porta: reserva.apartamento_senha,
-          telefone: '5541991017913',
-          //telefone: user.Telefone,
+          telefone: user.Telefone,
           diaDaSemana: diaDaSemana
         });
       }
