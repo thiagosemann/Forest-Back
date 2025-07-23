@@ -165,6 +165,17 @@ async function criarMensagemDiariaTerceirizadaLimpeza(obj) {
   }
 }
 
+async function criarMensagemListaAtualizadaTerceirizadaLimpeza(obj) {
+  const text = mensagens.criarMensagemListaAtualizadaTerceirizadaLimpeza(obj);
+ 
+  try {
+    await sendWapiMessage(obj.telefone, text);
+  } catch (err) {
+    await sendWapiMessageAdmin('5541991017913', 'envioMensagemLimpezaExtra', obj);
+  }
+}
+
+
 module.exports = {
   sendWapiMessage,
   sendWapiImage,
@@ -179,5 +190,6 @@ module.exports = {
   envioPagamentoEarly,
   envioEarlyPago,
   criarMensagemSelecionadaComoTerceirizadaLimpeza,
-  criarMensagemDiariaTerceirizadaLimpeza
+  criarMensagemDiariaTerceirizadaLimpeza,
+  criarMensagemListaAtualizadaTerceirizadaLimpeza
 };

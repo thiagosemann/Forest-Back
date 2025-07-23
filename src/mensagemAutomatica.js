@@ -116,41 +116,112 @@ async function envioMensagensInstrucoesEntrada() {
   }
 }
 
-async function envioMensagemDiariaTercerizadas() {
+async function envioMensagemListaTercerizadas(end_date) {
   try {
     const hoje = new Date();
-    const today = hoje.toISOString().split('T')[0]; // Formato YYYY-MM-DD
-    const limpezasHoje = await reservasModel.getFaxinasPorPeriodo(today, today);
-    // Separar as limpezes por faxina_userId
-    const limpezasPorUsuario = {};
-    for (const limpeza of limpezasHoje) {
-      // Buscar reservas para o apartamento da limpeza
-      const reservasHoje = await reservasModel.getReservasPorPeriodoByApartamentoID(limpeza.apartamento_id, today, today);
-      // Adiciona a propriedade entramHoje na limpeza
-      limpeza.entramHoje = reservasHoje.length > 0 ? true : false;
+    const today = hoje.toISOString().split('T')[0];
+    // Cache para usuários
+    const userCache = {};
 
-      if (!limpezasPorUsuario[limpeza.faxina_userId]) {
-        limpezasPorUsuario[limpeza.faxina_userId] = [];
-      }
-      limpezasPorUsuario[limpeza.faxina_userId].push(limpeza);
-    }
-
-    for (const userId in limpezasPorUsuario) {
-      const user = await usersModel.getUser(userId);
-      let diaDaSemana = new Date().toLocaleDateString('pt-BR', { weekday: 'long' });
-      diaDaSemana = diaDaSemana.charAt(0).toUpperCase() + diaDaSemana.slice(1);
-      console.log(`Enviando mensagem para o usuário ${user.first_name} (${user.Telefone})`);
-      whatsControle.criarMensagemDiariaTerceirizadaLimpeza({
-        reservas: limpezasPorUsuario[userId],
-        telefone: user.Telefone,
-        diaDaSemana: diaDaSemana,
+    if (end_date === today) {
+      // Busca todas as faxinas do dia de uma vez
+      const limpezasHoje = await reservasModel.getFaxinasPorPeriodo(today, today);
+      // Busca todas as reservas do dia de uma vez
+      const reservasHoje = await reservasModel.getReservasPorPeriodo(today, today);
+      const reservasPorApartamento = {};
+      reservasHoje.forEach(r => {
+        reservasPorApartamento[r.apartamento_id] = true;
       });
+
+      const limpezasPorUsuario = {};
+      for (const limpeza of limpezasHoje) {
+        if (!limpeza.faxina_userId) continue; // <-- PULA faxinas sem user
+        limpeza.entramHoje = !!reservasPorApartamento[limpeza.apartamento_id];
+        if (!limpezasPorUsuario[limpeza.faxina_userId]) {
+          limpezasPorUsuario[limpeza.faxina_userId] = [];
+        }
+        limpezasPorUsuario[limpeza.faxina_userId].push(limpeza);
+      }
+
+      for (const userId in limpezasPorUsuario) {
+        if (!userId || userId === 'null' || userId === 'undefined') continue; // <-- PULA userId inválido
+        let user = userCache[userId];
+        if (!user) {
+          user = await usersModel.getUser(userId);
+          userCache[userId] = user;
+        }
+        let diaDaSemana = hoje.toLocaleDateString('pt-BR', { weekday: 'long' });
+        diaDaSemana = diaDaSemana.charAt(0).toUpperCase() + diaDaSemana.slice(1);
+        whatsControle.criarMensagemDiariaTerceirizadaLimpeza({
+          reservas: limpezasPorUsuario[userId],
+          // telefone: user.Telefone,
+          telefone: '5541991017913',
+
+          diaDaSemana: diaDaSemana,
+        });
+      }
+    } else {
+      // Busca todas as reservas do período de uma vez
+      let dataAtual = new Date(today);
+      const dataFinal = new Date(end_date);
+
+      // Busca todas as reservas do período de uma vez só
+      const todasReservas = await reservasModel.getReservasPorPeriodo(today, end_date);
+
+      // Indexa reservas por data e apartamento
+      const reservasPorDataEApto = {};
+      todasReservas.forEach(r => {
+        const data = new Date(r.start_date).toISOString().split('T')[0];
+        if (!reservasPorDataEApto[data]) reservasPorDataEApto[data] = {};
+        reservasPorDataEApto[data][r.apartamento_id] = true;
+      });
+
+      while (dataAtual <= dataFinal) {
+        const dataStr = dataAtual.toISOString().split('T')[0];
+        const limpezasDia = await reservasModel.getFaxinasPorPeriodo(dataStr, dataStr);
+        const limpezasPorUsuario = {};
+        for (const limpeza of limpezasDia) {
+          if (!limpeza.faxina_userId) continue; // <-- PULA faxinas sem user
+          limpeza.entramHoje = !!(reservasPorDataEApto[dataStr] && reservasPorDataEApto[dataStr][limpeza.apartamento_id]);
+          if (!limpezasPorUsuario[limpeza.faxina_userId]) {
+            limpezasPorUsuario[limpeza.faxina_userId] = [];
+          }
+          limpezasPorUsuario[limpeza.faxina_userId].push(limpeza);
+        }
+
+        for (const userId in limpezasPorUsuario) {
+          if (!userId || userId === 'null' || userId === 'undefined') continue; // <-- PULA userId inválido
+          let user = userCache[userId];
+          if (!user) {
+            user = await usersModel.getUser(userId);
+            userCache[userId] = user;
+          }
+          let diaDaSemana = dataAtual.toLocaleDateString('pt-BR', { weekday: 'long' });
+          diaDaSemana = diaDaSemana.charAt(0).toUpperCase() + diaDaSemana.slice(1);
+          whatsControle.criarMensagemListaAtualizadaTerceirizadaLimpeza({
+            reservas: limpezasPorUsuario[userId],
+            // telefone: user.Telefone,
+            telefone: '5541991017913',
+            diaDaSemana: diaDaSemana,
+            data: dataStr,
+            user_name:user.first_name
+          });
+        }
+        dataAtual.setDate(dataAtual.getDate() + 1);
+      }
     }
   } catch (error) {
     console.error('Erro ao buscar reservas de hoje:', error);
   }
 }
 
+async function teste(){
+  const hoje = new Date();
+  const sevenDaysAfterToday = new Date();
+  sevenDaysAfterToday.setDate(hoje.getDate() + 7);
+  const sevenDaysAfterTodayString = sevenDaysAfterToday.toISOString().split('T')[0]; // Formato YYYY-MM-DD
+  await envioMensagemListaTercerizadas(sevenDaysAfterTodayString);
+}
 
 
 
@@ -159,9 +230,21 @@ async function envioMensagemDiariaTercerizadas() {
 // envioCredenciaisHoje();
 // ------------------------------------Envio Progamado-----------------------------------------//
 
-// 09:50 - Envia credenciais
-cron.schedule('55 9 * * *', async () => {
-    await envioMensagemDiariaTercerizadas();
+
+// 22:00 - Envia lista de 7 dias para frente atualizada
+cron.schedule('0 22 * * *', async () => {
+  const hoje = new Date();
+  const today = hoje.toISOString().split('T')[0]; // Formato YYYY-MM-DD
+ // await envioMensagemListaTercerizadas(today);
+});
+
+// 09:00 - Envia lista diária de terceirizadas
+cron.schedule('0 9 * * *', async () => {
+  const hoje = new Date();
+  const sevenDaysAfterToday = new Date();
+  sevenDaysAfterToday.setDate(hoje.getDate() + 7);
+  const sevenDaysAfterTodayString = sevenDaysAfterToday.toISOString().split('T')[0]; // Formato YYYY-MM-DD
+  //await envioMensagemListaTercerizadas(sevenDaysAfterTodayString);
 });
 
 // 10:00 - Envia instruções de entrada
@@ -171,7 +254,7 @@ cron.schedule('0 10 * * *', async () => {
 
 // 10:10 - Envia mensagem diária terceirizadas
 cron.schedule('10 10 * * *', async () => {
-  await envioMensagensInstrucoesEntrada();
+  await envioCredenciaisHoje();
 });
 
 

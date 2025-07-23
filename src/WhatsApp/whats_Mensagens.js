@@ -68,7 +68,25 @@ function criarMensagemDiariaTerceirizadaLimpeza(obj) {
   return text;
 }
 
+function criarMensagemListaAtualizadaTerceirizadaLimpeza(obj) {
+  if (!obj.reservas || obj.reservas.length === 0) {
+    return `Não há limpezas agendadas para o dia *${obj.diaDaSemana}* (${obj.data}).`;
+  }
 
+  let dataFormatada = obj.data;
+  // Se quiser formatar a data para dd/mm/yyyy:
+  if (obj.data && obj.data.includes('-')) {
+    const [ano, mes, dia] = obj.data.split('-');
+    dataFormatada = `${dia}/${mes}/${ano}`;
+  }
+
+  let text = `Limpezas para o dia *${obj.diaDaSemana}* (*${dataFormatada}*):\n`;
+  obj.reservas.forEach((reserva) => {
+    const entramHojeMsg = reserva.entramHoje ? 'Entram hoje' : 'Não entram hoje';
+    text += `*${reserva.apartamento_nome}*. *${entramHojeMsg}*. Senha: *${reserva.apartamento_senha}*\n`;
+  });
+  return text;
+}
 function criarMensagemPagamentoEarly({ nome, apartamento, cod_reserva, valor, linkPagamento }) {
   // garante que comece com https://
   const url = linkPagamento.startsWith('http')
@@ -106,5 +124,6 @@ module.exports = {
   criarMensagemPagamentoEarly,
   criarMensagemEarlyPago,
   criarMensagemSelecionadaComoTerceirizadaLimpeza,
-  criarMensagemDiariaTerceirizadaLimpeza
+  criarMensagemDiariaTerceirizadaLimpeza,
+  criarMensagemListaAtualizadaTerceirizadaLimpeza
 };
