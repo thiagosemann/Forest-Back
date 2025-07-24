@@ -229,6 +229,33 @@ async function envioMensagemListaTercerizadas() {
   }
 }
 
+async function criarMensagemTercerizadaLimpezaReservaAtribuidaNoDia(obj) {
+  try {
+    const limpezasHoje = await reservasModel.getFaxinasPorPeriodo(obj.start, obj.start);
+    if (limpezasHoje.length > 0) {
+      for(const limpeza in limpezasHoje) {
+        const limpezaObj = limpezasHoje[limpeza];
+        if(limpezaObj.apartamento_id === obj.apartamento_id) {
+          const apartamento = await apartamentoModel.getApartamentoById(obj.apartamento_id);
+          const user = await usersModel.getUser(limpezaObj.faxina_userId);
+          whatsControle.criarMensagemTercerizadaLimpezaReservaAtribuidaNoDia({
+            apartamento_name: apartamento.nome,
+            telefone: user.Telefone,
+          });
+        }
+      }
+
+    }
+
+
+  } catch (error) {
+    console.error('Erro ao buscar reservas de hoje:', error);
+  }
+}
+
+exports = {
+  criarMensagemTercerizadaLimpezaReservaAtribuidaNoDia
+}
 
 // envioMensagemListaTercerizadas();
 // envioMensagemTercerizadasHoje()

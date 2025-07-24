@@ -176,6 +176,15 @@ async function criarMensagemListaAtualizadaTerceirizadaLimpeza(obj) {
   }
 }
 
+async function criarMensagemTercerizadaLimpezaReservaAtribuidaNoDia(obj) {
+  try {
+    const text =`O apartamento ${obj.apartamento_name} foi reservado para hoje. Caso ainda não tenha sido limpo, por favor, verifique a necessidade de reorganizar as limpezas do dia.`
+     await sendWapiMessage(obj.telefone, obj.mensagensParaEnviar[userId].menssagem);
+
+  } catch (err) {
+    await sendWapiMessageAdmin('5541991017913', 'envioMensagemLimpezaExtra', obj);
+  }
+}
 
 module.exports = {
   sendWapiMessage,

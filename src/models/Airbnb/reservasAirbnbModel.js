@@ -3,7 +3,7 @@ const apartamentosModel = require('../Airbnb/apartamentosAirbnbModel');
 const axios = require('axios');
 const ical = require('ical.js');
 const moment = require('moment-timezone');
-
+const mensagemAutomatica = require('../../mensagemAutomatica');
 // Função para buscar todas as reservas com o nome do apartamento
 const getAllReservas = async () => {
   const query = `
@@ -157,6 +157,14 @@ const createReserva = async (reserva) => {
         );
         if (existing.length === 0) {
           await createReserva({ apartamento_id: apartamento.id, description: summary, start_date: start, end_data: end, Observacoes: '', cod_reserva, link_reserva, limpeza_realizada: false, credencial_made: false, informed: false, check_in: '15:00', check_out: '11:00', faxina_userId: null });
+          if(start=== hoje){
+            // Envia mensagem de reserva no dia da limpeza se for hoje      
+            mensagemAutomatica.criarMensagemTercerizadaLimpezaReservaAtribuidaNoDia({
+              apartamento_id: apartamento.id,
+              data: start
+            });
+          }
+  
         } else {
           const db = existing[0];
           if (db.start_date.getTime() !== start.getTime() || db.end_data.getTime() !== end.getTime() || db.description !== summary) {
