@@ -78,7 +78,6 @@ const updateLimpezaExtra = async (request, response) => {
       const hoje = new Date();
       const today = hoje.toISOString().split('T')[0];
       const endData = new Date(request.body.end_data).toISOString().split('T')[0];
-
       if (endData === today) {
         const user = await usersModel.getUser(request.body.faxina_userId);
         let diaDaSemana = new Date(request.body.end_data).toLocaleDateString('pt-BR', { weekday: 'long' });

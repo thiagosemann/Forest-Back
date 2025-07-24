@@ -69,24 +69,22 @@ function criarMensagemDiariaTerceirizadaLimpeza(obj) {
 }
 
 function criarMensagemListaAtualizadaTerceirizadaLimpeza(obj) {
-  if (!obj.reservas || obj.reservas.length === 0) {
-    return `Não há limpezas agendadas para o dia *${obj.diaDaSemana}* (${obj.data}).`;
+  let text =``;
+  for (const id in obj.reservas) {
+    let reservas = obj.reservas[id];
+    text+=`Limpezas para *${formatarData(reservas[0].end_data)}*:\n`;
+    for (const reservaId in reservas) {
+      const reserva = reservas[reservaId];
+      text+=`*${reserva.apartamento_nome}*. ${reserva.entramHoje ? 'Entrada no dia' : 'Sem entradas'}. Senha: ${reserva.apartamento_senha}\n`;
+      if(reservas.length-1 == reservaId  && obj.reservas.length-1 != id) {
+        text+=`\n\n`;
+      }
+    }
   }
-
-  let dataFormatada = obj.data;
-  // Se quiser formatar a data para dd/mm/yyyy:
-  if (obj.data && obj.data.includes('-')) {
-    const [ano, mes, dia] = obj.data.split('-');
-    dataFormatada = `${dia}/${mes}/${ano}`;
-  }
-
-  let text = `Limpezas para o dia *${obj.diaDaSemana}* (*${dataFormatada}*):\n`;
-  obj.reservas.forEach((reserva) => {
-    const entramHojeMsg = reserva.entramHoje ? 'Entram hoje' : 'Não entram hoje';
-    text += `*${reserva.apartamento_nome}*. *${entramHojeMsg}*. Senha: *${reserva.apartamento_senha}*\n`;
-  });
   return text;
 }
+
+
 function criarMensagemPagamentoEarly({ nome, apartamento, cod_reserva, valor, linkPagamento }) {
   // garante que comece com https://
   const url = linkPagamento.startsWith('http')

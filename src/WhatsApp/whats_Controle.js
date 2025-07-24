@@ -166,10 +166,11 @@ async function criarMensagemDiariaTerceirizadaLimpeza(obj) {
 }
 
 async function criarMensagemListaAtualizadaTerceirizadaLimpeza(obj) {
-  const text = mensagens.criarMensagemListaAtualizadaTerceirizadaLimpeza(obj);
- 
   try {
-    await sendWapiMessage(obj.telefone, text);
+    for (const userId in obj.mensagensParaEnviar) {
+      obj.mensagensParaEnviar[userId].menssagem = mensagens.criarMensagemListaAtualizadaTerceirizadaLimpeza(obj.mensagensParaEnviar[userId]);
+        await sendWapiMessage(obj.mensagensParaEnviar[userId].telefone, obj.mensagensParaEnviar[userId].menssagem);
+   }
   } catch (err) {
     await sendWapiMessageAdmin('5541991017913', 'envioMensagemLimpezaExtra', obj);
   }

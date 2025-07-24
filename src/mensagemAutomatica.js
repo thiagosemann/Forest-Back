@@ -116,14 +116,12 @@ async function envioMensagensInstrucoesEntrada() {
   }
 }
 
-async function envioMensagemListaTercerizadas(end_date) {
+async function envioMensagemTercerizadasHoje() {
   try {
     const hoje = new Date();
     const today = hoje.toISOString().split('T')[0];
     // Cache para usuários
     const userCache = {};
-
-    if (end_date === today) {
       // Busca todas as faxinas do dia de uma vez
       const limpezasHoje = await reservasModel.getFaxinasPorPeriodo(today, today);
       // Busca todas as reservas do dia de uma vez
@@ -132,7 +130,6 @@ async function envioMensagemListaTercerizadas(end_date) {
       reservasHoje.forEach(r => {
         reservasPorApartamento[r.apartamento_id] = true;
       });
-
       const limpezasPorUsuario = {};
       for (const limpeza of limpezasHoje) {
         if (!limpeza.faxina_userId) continue; // <-- PULA faxinas sem user
@@ -142,7 +139,6 @@ async function envioMensagemListaTercerizadas(end_date) {
         }
         limpezasPorUsuario[limpeza.faxina_userId].push(limpeza);
       }
-
       for (const userId in limpezasPorUsuario) {
         if (!userId || userId === 'null' || userId === 'undefined') continue; // <-- PULA userId inválido
         let user = userCache[userId];
@@ -154,19 +150,34 @@ async function envioMensagemListaTercerizadas(end_date) {
         diaDaSemana = diaDaSemana.charAt(0).toUpperCase() + diaDaSemana.slice(1);
         whatsControle.criarMensagemDiariaTerceirizadaLimpeza({
           reservas: limpezasPorUsuario[userId],
-          // telefone: user.Telefone,
-          telefone: '5541991017913',
-
+           telefone: user.Telefone,
+          //telefone: '5541991017913',
           diaDaSemana: diaDaSemana,
         });
       }
-    } else {
-      // Busca todas as reservas do período de uma vez
-      let dataAtual = new Date(today);
-      const dataFinal = new Date(end_date);
 
+  } catch (error) {
+    console.error('Erro ao buscar reservas de hoje:', error);
+  }
+}
+
+async function envioMensagemListaTercerizadas() {
+  try {
+      const hoje = new Date();
+      const oneDayAfterToday = new Date();
+      oneDayAfterToday.setDate(hoje.getDate() + 1);
+      const tomorrow = oneDayAfterToday.toISOString().split('T')[0]; // Formato YYYY-MM-DD
+
+
+      const sevenDaysAfterToday = new Date();
+      sevenDaysAfterToday.setDate(hoje.getDate() + 8);
+      const dataFinal = sevenDaysAfterToday.toISOString().split('T')[0]; // Formato YYYY-MM-DD
+      // Cache para usuários
+      const userCache = {};
+      // Busca todas as reservas do período de uma vez
+      let dataAtual = new Date(tomorrow);
       // Busca todas as reservas do período de uma vez só
-      const todasReservas = await reservasModel.getReservasPorPeriodo(today, end_date);
+      const todasReservas = await reservasModel.getReservasPorPeriodo(tomorrow, dataFinal);
 
       // Indexa reservas por data e apartamento
       const reservasPorDataEApto = {};
@@ -175,8 +186,8 @@ async function envioMensagemListaTercerizadas(end_date) {
         if (!reservasPorDataEApto[data]) reservasPorDataEApto[data] = {};
         reservasPorDataEApto[data][r.apartamento_id] = true;
       });
-
-      while (dataAtual <= dataFinal) {
+      let mensagensParaEnviar = {};
+      while (dataAtual <= sevenDaysAfterToday) {
         const dataStr = dataAtual.toISOString().split('T')[0];
         const limpezasDia = await reservasModel.getFaxinasPorPeriodo(dataStr, dataStr);
         const limpezasPorUsuario = {};
@@ -189,6 +200,7 @@ async function envioMensagemListaTercerizadas(end_date) {
           limpezasPorUsuario[limpeza.faxina_userId].push(limpeza);
         }
 
+
         for (const userId in limpezasPorUsuario) {
           if (!userId || userId === 'null' || userId === 'undefined') continue; // <-- PULA userId inválido
           let user = userCache[userId];
@@ -198,34 +210,28 @@ async function envioMensagemListaTercerizadas(end_date) {
           }
           let diaDaSemana = dataAtual.toLocaleDateString('pt-BR', { weekday: 'long' });
           diaDaSemana = diaDaSemana.charAt(0).toUpperCase() + diaDaSemana.slice(1);
-          whatsControle.criarMensagemListaAtualizadaTerceirizadaLimpeza({
-            reservas: limpezasPorUsuario[userId],
-            // telefone: user.Telefone,
-            telefone: '5541991017913',
-            diaDaSemana: diaDaSemana,
-            data: dataStr,
-            user_name:user.first_name
-          });
+          if(mensagensParaEnviar[userId] === undefined){
+            mensagensParaEnviar[userId] = {
+              user_name: user.first_name,
+              telefone: user.Telefone,              
+              reservas: []
+            };
+          }
+          mensagensParaEnviar[userId].reservas.push(limpezasPorUsuario[userId])
         }
         dataAtual.setDate(dataAtual.getDate() + 1);
       }
-    }
+      whatsControle.criarMensagemListaAtualizadaTerceirizadaLimpeza({
+        mensagensParaEnviar: mensagensParaEnviar,
+      });
   } catch (error) {
     console.error('Erro ao buscar reservas de hoje:', error);
   }
 }
 
-async function teste(){
-  const hoje = new Date();
-  const sevenDaysAfterToday = new Date();
-  sevenDaysAfterToday.setDate(hoje.getDate() + 7);
-  const sevenDaysAfterTodayString = sevenDaysAfterToday.toISOString().split('T')[0]; // Formato YYYY-MM-DD
-  await envioMensagemListaTercerizadas(sevenDaysAfterTodayString);
-}
 
-
-
-
+// envioMensagemListaTercerizadas();
+// envioMensagemTercerizadasHoje()
 // envioMensagensInstrucoesEntrada();
 // envioCredenciaisHoje();
 // ------------------------------------Envio Progamado-----------------------------------------//
@@ -233,18 +239,12 @@ async function teste(){
 
 // 22:00 - Envia lista de 7 dias para frente atualizada
 cron.schedule('0 22 * * *', async () => {
-  const hoje = new Date();
-  const today = hoje.toISOString().split('T')[0]; // Formato YYYY-MM-DD
- // await envioMensagemListaTercerizadas(today);
+  await envioMensagemListaTercerizadas();
 });
 
 // 09:00 - Envia lista diária de terceirizadas
 cron.schedule('0 9 * * *', async () => {
-  const hoje = new Date();
-  const sevenDaysAfterToday = new Date();
-  sevenDaysAfterToday.setDate(hoje.getDate() + 7);
-  const sevenDaysAfterTodayString = sevenDaysAfterToday.toISOString().split('T')[0]; // Formato YYYY-MM-DD
-  //await envioMensagemListaTercerizadas(sevenDaysAfterTodayString);
+  await envioMensagemTercerizadasHoje()
 });
 
 // 10:00 - Envia instruções de entrada
