@@ -3,7 +3,6 @@ const apartamentosModel = require('../Airbnb/apartamentosAirbnbModel');
 const axios = require('axios');
 const ical = require('ical.js');
 const moment = require('moment-timezone');
-const mensagemAutomatica = require('../../mensagemAutomatica');
 // Função para buscar todas as reservas com o nome do apartamento
 const getAllReservas = async () => {
   const query = `
@@ -158,11 +157,21 @@ const createReserva = async (reserva) => {
         if (existing.length === 0) {
           await createReserva({ apartamento_id: apartamento.id, description: summary, start_date: start, end_data: end, Observacoes: '', cod_reserva, link_reserva, limpeza_realizada: false, credencial_made: false, informed: false, check_in: '15:00', check_out: '11:00', faxina_userId: null });
           if(start=== hoje){
-            // Envia mensagem de reserva no dia da limpeza se for hoje      
-            mensagemAutomatica.criarMensagemTercerizadaLimpezaReservaAtribuidaNoDia({
-              apartamento_id: apartamento.id,
-              data: start
-            });
+            // Envia mensagem de reserva no dia da limpeza se for hoje    
+              const limpezasHoje = await reservasModel.getFaxinasPorPeriodo(obj.start, obj.start);
+              if (limpezasHoje.length > 0) {
+                for(const limpeza in limpezasHoje) {
+                  const limpezaObj = limpezasHoje[limpeza];
+                  if(limpezaObj.apartamento_id === obj.apartamento_id) {
+                    const apartamento = await apartamentoModel.getApartamentoById(obj.apartamento_id);
+                    const user = await usersModel.getUser(limpezaObj.faxina_userId);
+                    whatsControle.criarMensagemTercerizadaLimpezaReservaAtribuidaNoDia({
+                      apartamento_name: apartamento.nome,
+                      telefone: user.Telefone,
+                    });
+                  }
+                }
+              }  
           }
   
         } else {

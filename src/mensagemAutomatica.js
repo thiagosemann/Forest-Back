@@ -75,18 +75,11 @@ async function envioCredenciaisHoje() {
 
 
 async function envioMensagensInstrucoesEntrada() {
-
   try {
-    
     const hoje = new Date();
-    const ano = hoje.getFullYear();
-    const mes = String(hoje.getMonth() + 1).padStart(2, '0');
-    const dia = String(hoje.getDate()).padStart(2, '0');
-    const startDate = `${ano}-${mes}-${dia}`;
-    const endDate   = startDate;
-
+    const today = hoje.toISOString().split('T')[0];
     // Busca reservas no período de hoje
-    const reservasHoje = await reservasModel.getReservasPorPeriodo(startDate, endDate);
+    const reservasHoje = await reservasModel.getReservasPorPeriodo(today, today);
     for (const reserva of reservasHoje) {
         if(reserva.description == "CANCELADA"){
             return
@@ -106,7 +99,7 @@ async function envioMensagensInstrucoesEntrada() {
                             senha_porta:apartamento.senha_porta,
                             apartamento_wifi:apartamento.ssid_wifi,
                             apartamento_wifi_senha:apartamento.senha_wifi,
-                            qtdPortarias: 0
+                            qtdPortarias: portarias.length
                         }
                         whatsControle.envioInstrucoesEntrada(objeto)
           }
@@ -229,40 +222,13 @@ async function envioMensagemListaTercerizadas() {
   }
 }
 
-async function criarMensagemTercerizadaLimpezaReservaAtribuidaNoDia(obj) {
-  try {
-    const limpezasHoje = await reservasModel.getFaxinasPorPeriodo(obj.start, obj.start);
-    if (limpezasHoje.length > 0) {
-      for(const limpeza in limpezasHoje) {
-        const limpezaObj = limpezasHoje[limpeza];
-        if(limpezaObj.apartamento_id === obj.apartamento_id) {
-          const apartamento = await apartamentoModel.getApartamentoById(obj.apartamento_id);
-          const user = await usersModel.getUser(limpezaObj.faxina_userId);
-          whatsControle.criarMensagemTercerizadaLimpezaReservaAtribuidaNoDia({
-            apartamento_name: apartamento.nome,
-            telefone: user.Telefone,
-          });
-        }
-      }
-
-    }
-
-
-  } catch (error) {
-    console.error('Erro ao buscar reservas de hoje:', error);
-  }
-}
-
-exports = {
-  criarMensagemTercerizadaLimpezaReservaAtribuidaNoDia
-}
 
 // envioMensagemListaTercerizadas();
 // envioMensagemTercerizadasHoje()
-// envioMensagensInstrucoesEntrada();
-// envioCredenciaisHoje();
+// Esperar 5 segundos para executar a funcao
+ // envioMensagensInstrucoesEntrada();
+//envioCredenciaisHoje();
 // ------------------------------------Envio Progamado-----------------------------------------//
-
 
 // 22:00 - Envia lista de 7 dias para frente atualizada
 cron.schedule('0 22 * * *', async () => {
@@ -283,6 +249,5 @@ cron.schedule('0 10 * * *', async () => {
 cron.schedule('10 10 * * *', async () => {
   await envioCredenciaisHoje();
 });
-
 
 
