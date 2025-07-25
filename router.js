@@ -225,6 +225,7 @@ router.post('/checkins', checkinFormController.createCheckin); // Criar um novo 
 // MercadoPago routes
 router.post('/mercadoPago/processar-webhook', mercadoPagoApi.processarWebhookMercadoPago);
 router.post('/mercadopago/preference',  verifyToken, mercadoPagoApi.criarPreferencia);
+router.get('/reservas-airbnb/reservas/por-periodo-calendario/:apartamentoId', reservasAirbnbController.getReservasPorPeriodoCalendarioPorApartamento);
 
 
 // ReservasAirbnb routes
@@ -232,7 +233,6 @@ router.get('/reservas-airbnb',verifyToken, reservasAirbnbController.getAllReserv
 router.get('/reservas-airbnb/:id', verifyToken, reservasAirbnbController.getReservaById);
 router.post('/reservas-airbnb', verifyToken, reservasAirbnbController.createReserva);
 router.get('/reservas-airbnb/cancelados/hoje', verifyToken, reservasAirbnbController.getReservasCanceladasHoje);
-router.get('/reservas-airbnb/reservas/por-periodo-calendario/:apartamentoId', verifyToken, reservasAirbnbController.getReservasPorPeriodoCalendarioPorApartamento);
 router.get('/reservas-airbnb/apartamentos/:apartamentoId', verifyToken, reservasAirbnbController.getReservasByApartamentoId);
 router.put('/reservas-airbnb/:id', verifyToken, reservasAirbnbController.updateReserva);
 router.delete('/reservas-airbnb/:id', verifyToken, reservasAirbnbController.deleteReserva);
