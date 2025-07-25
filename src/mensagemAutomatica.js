@@ -1,4 +1,5 @@
 const reservasModel = require('./models/Airbnb/reservasAirbnbModel');
+const limpezasExtasModel = require('./models/Airbnb/limpezaExtraAirbnbModel');
 const apartamentoModel = require('./models/Airbnb/apartamentosAirbnbModel');
 const usersModel = require('./models/Airbnb/usersAirbnbModel');
 const predioPortariaModel = require('./models/Airbnb/prediosPortariasModel')
@@ -116,7 +117,9 @@ async function envioMensagemTercerizadasHoje() {
     // Cache para usuários
     const userCache = {};
       // Busca todas as faxinas do dia de uma vez
-      const limpezasHoje = await reservasModel.getFaxinasPorPeriodo(today, today);
+      const limpezasNormais = await reservasModel.getFaxinasPorPeriodo(today, today);
+      const limpezasExtas = await limpezasExtasModel.getLimpezasExtrasPorPeriodo(today, today); 
+      const limpezasHoje = [...limpezasNormais, ...limpezasExtas];
       // Busca todas as reservas do dia de uma vez
       const reservasHoje = await reservasModel.getReservasPorPeriodo(today, today);
       const reservasPorApartamento = {};
@@ -144,6 +147,7 @@ async function envioMensagemTercerizadasHoje() {
         whatsControle.criarMensagemDiariaTerceirizadaLimpeza({
           reservas: limpezasPorUsuario[userId],
            telefone: user.Telefone,
+           grupo_whats: user.grupo_whats,
           //telefone: '5541991017913',
           diaDaSemana: diaDaSemana,
         });
@@ -182,7 +186,10 @@ async function envioMensagemListaTercerizadas() {
       let mensagensParaEnviar = {};
       while (dataAtual <= sevenDaysAfterToday) {
         const dataStr = dataAtual.toISOString().split('T')[0];
-        const limpezasDia = await reservasModel.getFaxinasPorPeriodo(dataStr, dataStr);
+        const limpezasNormais = await reservasModel.getFaxinasPorPeriodo(dataStr, dataStr);
+        const limpezasExtas = await limpezasExtasModel.getLimpezasExtrasPorPeriodo(dataStr, dataStr); 
+        const limpezasDia = [...limpezasNormais, ...limpezasExtas];
+
         const limpezasPorUsuario = {};
         for (const limpeza of limpezasDia) {
           if (!limpeza.faxina_userId) continue; // <-- PULA faxinas sem user
@@ -206,7 +213,9 @@ async function envioMensagemListaTercerizadas() {
           if(mensagensParaEnviar[userId] === undefined){
             mensagensParaEnviar[userId] = {
               user_name: user.first_name,
-              telefone: user.Telefone,              
+              telefone: user.Telefone,     
+              grupo_whats: user.grupo_whats,
+         
               reservas: []
             };
           }
@@ -223,10 +232,9 @@ async function envioMensagemListaTercerizadas() {
 }
 
 
-// envioMensagemListaTercerizadas();
-// envioMensagemTercerizadasHoje()
-// Esperar 5 segundos para executar a funcao
- // envioMensagensInstrucoesEntrada();
+//envioMensagemListaTercerizadas();
+//envioMensagemTercerizadasHoje()
+// envioMensagensInstrucoesEntrada();
 //envioCredenciaisHoje();
 // ------------------------------------Envio Progamado-----------------------------------------//
 

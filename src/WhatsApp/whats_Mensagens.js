@@ -65,6 +65,7 @@ function criarMensagemDiariaTerceirizadaLimpeza(obj) {
     }
       text+=`*${reserva.apartamento_nome}*. *${entramHojeMsg}*. Senha: *${reserva.apartamento_senha}*\n`;
   })
+  text+=`\n Não esqueça de verificar as limpezas no sistema:\n https://www.apartamentosforest.com.br`;
   return text;
 }
 
@@ -81,6 +82,8 @@ function criarMensagemListaAtualizadaTerceirizadaLimpeza(obj) {
       }
     }
   }
+  text+=`\n Não esqueça de verificar as limpezas no sistema:\n https://www.apartamentosforest.com.br`;
+
   return text;
 }
 

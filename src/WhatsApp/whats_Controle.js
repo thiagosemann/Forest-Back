@@ -1,6 +1,25 @@
 const axios = require('axios');
 const { W_API_URL_TEXT, W_API_URL_MEDIA, HEADERS, formatarData, formatarCPF, formatarTelefone} = require('./whats_Utilidades');
 const mensagens = require('./whats_Mensagens');
+const e = require('express');
+
+
+const { W_API_INSTANCE_ID } = process.env;
+
+async function getAllGroups() {
+  try {
+    const response = await axios.get(`https://api.w-api.app/v1/group/get-all-groups?instanceId=${W_API_INSTANCE_ID}`, {
+      headers: HEADERS,
+    });
+    console.log('[INFO] Grupos obtidos com sucesso:', response.data);
+    
+    return grupos;
+  } catch (err) {
+    console.error('[ERRO] Falha ao buscar grupos:', err.response?.data || err.message);
+    return [];
+  }
+}
+//getAllGroups()
 
 async function sendWapiMessage(phone, message) {
   try {
@@ -157,9 +176,14 @@ async function criarMensagemSelecionadaComoTerceirizadaLimpeza(obj) {
 
 async function criarMensagemDiariaTerceirizadaLimpeza(obj) {
   const text = mensagens.criarMensagemDiariaTerceirizadaLimpeza(obj);
- 
+
   try {
-    await sendWapiMessage(obj.telefone, text);
+    if(obj.grupo_whats){
+       await sendWapiMessage(obj.grupo_whats, text);
+    }else{
+      await sendWapiMessage(obj.telefone, text);
+    }
+   
   } catch (err) {
     await sendWapiMessageAdmin('5541991017913', 'envioMensagemLimpezaExtra', obj);
   }
@@ -169,7 +193,11 @@ async function criarMensagemListaAtualizadaTerceirizadaLimpeza(obj) {
   try {
     for (const userId in obj.mensagensParaEnviar) {
       obj.mensagensParaEnviar[userId].menssagem = mensagens.criarMensagemListaAtualizadaTerceirizadaLimpeza(obj.mensagensParaEnviar[userId]);
-        await sendWapiMessage(obj.mensagensParaEnviar[userId].telefone, obj.mensagensParaEnviar[userId].menssagem);
+       if(obj.mensagensParaEnviar[userId].grupo_whats){
+                await sendWapiMessage(obj.mensagensParaEnviar[userId].grupo_whats, obj.mensagensParaEnviar[userId].menssagem);
+        }else{
+          await sendWapiMessage(obj.mensagensParaEnviar[userId].telefone, obj.mensagensParaEnviar[userId].menssagem);
+        }
    }
   } catch (err) {
     await sendWapiMessageAdmin('5541991017913', 'envioMensagemLimpezaExtra', obj);
@@ -186,6 +214,9 @@ async function criarMensagemTercerizadaLimpezaReservaAtribuidaNoDia(obj) {
   }
 }
 
+
+
+
 module.exports = {
   sendWapiMessage,
   sendWapiImage,
@@ -201,5 +232,6 @@ module.exports = {
   envioEarlyPago,
   criarMensagemSelecionadaComoTerceirizadaLimpeza,
   criarMensagemDiariaTerceirizadaLimpeza,
-  criarMensagemListaAtualizadaTerceirizadaLimpeza
+  criarMensagemListaAtualizadaTerceirizadaLimpeza,
+  criarMensagemTercerizadaLimpezaReservaAtribuidaNoDia
 };

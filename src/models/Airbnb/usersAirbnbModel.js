@@ -34,7 +34,8 @@ const createUser = async (user) => {
     role,
     imagemBase64,
     documentBase64,
-    Telefone
+    Telefone,
+    grupo_whats // <-- Adicionado aqui
   } = user;
 
   // Hash password if provided
@@ -51,11 +52,11 @@ const createUser = async (user) => {
     throw new Error(`Usuário com esse ${conflictField} já existe.`);
   }
 
-  // Insert into users table (no image/document cols)
+  // Insert into users table (agora inclui grupo_whats)
   const insertUserQuery = `
     INSERT INTO users
-      (first_name, last_name, cpf, email, password, role, Telefone)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
+      (first_name, last_name, cpf, email, password, role, Telefone, grupo_whats)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
   `;
   const values = [
     first_name,
@@ -64,7 +65,8 @@ const createUser = async (user) => {
     email || '',
     hashedPassword,
     roleValue,
-    Telefone || null
+    Telefone || null,
+    grupo_whats || null // <-- Adicionado aqui
   ];
 
   try {
@@ -126,6 +128,7 @@ const updateUser = async (id, userData) => {
     Telefone,
     imagemBase64,
     documentBase64,
+    grupo_whats // <-- Adicionado aqui
   } = merged;
 
   // Hash password if updated
@@ -134,7 +137,7 @@ const updateUser = async (id, userData) => {
     hashedPassword = await bcrypt.hash(password, saltRounds);
   }
 
-  // Update users table
+  // Update users table (agora inclui grupo_whats)
   const updateUserQuery = `
     UPDATE users SET
       first_name = ?,
@@ -142,7 +145,8 @@ const updateUser = async (id, userData) => {
       cpf = ?,
       email = ?,
       role = ?,
-      Telefone = ?
+      Telefone = ?,
+      grupo_whats = ?
       ${hashedPassword ? ', password = ?' : ''}
     WHERE id = ?
   `;
@@ -153,6 +157,7 @@ const updateUser = async (id, userData) => {
     email,
     role,
     Telefone,
+    grupo_whats || null, // <-- Adicionado aqui
     ...(hashedPassword ? [hashedPassword] : []),
     id
   ];
