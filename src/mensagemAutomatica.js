@@ -162,12 +162,12 @@ async function envioMensagemListaTercerizadas() {
   try {
       const hoje = new Date();
       const oneDayAfterToday = new Date();
-      oneDayAfterToday.setDate(hoje.getDate() + 1);
+      oneDayAfterToday.setDate(hoje.getDate());
       const tomorrow = oneDayAfterToday.toISOString().split('T')[0]; // Formato YYYY-MM-DD
 
 
       const sevenDaysAfterToday = new Date();
-      sevenDaysAfterToday.setDate(hoje.getDate() + 8);
+      sevenDaysAfterToday.setDate(hoje.getDate() + 9);
       const dataFinal = sevenDaysAfterToday.toISOString().split('T')[0]; // Formato YYYY-MM-DD
       // Cache para usuários
       const userCache = {};
@@ -233,13 +233,13 @@ async function envioMensagemListaTercerizadas() {
 
 
 //envioMensagemListaTercerizadas();
-//envioMensagemTercerizadasHoje()
+envioMensagemTercerizadasHoje()
 // envioMensagensInstrucoesEntrada();
 //envioCredenciaisHoje();
 // ------------------------------------Envio Progamado-----------------------------------------//
 
 // 22:00 - Envia lista de 7 dias para frente atualizada
-cron.schedule('0 22 * * *', async () => {
+cron.schedule('5 22 * * *', async () => {
   await envioMensagemListaTercerizadas();
 });
 
