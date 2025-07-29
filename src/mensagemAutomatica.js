@@ -233,7 +233,7 @@ async function envioMensagemListaTercerizadas() {
 
 
 //envioMensagemListaTercerizadas();
-envioMensagemTercerizadasHoje()
+//envioMensagemTercerizadasHoje()
 // envioMensagensInstrucoesEntrada();
 //envioCredenciaisHoje();
 // ------------------------------------Envio Progamado-----------------------------------------//

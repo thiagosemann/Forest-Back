@@ -17,6 +17,12 @@ function formatarData(data) {
   return `${dia}/${mes}/${ano}`;
 }
 
+function getDiaLimpeza(data) {
+  const dataObj = new Date(data);
+  const diasDaSemana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+  return diasDaSemana[dataObj.getDay()];
+}
+
 function formatarCPF(cpf) {
   if(!cpf){
     return ""
@@ -38,4 +44,5 @@ module.exports = {
   formatarData,
   formatarCPF,
   formatarTelefone,
+  getDiaLimpeza
 };

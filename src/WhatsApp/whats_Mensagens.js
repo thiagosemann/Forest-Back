@@ -73,7 +73,7 @@ function criarMensagemListaAtualizadaTerceirizadaLimpeza(obj) {
   let text =``;
   for (const id in obj.reservas) {
     let reservas = obj.reservas[id];
-    text+=`Limpezas para *${formatarData(reservas[0].end_data)}*:\n`;
+    text+=`Limpezas para *${getDiaLimpeza(reservas[0].end_data)} (${formatarData(reservas[0].end_data)})*:\n`;
     for (const reservaId in reservas) {
       const reserva = reservas[reservaId];
       text+=`*${reserva.apartamento_nome}*. ${reserva.entramHoje ? 'Entrada no dia' : 'Sem entradas'}. Senha: ${reserva.apartamento_senha}\n`;
