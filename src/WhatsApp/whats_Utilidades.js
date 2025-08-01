@@ -4,6 +4,7 @@ require('dotenv').config({ path: path.join(__dirname, '..', '..', '.env') });
 
 const W_API_INSTANCE_ID = process.env.W_API_INSTANCE_ID;
 const W_API_BASE_URL = process.env.W_API_BASE_URL;
+const W_API_TOKEN = process.env.W_API_TOKEN;
 
 const W_API_URL_TEXT = `${W_API_BASE_URL}/v1/message/send-text?instanceId=${W_API_INSTANCE_ID}`;
 const W_API_URL_MEDIA = `${W_API_BASE_URL}/v1/message/send-image?instanceId=${W_API_INSTANCE_ID}`;

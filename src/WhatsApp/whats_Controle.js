@@ -4,8 +4,6 @@ const mensagens = require('./whats_Mensagens');
 const e = require('express');
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '..', '..', '.env') });
-
-
 const W_API_INSTANCE_ID = process.env.W_API_INSTANCE_ID;
 
 async function getAllGroups() {
