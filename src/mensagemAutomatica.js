@@ -235,7 +235,7 @@ async function envioMensagemListaTercerizadas() {
 //envioMensagemListaTercerizadas();
 //envioMensagemTercerizadasHoje()
 //envioMensagensInstrucoesEntrada();
-envioCredenciaisHoje();
+//envioCredenciaisHoje();
 // ------------------------------------Envio Progamado-----------------------------------------//
 
 // 22:00 - Envia lista de 7 dias para frente atualizada
