@@ -10,11 +10,8 @@ const connection = mysql.createPool({
   user: process.env.MYSQL_USER2,
   password: process.env.MYSQL_PASSWORD2,
   database: process.env.MYSQL_DB2,
-  ssl: { rejectUnauthorized: true },
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
-  connectTimeout: 10000
+  ssl: { rejectUnauthorized: true }
+
 });
 
 module.exports = connection;
