@@ -1,4 +1,4 @@
-const {formatarData} = require('./whats_Utilidades');
+const {formatarData,getDiaLimpeza} = require('./whats_Utilidades');
 
 function criarMensagemPortaria(obj) {
   const nome = obj.name;

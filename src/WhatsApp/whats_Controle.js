@@ -2,9 +2,11 @@ const axios = require('axios');
 const { W_API_URL_TEXT, W_API_URL_MEDIA, HEADERS, formatarData, formatarCPF, formatarTelefone} = require('./whats_Utilidades');
 const mensagens = require('./whats_Mensagens');
 const e = require('express');
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '..', '..', '.env') });
 
 
-const { W_API_INSTANCE_ID } = process.env;
+const W_API_INSTANCE_ID = process.env.W_API_INSTANCE_ID;
 
 async function getAllGroups() {
   try {
@@ -200,6 +202,7 @@ async function criarMensagemListaAtualizadaTerceirizadaLimpeza(obj) {
         }
    }
   } catch (err) {
+    console.log(err);
     await sendWapiMessageAdmin('5541991017913', 'envioMensagemLimpezaExtra', obj);
   }
 }
