@@ -31,8 +31,14 @@ const getReembolsoById = async (req, res) => {
 const createReembolso = async (req, res) => {
   try {
     const { arquivos, ...dados } = req.body;
+
+
+    // Gerar código aleatório
+    const randomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+    dados.auth = `${randomCode}`;
+
     const result = await ticketModel.createReembolso(dados, arquivos);
-    return res.status(201).json({ message: 'Ticket criado com sucesso', insertId: result.insertId });
+    return res.status(201).json({ message: 'Ticket criado com sucesso', insertId: result.insertId, auth: dados.auth });
   } catch (error) {
     console.error('Erro ao criar ticket:', error);
     return res.status(500).json({ error: 'Erro ao criar ticket' });
@@ -66,11 +72,40 @@ const deleteReembolso = async (req, res) => {
     return res.status(500).json({ error: 'Erro ao deletar ticket' });
   }
 };
+const aceitarReembolsoProprietario = async (req, res) => {
+  try {
+    const { id } = req.params;
+    // Atualiza apenas o status para AUTORIZADO
+    const result = await ticketModel.updateReembolso(id, { status: 'AUTORIZADO' });
+    return res.status(200).json({ message: 'Ticket autorizado pelo proprietário', ...result });
+  } catch (error) {
+    console.error('Erro ao autorizar ticket:', error);
+    return res.status(500).json({ error: 'Erro ao autorizar ticket' });
+  }
+};
+
+// Buscar ticket por auth
+const getTicketByAuth = async (req, res) => {
+  try {
+    const { auth } = req.params;
+    const ticket = await ticketModel.getTicketByAuth(auth);
+    if (!ticket) {
+      return res.status(404).json({ message: 'Ticket não encontrado' });
+    }
+    // ticket.files já vem do model, mas garanta que está presente
+    return res.status(200).json(ticket);
+  } catch (error) {
+    console.error('Erro ao buscar ticket por auth:', error);
+    return res.status(500).json({ error: 'Erro ao buscar ticket por auth' });
+  }
+};
 
 module.exports = {
   getAllReembolsos,
   getReembolsoById,
   createReembolso,
   updateReembolso,
-  deleteReembolso
+  deleteReembolso,
+  aceitarReembolsoProprietario,
+  getTicketByAuth // exporta nova função
 };

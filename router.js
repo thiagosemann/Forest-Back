@@ -325,6 +325,8 @@ router.get('/ticket-reembolso/:id', verifyToken, ticketReembolsoController.getRe
 router.post('/ticket-reembolso', verifyToken, ticketReembolsoController.createReembolso);
 router.put('/ticket-reembolso/:id', verifyToken, ticketReembolsoController.updateReembolso);
 router.delete('/ticket-reembolso/:id', verifyToken, ticketReembolsoController.deleteReembolso);
+router.put('/ticket-reembolso/:id/aceite-proprietario', ticketReembolsoController.aceitarReembolsoProprietario);
+router.get('/ticket-reembolso/auth/:auth', ticketReembolsoController.getTicketByAuth);
 
 module.exports = router;
 

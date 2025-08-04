@@ -40,7 +40,6 @@ const createReembolso = async (data, arquivos = []) => {
     descricao_problema,
     solucao,
     status,
-    autorizado_proprietario,
     data_autorizacao,
     notificado_forest,
     data_notificacao,
@@ -49,7 +48,8 @@ const createReembolso = async (data, arquivos = []) => {
     data_conclusao,
     pagamento_confirmado,
     data_pagamento,
-    data_arquivamento
+    data_arquivamento,
+    auth // nova coluna
   } = data;
 
   const insertTicketQuery = `
@@ -59,7 +59,6 @@ const createReembolso = async (data, arquivos = []) => {
       descricao_problema,
       solucao,
       status,
-      autorizado_proprietario,
       data_autorizacao,
       notificado_forest,
       data_notificacao,
@@ -68,7 +67,8 @@ const createReembolso = async (data, arquivos = []) => {
       data_conclusao,
       pagamento_confirmado,
       data_pagamento,
-      data_arquivamento
+      data_arquivamento,
+      auth
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
@@ -77,8 +77,7 @@ const createReembolso = async (data, arquivos = []) => {
     item_problema,
     descricao_problema,
     solucao,
-    status || 'Aberto',
-    autorizado_proprietario || 0,
+    status || 'PENDENTE',
     data_autorizacao || null,
     notificado_forest || 0,
     data_notificacao || null,
@@ -87,7 +86,8 @@ const createReembolso = async (data, arquivos = []) => {
     data_conclusao || null,
     pagamento_confirmado || 0,
     data_pagamento || null,
-    data_arquivamento || null
+    data_arquivamento || null,
+    auth || null
   ];
 
   const [result] = await connection.execute(insertTicketQuery, ticketValues);
@@ -163,11 +163,24 @@ const deleteReembolso = async (id) => {
   return result.affectedRows > 0;
 };
 
+// Buscar ticket por auth
+const getTicketByAuth = async (auth) => {
+  const [tickets] = await connection.execute(
+    'SELECT * FROM ticket_reembolso WHERE auth = ?',
+    [auth]
+  );
+  if (!tickets.length) return null;
+  const ticket = tickets[0];
+  ticket.files = await getReembolsoFiles(ticket.id);
+  return ticket;
+};
+
 module.exports = {
   getReembolsoFiles,
   getAllReembolsos,
   getReembolsoById,
   createReembolso,
   updateReembolso,
-  deleteReembolso
+  deleteReembolso,
+  getTicketByAuth // exporta nova função
 };
