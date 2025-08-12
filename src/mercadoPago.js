@@ -1,5 +1,6 @@
 const { MercadoPagoConfig, Preference } = require('mercadopago');
 const pagamentoModel = require('./models/Airbnb/pagamento_por_reserva_extraModel');
+const ticketModel = require('./models/Airbnb/ticketReembolsoModel');
 const usersModel = require('./models/Airbnb/usersAirbnbModel');
 const apartamentosModel = require('./models/Airbnb/apartamentosAirbnbModel');
 const reservasModel = require('./models/Airbnb/reservasAirbnbModel');
@@ -92,38 +93,48 @@ async function processarWebhookMercadoPago(req, res) {
     if (status !== 200 || paymentInfo.status !== 'approved') {
       return res.status(400).send('Pagamento não aprovado ou erro MP');
     }
-    console.log(data)
+
     const md = paymentInfo.metadata || {};
     // Busca reserva usando código
-    const reserva = await reservasModel.getReservaByCod(md.cod_reserva);
+    if(md.tipo === 'early_checkin'){
+      const reserva = await reservasModel.getReservaByCod(md.cod_reserva);
 
-    const dateCriado = paymentInfo.date_created
-      ? paymentInfo.date_created.slice(0, 19).replace('T', ' ')
-      : new Date().toISOString().slice(0, 19).replace('T', ' ');
+        const dateCriado = paymentInfo.date_created
+          ? paymentInfo.date_created.slice(0, 19).replace('T', ' ')
+          : new Date().toISOString().slice(0, 19).replace('T', ' ');
 
-    const payment = {
-      user_id:        md.user_id,
-      email_comprador: md.email_comprador,
-      valor_total:    paymentInfo.transaction_amount,
-      tipo_pagamento: paymentInfo.payment_type_id,
-      date_criado:    dateCriado,
-      valor_real:     md.valor_real,
-      tipo:           md.tipo,
-      reserva_id:     reserva.id,
-      apartamento_id: md.apartamento_id,
-      cod_reserva:    md.cod_reserva
-    };
+        const payment = {
+          user_id:        md.user_id,
+          email_comprador: md.email_comprador,
+          valor_total:    paymentInfo.transaction_amount,
+          tipo_pagamento: paymentInfo.payment_type_id,
+          date_criado:    dateCriado,
+          valor_real:     md.valor_real,
+          tipo:           md.tipo,
+          reserva_id:     reserva.id,
+          apartamento_id: md.apartamento_id,
+          cod_reserva:    md.cod_reserva
+        };
 
-    await pagamentoModel.criarPagamentoPorReservaExtra(payment);
-    const apartamento = await apartamentosModel.getApartamentoById(md.apartamento_id);
-    const objeto={
-      
+        await pagamentoModel.criarPagamentoPorReservaExtra(payment);
+        const apartamento = await apartamentosModel.getApartamentoById(md.apartamento_id);
+        whatsControle.envioEarlyPago({
+          apartamento_name:apartamento.nome
+        }).catch(err => console.error('[ERRO] envioPagamentoEarly:', err));
+        
+        return res.status(200).send('Webhook MP processado com sucesso.');
+    }else if(md.tipo === 'reembolso'){
+      // Atualiza ticket de reembolso com link de pagamento
+      const ticket = await ticketModel.getTicketByAuth(md.auth);
+      if(ticket){
+        await ticketModel.updateReembolso(ticket.id, {
+          status: "PAGO",
+          data_pagamento: paymentInfo.date_approved ? paymentInfo.date_approved.slice(0, 19).replace('T', ' ') : new Date().toISOString().slice(0, 19).replace('T', ' ')
+        });
+      }
+      return res.status(200).send('Webhook MP processado com sucesso.');
     }
-    whatsControle.envioEarlyPago({
-      apartamento_name:apartamento.nome
-    }).catch(err => console.error('[ERRO] envioPagamentoEarly:', err));
     
-    return res.status(200).send('Webhook MP processado com sucesso.');
   }
   catch (err) {
     console.error('Erro no webhook MP:', err);
@@ -131,4 +142,48 @@ async function processarWebhookMercadoPago(req, res) {
   }
 }
 
-module.exports = { criarPreferencia, processarWebhookMercadoPago };
+/**
+ * Cria preferência de pagamento para reembolso
+ */
+async function criarPreferenciaReembolso({ user_id, apartamento_id, cod_reserva, valorReais, auth }) {
+  // Busca dados do usuário e do apartamento
+  const user = await usersModel.getUser(user_id);
+  const apartamento = await apartamentosModel.getApartamentoById(apartamento_id);
+  const message = `Reembolso - ${apartamento.nome} / Ticket: ${auth}`;
+
+  const body = {
+    additional_info: message,
+    auto_return: 'approved',
+    back_urls: {
+      failure: 'https://www.foreasy.com.br/content',
+      pending: 'https://www.foreasy.com.br/content',
+      success: 'https://www.foreasy.com.br/content'
+    },
+    items: [{
+      id: cod_reserva,
+      title: message,
+      category_id: 'others',
+      currency_id: 'BRL',
+      description: message,
+      quantity: 1,
+      unit_price: valorReais
+    }],
+    payment_methods: {
+      excluded_payment_methods: [],
+      excluded_payment_types: [
+        { id: 'prepaid_card' },
+        { id: 'ticket' },
+        { id: 'atm' }
+      ]
+    },
+    marketplace: 'NONE',
+    metadata: { user_id, apartamento_id, auth, tipo: 'reembolso' },
+    operation_type: 'regular_payment',
+    site_id: 'MLB'
+  };
+
+  const { init_point: redirectUrl } = await preference.create({ body });
+  return { redirectUrl };
+}
+
+module.exports = { criarPreferencia, processarWebhookMercadoPago, criarPreferenciaReembolso };

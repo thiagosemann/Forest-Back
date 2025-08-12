@@ -194,7 +194,7 @@ async function criarMensagemListaAtualizadaTerceirizadaLimpeza(obj) {
     for (const userId in obj.mensagensParaEnviar) {
       obj.mensagensParaEnviar[userId].menssagem = mensagens.criarMensagemListaAtualizadaTerceirizadaLimpeza(obj.mensagensParaEnviar[userId]);
        if(obj.mensagensParaEnviar[userId].grupo_whats){
-                await sendWapiMessage(obj.mensagensParaEnviar[userId].grupo_whats, obj.mensagensParaEnviar[userId].menssagem);
+          await sendWapiMessage(obj.mensagensParaEnviar[userId].grupo_whats, obj.mensagensParaEnviar[userId].menssagem);
         }else{
           await sendWapiMessage(obj.mensagensParaEnviar[userId].telefone, obj.mensagensParaEnviar[userId].menssagem);
         }

@@ -9,21 +9,25 @@ const getReembolsoFiles = async (reembolsoId) => {
   return rows;
 };
 
-// Fetch all reimbursement tickets with optional join of files count
+// Fetch all reimbursement tickets with optional join of files count and apartment name
 const getAllReembolsos = async () => {
   const [rows] = await connection.execute(
-    `SELECT tr.*, COUNT(f.id) AS file_count
+    `SELECT tr.*, COUNT(f.id) AS file_count, a.nome AS apartamento_nome
      FROM ticket_reembolso tr
      LEFT JOIN ticket_reembolso_arquivos f ON tr.id = f.reembolso_id
+     LEFT JOIN apartamentos a ON tr.apartamento_id = a.id
      GROUP BY tr.id`
   );
   return rows;
 };
 
-// Fetch a single reimbursement ticket by id, including files
+// Fetch a single reimbursement ticket by id, including files and apartment name
 const getReembolsoById = async (id) => {
   const [tickets] = await connection.execute(
-    'SELECT * FROM ticket_reembolso WHERE id = ?',
+    `SELECT tr.*, a.nome AS apartamento_nome
+     FROM ticket_reembolso tr
+     LEFT JOIN apartamentos a ON tr.apartamento_id = a.id
+     WHERE tr.id = ?`,
     [id]
   );
   if (!tickets.length) return null;
@@ -49,7 +53,8 @@ const createReembolso = async (data, arquivos = []) => {
     pagamento_confirmado,
     data_pagamento,
     data_arquivamento,
-    auth // nova coluna
+    auth, // nova coluna
+    link_pagamento // nova coluna
   } = data;
 
   const insertTicketQuery = `
@@ -68,8 +73,9 @@ const createReembolso = async (data, arquivos = []) => {
       pagamento_confirmado,
       data_pagamento,
       data_arquivamento,
-      auth
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      auth,
+      link_pagamento
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
   const ticketValues = [
@@ -87,7 +93,8 @@ const createReembolso = async (data, arquivos = []) => {
     pagamento_confirmado || 0,
     data_pagamento || null,
     data_arquivamento || null,
-    auth || null
+    auth || null,
+    link_pagamento || null
   ];
 
   const [result] = await connection.execute(insertTicketQuery, ticketValues);
@@ -163,10 +170,13 @@ const deleteReembolso = async (id) => {
   return result.affectedRows > 0;
 };
 
-// Buscar ticket por auth
+// Buscar ticket por auth, incluindo nome do apartamento
 const getTicketByAuth = async (auth) => {
   const [tickets] = await connection.execute(
-    'SELECT * FROM ticket_reembolso WHERE auth = ?',
+    `SELECT tr.*, a.nome AS apartamento_nome
+     FROM ticket_reembolso tr
+     LEFT JOIN apartamentos a ON tr.apartamento_id = a.id
+     WHERE tr.auth = ?`,
     [auth]
   );
   if (!tickets.length) return null;
@@ -175,6 +185,8 @@ const getTicketByAuth = async (auth) => {
   return ticket;
 };
 
+
+
 module.exports = {
   getReembolsoFiles,
   getAllReembolsos,
@@ -182,5 +194,5 @@ module.exports = {
   createReembolso,
   updateReembolso,
   deleteReembolso,
-  getTicketByAuth // exporta nova função
+  getTicketByAuth,
 };

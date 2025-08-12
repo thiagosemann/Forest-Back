@@ -1,5 +1,6 @@
 // controllers/ticketReembolsoController.js
 const ticketModel = require('../../models/Airbnb/ticketReembolsoModel');
+const mercadoPagoApi = require('../../mercadoPago');
 
 // Buscar todos os tickets
 const getAllReembolsos = async (_req, res) => {
@@ -32,13 +33,36 @@ const createReembolso = async (req, res) => {
   try {
     const { arquivos, ...dados } = req.body;
 
-
     // Gerar código aleatório
     const randomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
     dados.auth = `${randomCode}`;
 
+    // Calcula valor total para pagamento
+    const valorTotal = (Number(dados.valor_mao_obra) || 0) + (Number(dados.valor_material) || 0);
+    let linkPagamento = null;
+
+    // Cria preferência MercadoPago se houver valor
+    if (valorTotal > 0) {
+      try {
+        const mpRes = await mercadoPagoApi.criarPreferenciaReembolso({
+          user_id: dados.user_id || null,
+          apartamento_id: dados.apartamento_id,
+          valorReais: valorTotal,
+          auth: dados.auth
+        });
+        if (mpRes && mpRes.redirectUrl) {
+          linkPagamento = mpRes.redirectUrl;
+        }
+      } catch (err) {
+        console.error('Erro ao criar preferência MercadoPago:', err);
+      }
+    }
+
+    // Cria o ticket no banco já com o link_pagamento
+    dados.link_pagamento = linkPagamento;
     const result = await ticketModel.createReembolso(dados, arquivos);
-    return res.status(201).json({ message: 'Ticket criado com sucesso', insertId: result.insertId, auth: dados.auth });
+
+    return res.status(201).json({ message: 'Ticket criado com sucesso', insertId: result.insertId, auth: dados.auth, link_pagamento: linkPagamento });
   } catch (error) {
     console.error('Erro ao criar ticket:', error);
     return res.status(500).json({ error: 'Erro ao criar ticket' });
@@ -72,17 +96,6 @@ const deleteReembolso = async (req, res) => {
     return res.status(500).json({ error: 'Erro ao deletar ticket' });
   }
 };
-const aceitarReembolsoProprietario = async (req, res) => {
-  try {
-    const { id } = req.params;
-    // Atualiza apenas o status para AUTORIZADO
-    const result = await ticketModel.updateReembolso(id, { status: 'AUTORIZADO' });
-    return res.status(200).json({ message: 'Ticket autorizado pelo proprietário', ...result });
-  } catch (error) {
-    console.error('Erro ao autorizar ticket:', error);
-    return res.status(500).json({ error: 'Erro ao autorizar ticket' });
-  }
-};
 
 // Buscar ticket por auth
 const getTicketByAuth = async (req, res) => {
@@ -106,6 +119,5 @@ module.exports = {
   createReembolso,
   updateReembolso,
   deleteReembolso,
-  aceitarReembolsoProprietario,
   getTicketByAuth // exporta nova função
 };

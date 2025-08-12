@@ -101,7 +101,7 @@ function criarMensagemPagamentoEarly({ nome, apartamento, cod_reserva, valor, li
     ``,
     `Olá ${nome}`,
     `Este apartamento já está limpo e pronto para recebe-los.`,
-    `Se deseja antecipar sua entrada no apartamento *${apartamento}* (reserva: *${cod_reserva}*),`,
+    `Se desejar antecipar sua entrada no apartamento *${apartamento}* (reserva: *${cod_reserva}*),`,
     `basta clicar no link abaixo e efetuar o pagamento de *R$ ${valor.toFixed(2)}*:`,
     ``,
     ``,
