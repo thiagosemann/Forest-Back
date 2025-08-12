@@ -39,6 +39,7 @@ const limpezaExtraController = require('./src/controllers/Airbnb/limpezaExtraAir
 const pagamentosController = require('./src/controllers/Airbnb/pagamento_por_reservaController');
 const mercadoPagoApi = require('./src/mercadoPago');
 const ticketReembolsoController = require('./src/controllers/Airbnb/ticketReembolsoController');
+const apartamentosProprietarioController = require('./src/controllers/Airbnb/apartamentosProprietarioController');
 
 
 // User routes
@@ -326,6 +327,16 @@ router.post('/ticket-reembolso', verifyToken, ticketReembolsoController.createRe
 router.put('/ticket-reembolso/:id', verifyToken, ticketReembolsoController.updateReembolso);
 router.delete('/ticket-reembolso/:id', verifyToken, ticketReembolsoController.deleteReembolso);
 router.get('/ticket-reembolso/auth/:auth', ticketReembolsoController.getTicketByAuth);
+
+
+// Rotas para vínculo proprietário-apartamento (Airbnb)
+router.post('/apartamentos-proprietario', verifyToken, apartamentosProprietarioController.addProprietarioToApartamento); // Adiciona vínculo
+router.delete('/apartamentos-proprietario', verifyToken, apartamentosProprietarioController.removeProprietarioFromApartamento); // Remove vínculo
+router.get('/apartamentos-proprietario/proprietarios/:apartamento_id', verifyToken, apartamentosProprietarioController.getProprietariosByApartamento); // Lista proprietários de um apartamento
+router.get('/apartamentos-proprietario/apartamentos/:user_id', verifyToken, apartamentosProprietarioController.getApartamentosByProprietario); // Lista apartamentos de um proprietário
+router.delete('/apartamentos-proprietario/apartamento', verifyToken, apartamentosProprietarioController.removeAllProprietariosFromApartamento); // Remove todos os vínculos de um apartamento
+router.delete('/apartamentos-proprietario/proprietario', verifyToken, apartamentosProprietarioController.removeAllApartamentosFromProprietario); // Remove todos os vínculos de um proprietário
+
 
 module.exports = router;
 
