@@ -32,9 +32,9 @@ async function criarPreferencia(req, res) {
       additional_info: message,
       auto_return: 'approved',
       back_urls: {
-        failure: 'https://www.foreasy.com.br/content',
-        pending: 'https://www.foreasy.com.br/content',
-        success: 'https://www.foreasy.com.br/content'
+        failure: 'https://www.apartamentosforest.com.br/',
+        pending: 'https://www.apartamentosforest.com.br/',
+        success: 'https://www.apartamentosforest.com.br/'
       },
       items: [{
         id: cod_reserva,
