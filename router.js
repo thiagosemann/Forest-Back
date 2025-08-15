@@ -328,6 +328,10 @@ router.put('/ticket-reembolso/:id', verifyToken, ticketReembolsoController.updat
 router.delete('/ticket-reembolso/:id', verifyToken, ticketReembolsoController.deleteReembolso);
 router.get('/ticket-reembolso/auth/:auth', ticketReembolsoController.getTicketByAuth);
 
+// Rotas para arquivos de ticket de reembolso
+router.post('/ticket-reembolso/arquivo', verifyToken, ticketReembolsoController.createArquivoReembolso);
+router.put('/ticket-reembolso/arquivo/:id', verifyToken, ticketReembolsoController.updateArquivoReembolso);
+router.delete('/ticket-reembolso/arquivo/:id', verifyToken, ticketReembolsoController.deleteArquivoReembolso);
 
 // Rotas para vínculo proprietário-apartamento (Airbnb)
 router.post('/apartamentos-proprietario', verifyToken, apartamentosProprietarioController.addProprietarioToApartamento); // Adiciona vínculo

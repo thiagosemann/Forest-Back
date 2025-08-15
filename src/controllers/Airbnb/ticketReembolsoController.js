@@ -74,6 +74,25 @@ const updateReembolso = async (req, res) => {
   try {
     const { id } = req.params;
     const { arquivos, ...dados } = req.body;
+    const valorTotal = (Number(dados.valor_mao_obra) || 0) + (Number(dados.valor_material) || 0);
+
+    // Se valorTotal > 0, cria/atualiza preferência MercadoPago e link_pagamento
+    if (valorTotal > 0) {
+      try {
+        const mpRes = await mercadoPagoApi.criarPreferenciaReembolso({
+          user_id: dados.user_id || null,
+          apartamento_id: dados.apartamento_id,
+          valorReais: valorTotal,
+          auth: dados.auth
+        });
+        if (mpRes && mpRes.redirectUrl) {
+          dados.link_pagamento = mpRes.redirectUrl;
+        }
+      } catch (err) {
+        console.error('Erro ao criar preferência MercadoPago:', err);
+      }
+    }
+
     const result = await ticketModel.updateReembolso(id, dados, arquivos);
     return res.status(200).json(result);
   } catch (error) {
@@ -113,11 +132,54 @@ const getTicketByAuth = async (req, res) => {
   }
 };
 
+// Criar arquivo para ticket de reembolso
+const createArquivoReembolso = async (req, res) => {
+  try {
+    const { reembolso_id, imagemBase64, type, file_name } = req.body;
+    const result = await ticketModel.createArquivoReembolso(reembolso_id, imagemBase64, type, file_name);
+    return res.status(201).json({ message: 'Arquivo criado com sucesso', insertId: result.insertId });
+  } catch (error) {
+    console.error('Erro ao criar arquivo:', error);
+    return res.status(500).json({ error: 'Erro ao criar arquivo' });
+  }
+};
+
+// Atualizar arquivo de ticket de reembolso
+const updateArquivoReembolso = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const fields = req.body;
+    const result = await ticketModel.updateArquivoReembolso(id, fields);
+    return res.status(200).json(result);
+  } catch (error) {
+    console.error('Erro ao atualizar arquivo:', error);
+    return res.status(500).json({ error: 'Erro ao atualizar arquivo' });
+  }
+};
+
+// Deletar arquivo de ticket de reembolso
+const deleteArquivoReembolso = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deleted = await ticketModel.deleteArquivoReembolso(id);
+    if (!deleted) {
+      return res.status(404).json({ message: 'Arquivo não encontrado' });
+    }
+    return res.status(200).json({ message: 'Arquivo deletado com sucesso' });
+  } catch (error) {
+    console.error('Erro ao deletar arquivo:', error);
+    return res.status(500).json({ error: 'Erro ao deletar arquivo' });
+  }
+};
+
 module.exports = {
   getAllReembolsos,
   getReembolsoById,
   createReembolso,
   updateReembolso,
   deleteReembolso,
-  getTicketByAuth // exporta nova função
+  getTicketByAuth, // exporta nova função
+  createArquivoReembolso,
+  updateArquivoReembolso,
+  deleteArquivoReembolso,
 };
