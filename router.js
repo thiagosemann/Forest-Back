@@ -40,7 +40,10 @@ const pagamentosController = require('./src/controllers/Airbnb/pagamento_por_res
 const mercadoPagoApi = require('./src/mercadoPago');
 const ticketReembolsoController = require('./src/controllers/Airbnb/ticketReembolsoController');
 const apartamentosProprietarioController = require('./src/controllers/Airbnb/apartamentosProprietarioController');
+const nodemcuPrediosController = require('./src/controllers/Airbnb/nodemcuPrediosController');
 
+// Funções WebSocket
+const { ligarNodeMcu } = require('./src/WebSocket/webSocketFunctions');
 
 // User routes
 router.get('/users', verifyToken, usersController.getAllUsers); // Listar todos os usuários
@@ -341,6 +344,16 @@ router.get('/apartamentos-proprietario/apartamentos/:user_id', verifyToken, apar
 router.delete('/apartamentos-proprietario/apartamento', verifyToken, apartamentosProprietarioController.removeAllProprietariosFromApartamento); // Remove todos os vínculos de um apartamento
 router.delete('/apartamentos-proprietario/proprietario', verifyToken, apartamentosProprietarioController.removeAllApartamentosFromProprietario); // Remove todos os vínculos de um proprietário
 
+// Rotas para NodeMCU-Prédio
+router.get('/nodemcu-predios', verifyToken, nodemcuPrediosController.getAllNodemcuPredios);
+router.get('/nodemcu-predios/:id', verifyToken, nodemcuPrediosController.getNodemcuPredioById);
+router.get('/nodemcu-predios/nodemcu/:idNodemcu', verifyToken, nodemcuPrediosController.getNodemcuPredioByNodemcu);
+router.post('/nodemcu-predios', verifyToken, nodemcuPrediosController.createNodemcuPredio);
+router.put('/nodemcu-predios/:id', verifyToken, nodemcuPrediosController.updateNodemcuPredio);
+router.delete('/nodemcu-predios/:id', verifyToken, nodemcuPrediosController.deleteNodemcuPredio);
+
+// Rota para acionar NodeMCU via WebSocket (POST, recebe nodeId e cod_reserva no body)
+router.post('/nodemcu-predios/ligar', require('./src/WebSocket/webSocketFunctions').ligarNodeMcu);
 
 module.exports = router;
 
