@@ -27,34 +27,32 @@ const getAberturaById = async (id) => {
 
 // Buscar aberturas por idNodemcu (com filtro de data)
 const getAberturasByNodemcu = async (idNodemcu, startDate, endDate) => {
-  let query = 'SELECT * FROM nodemcu_aberturas WHERE idNodemcu = ?';
+  let query = 'SELECT a.*, n.name as nodemcu_name FROM nodemcu_aberturas a LEFT JOIN nodemcu_predio n ON a.idNodemcu = n.idNodemcu WHERE a.idNodemcu = ?';
   const params = [idNodemcu];
   if (startDate && endDate) {
-    // Corrige para pegar o dia inteiro de endDate (adiciona 1 dia e usa < endDate+1)
-    query += ' AND created_at >= ? AND created_at < ?';
+    query += ' AND a.created_at >= ? AND a.created_at < ?';
     const endDateObj = new Date(endDate);
     endDateObj.setDate(endDateObj.getDate() + 1);
     const endDatePlusOne = endDateObj.toISOString().slice(0, 10);
     params.push(startDate, endDatePlusOne);
   }
-  query += ' ORDER BY created_at DESC';
+  query += ' ORDER BY a.created_at DESC';
   const [rows] = await connection.execute(query, params);
   return rows;
 };
 
 // Buscar aberturas por reserva_id (com filtro de data)
 const getAberturasByReservaId = async (reserva_id, startDate, endDate) => {
-  let query = 'SELECT * FROM nodemcu_aberturas WHERE reserva_id = ?';
+  let query = 'SELECT a.*, n.name as nodemcu_name FROM nodemcu_aberturas a LEFT JOIN nodemcu_predio n ON a.idNodemcu = n.idNodemcu WHERE a.reserva_id = ?';
   const params = [reserva_id];
   if (startDate && endDate) {
-    // Corrige para pegar o dia inteiro de endDate (adiciona 1 dia e usa < endDate+1)
-    query += ' AND created_at >= ? AND created_at < ?';
+    query += ' AND a.created_at >= ? AND a.created_at < ?';
     const endDateObj = new Date(endDate);
     endDateObj.setDate(endDateObj.getDate() + 1);
     const endDatePlusOne = endDateObj.toISOString().slice(0, 10);
     params.push(startDate, endDatePlusOne);
   }
-  query += ' ORDER BY created_at DESC';
+  query += ' ORDER BY a.created_at DESC';
   const [rows] = await connection.execute(query, params);
   return rows;
 };
@@ -63,16 +61,15 @@ const getAberturasByReservaId = async (reserva_id, startDate, endDate) => {
 const getAberturasByPredioId = async (predio_id, startDate, endDate) => {
   // Busca todos os idNodemcu vinculados ao predio_id
   const [nodemcus] = await connection.execute(
-    'SELECT idNodemcu FROM nodemcu_predio WHERE predio_id = ?', [predio_id]
+    'SELECT idNodemcu, name FROM nodemcu_predio WHERE predio_id = ?', [predio_id]
   );
   if (!nodemcus.length) return [];
   const ids = nodemcus.map(n => n.idNodemcu);
-  // Busca todas as aberturas desses NodeMCUs
+  const namesMap = Object.fromEntries(nodemcus.map(n => [n.idNodemcu, n.name]));
   const placeholders = ids.map(() => '?').join(',');
   let query = `SELECT * FROM nodemcu_aberturas WHERE idNodemcu IN (${placeholders})`;
   const params = [...ids];
   if (startDate && endDate) {
-    // Corrige para pegar o dia inteiro de endDate (adiciona 1 dia e usa < endDate+1)
     query += ' AND created_at >= ? AND created_at < ?';
     const endDateObj = new Date(endDate);
     endDateObj.setDate(endDateObj.getDate() + 1);
@@ -81,7 +78,8 @@ const getAberturasByPredioId = async (predio_id, startDate, endDate) => {
   }
   query += ' ORDER BY created_at DESC';
   const [rows] = await connection.execute(query, params);
-  return rows;
+  // Adiciona o nome do NodeMCU em cada resultado
+  return rows.map(row => ({ ...row, nodemcu_name: namesMap[row.idNodemcu] || null }));
 };
 
 // Criar novo registro de abertura

@@ -35,13 +35,13 @@ const getNodesByPredioID = async (predio_id) => {
 };
 
 // Criar novo vínculo NodeMCU-Prédio
-const createNodemcuPredio = async ({ predio_id, idNodemcu }) => {
+const createNodemcuPredio = async ({ predio_id, idNodemcu, name }) => {
   const insertQuery = `
-    INSERT INTO nodemcu_predio (predio_id, idNodemcu)
-    VALUES (?, ?)
+    INSERT INTO nodemcu_predio (predio_id, idNodemcu, name)
+    VALUES (?, ?, ?)
   `;
   try {
-    const [result] = await connection.execute(insertQuery, [predio_id, idNodemcu]);
+    const [result] = await connection.execute(insertQuery, [predio_id, idNodemcu, name]);
     return { insertId: result.insertId };
   } catch (error) {
     console.error('Erro ao inserir vínculo NodeMCU-Prédio:', error);
@@ -50,15 +50,16 @@ const createNodemcuPredio = async ({ predio_id, idNodemcu }) => {
 };
 
 // Atualizar vínculo NodeMCU-Prédio
-const updateNodemcuPredio = async ({ id, predio_id, idNodemcu }) => {
+const updateNodemcuPredio = async ({ id, predio_id, idNodemcu, name }) => {
   const updateQuery = `
     UPDATE nodemcu_predio SET
       predio_id = ?,
-      idNodemcu = ?
+      idNodemcu = ?,
+      name = ?
     WHERE id = ?
   `;
   try {
-    const [result] = await connection.execute(updateQuery, [predio_id, idNodemcu, id]);
+    const [result] = await connection.execute(updateQuery, [predio_id, idNodemcu, name, id]);
     return result.affectedRows > 0;
   } catch (error) {
     console.error('Erro ao atualizar vínculo NodeMCU-Prédio:', error);
