@@ -349,6 +349,7 @@ router.delete('/apartamentos-proprietario/proprietario', verifyToken, apartament
 router.get('/nodemcu-predios', verifyToken, nodemcuPrediosController.getAllNodemcuPredios);
 router.get('/nodemcu-predios/:id', verifyToken, nodemcuPrediosController.getNodemcuPredioById);
 router.get('/nodemcu-predios/nodemcu/:idNodemcu', verifyToken, nodemcuPrediosController.getNodemcuPredioByNodemcu);
+router.get('/nodemcu-predios/predio/:predio_id', verifyToken, nodemcuPrediosController.getNodesByPredioID);
 router.post('/nodemcu-predios', verifyToken, nodemcuPrediosController.createNodemcuPredio);
 router.put('/nodemcu-predios/:id', verifyToken, nodemcuPrediosController.updateNodemcuPredio);
 router.delete('/nodemcu-predios/:id', verifyToken, nodemcuPrediosController.deleteNodemcuPredio);

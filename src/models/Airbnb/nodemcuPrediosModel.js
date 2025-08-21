@@ -26,6 +26,14 @@ const getNodemcuPredioByNodemcu = async (idNodemcu) => {
   return rows.length > 0 ? rows[0] : null;
 };
 
+// Buscar todos os NodeMCUs vinculados a um prédio
+const getNodesByPredioID = async (predio_id) => {
+  const [rows] = await connection.execute(
+    'SELECT * FROM nodemcu_predio WHERE predio_id = ?', [predio_id]
+  );
+  return rows;
+};
+
 // Criar novo vínculo NodeMCU-Prédio
 const createNodemcuPredio = async ({ predio_id, idNodemcu }) => {
   const insertQuery = `
@@ -75,6 +83,7 @@ module.exports = {
   getAllNodemcuPredios,
   getNodemcuPredioById,
   getNodemcuPredioByNodemcu,
+  getNodesByPredioID,
   createNodemcuPredio,
   updateNodemcuPredio,
   deleteNodemcuPredio,

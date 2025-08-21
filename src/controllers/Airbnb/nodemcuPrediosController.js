@@ -44,6 +44,22 @@ exports.getNodemcuPredioByNodemcu = async (req, res) => {
   }
 };
 
+// Buscar todos os NodeMCUs vinculados a um prédio
+exports.getNodesByPredioID = async (req, res) => {
+  try {
+    const { predio_id } = req.params;
+    const result = await nodemcuPrediosModel.getNodesByPredioID(predio_id);
+    // Adiciona isConnected para cada NodeMCU
+    const withStatus = result.map(item => {
+      const conn = websocket.connections.find(c => c.nodeId === item.idNodemcu);
+      return { ...item, isConnected: !!(conn && conn.connected) };
+    });
+    res.json(withStatus);
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao buscar NodeMCUs por predio_id' });
+  }
+};
+
 // Criar novo vínculo NodeMCU-Prédio
 exports.createNodemcuPredio = async (req, res) => {
   try {
