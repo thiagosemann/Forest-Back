@@ -1,10 +1,16 @@
 const nodemcuPrediosModel = require('../../models/Airbnb/nodemcuPrediosModel');
+const websocket = require('../../WebSocket/websocket');
 
 // Buscar todos os vínculos NodeMCU-Prédio
 exports.getAllNodemcuPredios = async (req, res) => {
   try {
     const result = await nodemcuPrediosModel.getAllNodemcuPredios();
-    res.json(result);
+    // Adiciona isConnected para cada NodeMCU
+    const withStatus = result.map(item => {
+      const conn = websocket.connections.find(c => c.nodeId === item.idNodemcu);
+      return { ...item, isConnected: !!(conn && conn.connected) };
+    });
+    res.json(withStatus);
   } catch (error) {
     res.status(500).json({ error: 'Erro ao buscar vínculos NodeMCU-Prédio' });
   }
@@ -15,8 +21,10 @@ exports.getNodemcuPredioById = async (req, res) => {
   try {
     const { id } = req.params;
     const result = await nodemcuPrediosModel.getNodemcuPredioById(id);
-    if (result) res.json(result);
-    else res.status(404).json({ error: 'Vínculo não encontrado' });
+    if (result) {
+      const conn = websocket.connections.find(c => c.nodeId === result.idNodemcu);
+      res.json({ ...result, isConnected: !!(conn && conn.connected) });
+    } else res.status(404).json({ error: 'Vínculo não encontrado' });
   } catch (error) {
     res.status(500).json({ error: 'Erro ao buscar vínculo por ID' });
   }
@@ -27,8 +35,10 @@ exports.getNodemcuPredioByNodemcu = async (req, res) => {
   try {
     const { idNodemcu } = req.params;
     const result = await nodemcuPrediosModel.getNodemcuPredioByNodemcu(idNodemcu);
-    if (result) res.json(result);
-    else res.status(404).json({ error: 'Vínculo não encontrado' });
+    if (result) {
+      const conn = websocket.connections.find(c => c.nodeId === result.idNodemcu);
+      res.json({ ...result, isConnected: !!(conn && conn.connected) });
+    } else res.status(404).json({ error: 'Vínculo não encontrado' });
   } catch (error) {
     res.status(500).json({ error: 'Erro ao buscar vínculo por idNodemcu' });
   }
