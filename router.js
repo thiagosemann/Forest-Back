@@ -41,6 +41,7 @@ const mercadoPagoApi = require('./src/mercadoPago');
 const ticketReembolsoController = require('./src/controllers/Airbnb/ticketReembolsoController');
 const apartamentosProprietarioController = require('./src/controllers/Airbnb/apartamentosProprietarioController');
 const nodemcuPrediosController = require('./src/controllers/Airbnb/nodemcuPrediosController');
+const aberturaNodeMcuController = require('./src/controllers/Airbnb/aberturaNodeMcuController');
 
 // Funções WebSocket
 const { ligarNodeMcu } = require('./src/WebSocket/webSocketFunctions');
@@ -351,6 +352,14 @@ router.get('/nodemcu-predios/nodemcu/:idNodemcu', verifyToken, nodemcuPrediosCon
 router.post('/nodemcu-predios', verifyToken, nodemcuPrediosController.createNodemcuPredio);
 router.put('/nodemcu-predios/:id', verifyToken, nodemcuPrediosController.updateNodemcuPredio);
 router.delete('/nodemcu-predios/:id', verifyToken, nodemcuPrediosController.deleteNodemcuPredio);
+
+// Rotas para aberturas NodeMCU
+router.get('/nodemcu-aberturas', verifyToken, aberturaNodeMcuController.getAllAberturas);
+router.get('/nodemcu-aberturas/:id', verifyToken, aberturaNodeMcuController.getAberturaById);
+router.get('/nodemcu-aberturas/nodemcu/:idNodemcu', verifyToken, aberturaNodeMcuController.getAberturasByNodemcu);
+router.get('/nodemcu-aberturas/reserva/:reserva_id', verifyToken, aberturaNodeMcuController.getAberturasByReservaId);
+router.post('/nodemcu-aberturas', verifyToken, aberturaNodeMcuController.createAbertura);
+router.delete('/nodemcu-aberturas/:id', verifyToken, aberturaNodeMcuController.deleteAbertura);
 
 // Rota para acionar NodeMCU via WebSocket (POST, recebe nodeId e cod_reserva no body)
 router.post('/nodemcu-predios/ligar', require('./src/WebSocket/webSocketFunctions').ligarNodeMcu);
