@@ -359,6 +359,7 @@ router.get('/nodemcu-aberturas', verifyToken, aberturaNodeMcuController.getAllAb
 router.get('/nodemcu-aberturas/:id', verifyToken, aberturaNodeMcuController.getAberturaById);
 router.get('/nodemcu-aberturas/nodemcu/:idNodemcu', verifyToken, aberturaNodeMcuController.getAberturasByNodemcu);
 router.get('/nodemcu-aberturas/reserva/:reserva_id', verifyToken, aberturaNodeMcuController.getAberturasByReservaId);
+router.get('/nodemcu-aberturas/predio/:predio_id', verifyToken, aberturaNodeMcuController.getAberturasByPredioId);
 router.post('/nodemcu-aberturas', verifyToken, aberturaNodeMcuController.createAbertura);
 router.delete('/nodemcu-aberturas/:id', verifyToken, aberturaNodeMcuController.deleteAbertura);
 

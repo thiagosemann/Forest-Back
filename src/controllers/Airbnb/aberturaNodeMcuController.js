@@ -1,9 +1,10 @@
 const aberturaNodeMcuModel = require('../../models/Airbnb/aberturaNodeMcuModel');
 
-// Buscar todos os registros de aberturas
+// Buscar todos os registros de aberturas (com filtro de data)
 exports.getAllAberturas = async (req, res) => {
   try {
-    const result = await aberturaNodeMcuModel.getAllAberturas();
+    const { startDate, endDate } = req.query;
+    const result = await aberturaNodeMcuModel.getAllAberturas(startDate, endDate);
     res.json(result);
   } catch (error) {
     res.status(500).json({ error: 'Erro ao buscar aberturas NodeMCU' });
@@ -22,25 +23,39 @@ exports.getAberturaById = async (req, res) => {
   }
 };
 
-// Buscar aberturas por idNodemcu
+// Buscar aberturas por idNodemcu (com filtro de data)
 exports.getAberturasByNodemcu = async (req, res) => {
   try {
     const { idNodemcu } = req.params;
-    const result = await aberturaNodeMcuModel.getAberturasByNodemcu(idNodemcu);
+    const { startDate, endDate } = req.query;
+    const result = await aberturaNodeMcuModel.getAberturasByNodemcu(idNodemcu, startDate, endDate);
     res.json(result);
   } catch (error) {
     res.status(500).json({ error: 'Erro ao buscar aberturas por idNodemcu' });
   }
 };
 
-// Buscar aberturas por reserva_id
+// Buscar aberturas por reserva_id (com filtro de data)
 exports.getAberturasByReservaId = async (req, res) => {
   try {
     const { reserva_id } = req.params;
-    const result = await aberturaNodeMcuModel.getAberturasByReservaId(reserva_id);
+    const { startDate, endDate } = req.query;
+    const result = await aberturaNodeMcuModel.getAberturasByReservaId(reserva_id, startDate, endDate);
     res.json(result);
   } catch (error) {
     res.status(500).json({ error: 'Erro ao buscar aberturas por reserva_id' });
+  }
+};
+
+// Buscar aberturas por predio_id (com filtro de data)
+exports.getAberturasByPredioId = async (req, res) => {
+  try {
+    const { predio_id } = req.params;
+    const { startDate, endDate } = req.query;
+    const result = await aberturaNodeMcuModel.getAberturasByPredioId(predio_id, startDate, endDate);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao buscar aberturas por predio_id' });
   }
 };
 

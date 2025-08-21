@@ -1,14 +1,10 @@
-const connection = require('../models/connection');
+
 const { wss, connections } = require('../WebSocket/websocket');
 const reservasAirbnbModel = require('../models/Airbnb/reservasAirbnbModel');
 const apartamentosModel = require('../models/Airbnb/apartamentosAirbnbModel');
 const connection2 = require('../models/connection2');
 const nodemcuPrediosModel = require('../models/Airbnb/nodemcuPrediosModel');
-// Função auxiliar para registrar abertura
-async function registrarAberturaNodeMCU({ idNodemcu, nodemcu_predio_id, reserva_id, cod_reserva }) {
-    const query = `INSERT INTO nodemcu_aberturas (idNodemcu, nodemcu_predio_id, reserva_id, cod_reserva) VALUES (?, ?, ?, ?)`;
-    await connection2.execute(query, [idNodemcu, nodemcu_predio_id, reserva_id, cod_reserva]);
-}
+const nodemcuAberturasModel = require('../models/Airbnb/nodemcuAberturasModel');
 
 // Controller para acionar NodeMCU via rota
 exports.ligarNodeMcu = async (req, res) => {
@@ -20,6 +16,41 @@ exports.ligarNodeMcu = async (req, res) => {
         const targetConnection = connections.find((connection) => connection.nodeId === nodeId);
         if (!targetConnection) {
             return res.status(404).json({ success: false, message: 'Nenhuma conexão ativa encontrada para o NodeMCU especificado', nodeId });
+        }
+        let nodemcu_predio_id = null;
+        let reserva_id = null;
+        let codParaSalvar = cod_reserva;
+        if (cod_reserva === 'LIBERACAO_MANUAL') {
+            // Busca vínculo NodeMCU-Prédio
+            const nodemcuPredios = await nodemcuPrediosModel.getNodemcuPredioByNodemcu(nodeId);
+            if (!nodemcuPredios) {
+                return res.status(404).json({ success: false, message: 'Nenhum vínculo NodeMCU-Prédio encontrado para o NodeMCU especificado', nodeId });
+            }
+            nodemcu_predio_id = nodemcuPredios.id;
+            // Envia comando
+            const binaryMessage = Buffer.from([0x01]);
+            targetConnection.ws.send(binaryMessage);
+            let confirmationReceived = false;
+            const confirmationTimeout = setTimeout(() => {
+                if (!confirmationReceived) {
+                    return res.status(504).json({ success: false, message: 'Timeout: Falha ao ligar o NodeMCU ou relé não ativado', nodeId });
+                }
+            }, 5000);
+            targetConnection.ws.once('message', async (message) => {
+                const messageString = message.toString();
+                if (messageString === 'RelayStatus:ON') {
+                    confirmationReceived = true;
+                    clearTimeout(confirmationTimeout);
+                    await nodemcuAberturasModel.create({
+                        idNodemcu: nodeId,
+                        nodemcu_predio_id,
+                        reserva_id: null,
+                        cod_reserva: 'LIBERACAO_MANUAL'
+                    });
+                    return res.json({ success: true, message: 'NodeMCU ligado com sucesso (liberação manual)', nodeId });
+                }
+            });
+            return;
         }
         // Buscar reserva pelo código
         const reserva = await reservasAirbnbModel.getReservaByCod(cod_reserva);
@@ -35,7 +66,7 @@ exports.ligarNodeMcu = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Nenhum vínculo NodeMCU-Prédio encontrado para o NodeMCU especificado', nodeId });
         }
         
-        let nodemcu_predio_id = nodemcuPredios ? nodemcuPredios.id : null;
+        nodemcu_predio_id = nodemcuPredios ? nodemcuPredios.id : null;
         if(nodemcu_predio_id != apartamento.predio_id){
             return res.status(403).json({ success: false, message: 'Esse prédio não está vinculado a sua reserva!', nodeId, predio_id: apartamento.predio_id });
         }
@@ -67,7 +98,12 @@ exports.ligarNodeMcu = async (req, res) => {
                     if (rows.length) nodemcu_predio_id = rows[0].id;
                 } catch (e) { /* ignora erro */ }
                 // Registrar abertura
-                await registrarAberturaNodeMCU({ idNodemcu: nodeId, nodemcu_predio_id, reserva_id: reserva.id, cod_reserva });
+                await nodemcuAberturasModel.create({
+                    idNodemcu: nodeId,
+                    nodemcu_predio_id,
+                    reserva_id: reserva.id,
+                    cod_reserva
+                });
                 return res.json({ success: true, message: 'NodeMCU ligado com sucesso', nodeId, reserva_id: reserva.id });
             }
         });
