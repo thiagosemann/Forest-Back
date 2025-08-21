@@ -71,7 +71,7 @@ const getAberturasByPredioId = async (predio_id, startDate, endDate) => {
 // Criar novo registro de abertura
 const createAbertura = async ({ idNodemcu, nodemcu_predio_id, reserva_id, cod_reserva }) => {
   const insertQuery = `
-    INSERT INTO nodemcu_aberturas (idNodemcu, fechaduras_predio_id, reserva_id, cod_reserva)
+    INSERT INTO nodemcu_aberturas (idNodemcu, nodemcu_predio_id, reserva_id, cod_reserva)
     VALUES (?, ?, ?, ?)
   `;
   try {
