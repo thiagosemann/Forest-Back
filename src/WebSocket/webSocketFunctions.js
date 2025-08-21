@@ -4,7 +4,7 @@ const reservasAirbnbModel = require('../models/Airbnb/reservasAirbnbModel');
 const apartamentosModel = require('../models/Airbnb/apartamentosAirbnbModel');
 const connection2 = require('../models/connection2');
 const nodemcuPrediosModel = require('../models/Airbnb/nodemcuPrediosModel');
-const nodemcuAberturasModel = require('../models/Airbnb/nodemcuAberturasModel');
+const nodemcuAberturasModel = require('../models/Airbnb/aberturaNodeMcuModel');
 
 // Controller para acionar NodeMCU via rota
 exports.ligarNodeMcu = async (req, res) => {
