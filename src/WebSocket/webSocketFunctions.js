@@ -1,4 +1,3 @@
-
 const { wss, connections } = require('../WebSocket/websocket');
 const reservasAirbnbModel = require('../models/Airbnb/reservasAirbnbModel');
 const apartamentosModel = require('../models/Airbnb/apartamentosAirbnbModel');
@@ -41,7 +40,8 @@ exports.ligarNodeMcu = async (req, res) => {
                 if (messageString === 'RelayStatus:ON') {
                     confirmationReceived = true;
                     clearTimeout(confirmationTimeout);
-                    await nodemcuAberturasModel.create({
+                    // O correto é chamar createAbertura, não create
+                    await nodemcuAberturasModel.createAbertura({
                         idNodemcu: nodeId,
                         nodemcu_predio_id,
                         reserva_id: null,
