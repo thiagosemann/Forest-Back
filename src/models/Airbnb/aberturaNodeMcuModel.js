@@ -5,8 +5,12 @@ const getAllAberturas = async (startDate, endDate) => {
   let query = `SELECT * FROM nodemcu_aberturas`;
   const params = [];
   if (startDate && endDate) {
-    query += ' WHERE created_at BETWEEN ? AND ?';
-    params.push(startDate, endDate);
+    // Corrige para pegar o dia inteiro de endDate (adiciona 1 dia e usa < endDate+1)
+    query += ' WHERE created_at >= ? AND created_at < ?';
+    const endDateObj = new Date(endDate);
+    endDateObj.setDate(endDateObj.getDate() + 1);
+    const endDatePlusOne = endDateObj.toISOString().slice(0, 10);
+    params.push(startDate, endDatePlusOne);
   }
   query += ' ORDER BY created_at DESC';
   const [rows] = await connection.execute(query, params);
@@ -26,8 +30,12 @@ const getAberturasByNodemcu = async (idNodemcu, startDate, endDate) => {
   let query = 'SELECT * FROM nodemcu_aberturas WHERE idNodemcu = ?';
   const params = [idNodemcu];
   if (startDate && endDate) {
-    query += ' AND created_at BETWEEN ? AND ?';
-    params.push(startDate, endDate);
+    // Corrige para pegar o dia inteiro de endDate (adiciona 1 dia e usa < endDate+1)
+    query += ' AND created_at >= ? AND created_at < ?';
+    const endDateObj = new Date(endDate);
+    endDateObj.setDate(endDateObj.getDate() + 1);
+    const endDatePlusOne = endDateObj.toISOString().slice(0, 10);
+    params.push(startDate, endDatePlusOne);
   }
   query += ' ORDER BY created_at DESC';
   const [rows] = await connection.execute(query, params);
@@ -39,8 +47,12 @@ const getAberturasByReservaId = async (reserva_id, startDate, endDate) => {
   let query = 'SELECT * FROM nodemcu_aberturas WHERE reserva_id = ?';
   const params = [reserva_id];
   if (startDate && endDate) {
-    query += ' AND created_at BETWEEN ? AND ?';
-    params.push(startDate, endDate);
+    // Corrige para pegar o dia inteiro de endDate (adiciona 1 dia e usa < endDate+1)
+    query += ' AND created_at >= ? AND created_at < ?';
+    const endDateObj = new Date(endDate);
+    endDateObj.setDate(endDateObj.getDate() + 1);
+    const endDatePlusOne = endDateObj.toISOString().slice(0, 10);
+    params.push(startDate, endDatePlusOne);
   }
   query += ' ORDER BY created_at DESC';
   const [rows] = await connection.execute(query, params);
@@ -60,8 +72,12 @@ const getAberturasByPredioId = async (predio_id, startDate, endDate) => {
   let query = `SELECT * FROM nodemcu_aberturas WHERE idNodemcu IN (${placeholders})`;
   const params = [...ids];
   if (startDate && endDate) {
-    query += ' AND created_at BETWEEN ? AND ?';
-    params.push(startDate, endDate);
+    // Corrige para pegar o dia inteiro de endDate (adiciona 1 dia e usa < endDate+1)
+    query += ' AND created_at >= ? AND created_at < ?';
+    const endDateObj = new Date(endDate);
+    endDateObj.setDate(endDateObj.getDate() + 1);
+    const endDatePlusOne = endDateObj.toISOString().slice(0, 10);
+    params.push(startDate, endDatePlusOne);
   }
   query += ' ORDER BY created_at DESC';
   const [rows] = await connection.execute(query, params);
