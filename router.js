@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const verifyToken = require('./src/middlewares/authMiddleware');
+const empresaMiddleware = require('./src/middlewares/empresaMiddleware');
 
 const usersController = require('./src/controllers/Admnistracao/usersController');
 const buildingsController = require('./src/controllers/Admnistracao/buildingsController');
@@ -234,134 +235,134 @@ router.get('/reservas-airbnb/reservas/por-periodo-calendario/:apartamentoId', re
 
 
 // ReservasAirbnb routes
-router.get('/reservas-airbnb',verifyToken, reservasAirbnbController.getAllReservas);
-router.get('/reservas-airbnb/:id', verifyToken, reservasAirbnbController.getReservaById);
-router.post('/reservas-airbnb', verifyToken, reservasAirbnbController.createReserva);
-router.get('/reservas-airbnb/cancelados/hoje', verifyToken, reservasAirbnbController.getReservasCanceladasHoje);
-router.get('/reservas-airbnb/apartamentos/:apartamentoId', verifyToken, reservasAirbnbController.getReservasByApartamentoId);
-router.put('/reservas-airbnb/:id', verifyToken, reservasAirbnbController.updateReserva);
-router.delete('/reservas-airbnb/:id', verifyToken, reservasAirbnbController.deleteReserva);
-router.get('/reservas-airbnb/reservas/por-periodo', verifyToken, reservasAirbnbController.getReservasPorPeriodo);
-router.get('/reservas-airbnb/faxinas/por-periodo', verifyToken, reservasAirbnbController.getFaxinasPorPeriodo);
-router.get('/reservas-airbnb/reservas/por-periodo-calendario', verifyToken, reservasAirbnbController.getReservasPorPeriodoCalendario);
+router.get('/reservas-airbnb',verifyToken, empresaMiddleware, reservasAirbnbController.getAllReservas);
+router.get('/reservas-airbnb/:id', verifyToken, empresaMiddleware, reservasAirbnbController.getReservaById);
+router.post('/reservas-airbnb', verifyToken, empresaMiddleware, reservasAirbnbController.createReserva);
+router.get('/reservas-airbnb/cancelados/hoje', verifyToken, empresaMiddleware, reservasAirbnbController.getReservasCanceladasHoje);
+router.get('/reservas-airbnb/apartamentos/:apartamentoId', verifyToken, empresaMiddleware, reservasAirbnbController.getReservasByApartamentoId);
+router.put('/reservas-airbnb/:id', verifyToken, empresaMiddleware, reservasAirbnbController.updateReserva);
+router.delete('/reservas-airbnb/:id', verifyToken, empresaMiddleware, reservasAirbnbController.deleteReserva);
+router.get('/reservas-airbnb/reservas/por-periodo', verifyToken, empresaMiddleware, reservasAirbnbController.getReservasPorPeriodo);
+router.get('/reservas-airbnb/faxinas/por-periodo', verifyToken, empresaMiddleware, reservasAirbnbController.getFaxinasPorPeriodo);
+router.get('/reservas-airbnb/reservas/por-periodo-calendario', verifyToken, empresaMiddleware, reservasAirbnbController.getReservasPorPeriodoCalendario);
 
 // Rotas de Limpezas extras
-router.get('/limpeza-extra/', verifyToken, limpezaExtraController.getAllLimpezasExtras);
-router.get('/limpeza-extra/hoje', verifyToken, limpezaExtraController.getLimpezasExtrasHoje);
-router.get('/limpeza-extra/semana', verifyToken, limpezaExtraController.getLimpezasExtrasSemana);
-router.get('/limpeza-extra/semana-que-vem',verifyToken, limpezaExtraController.getLimpezasExtrasSemanaQueVem);
-router.get('/limpeza-extra/por-periodo',verifyToken, limpezaExtraController.getLimpezasExtrasPorPeriodo);
-router.get('/limpeza-extra/:id',verifyToken, limpezaExtraController.getLimpezaExtraById);
-router.post('/limpeza-extra/',verifyToken, limpezaExtraController.createLimpezaExtra);
-router.put('/limpeza-extra/:id',verifyToken, limpezaExtraController.updateLimpezaExtra);
-router.delete('/limpeza-extra/:id',verifyToken, limpezaExtraController.deleteLimpezaExtra);
+router.get('/limpeza-extra/', verifyToken, empresaMiddleware, limpezaExtraController.getAllLimpezasExtras);
+router.get('/limpeza-extra/hoje', verifyToken, empresaMiddleware, limpezaExtraController.getLimpezasExtrasHoje);
+router.get('/limpeza-extra/semana', verifyToken, empresaMiddleware, limpezaExtraController.getLimpezasExtrasSemana);
+router.get('/limpeza-extra/semana-que-vem',verifyToken, empresaMiddleware, limpezaExtraController.getLimpezasExtrasSemanaQueVem);
+router.get('/limpeza-extra/por-periodo',verifyToken, empresaMiddleware, limpezaExtraController.getLimpezasExtrasPorPeriodo);
+router.get('/limpeza-extra/:id',verifyToken, empresaMiddleware, limpezaExtraController.getLimpezaExtraById);
+router.post('/limpeza-extra/',verifyToken, empresaMiddleware, limpezaExtraController.createLimpezaExtra);
+router.put('/limpeza-extra/:id',verifyToken, empresaMiddleware, limpezaExtraController.updateLimpezaExtra);
+router.delete('/limpeza-extra/:id',verifyToken, empresaMiddleware, limpezaExtraController.deleteLimpezaExtra);
 
 
 // User routes
-router.get('/users-airbnb', verifyToken, usersAirbnbController.getAllUsers);
-router.put('/users-airbnb/:id', verifyToken, usersAirbnbController.updateUser);
-router.get('/users-airbnb/:id', verifyToken, usersAirbnbController.getUser);
-router.get('/users-airbnb/role/:role', verifyToken, usersAirbnbController.getUsersByRole);
+router.get('/users-airbnb', verifyToken, empresaMiddleware, usersAirbnbController.getAllUsers);
+router.put('/users-airbnb/:id', verifyToken, empresaMiddleware, usersAirbnbController.updateUser);
+router.get('/users-airbnb/:id', verifyToken, empresaMiddleware, usersAirbnbController.getUser);
+router.get('/users-airbnb/role/:role', verifyToken, empresaMiddleware, usersAirbnbController.getUsersByRole);
 router.get('/users-airbnb/telefone/:telefone', usersAirbnbController.getUserByTelefone); // <-- Adicione esta linha
-router.post('/users-airbnb/batch', verifyToken, usersAirbnbController.createUsersBatch);
-router.delete('/users-airbnb/:id', verifyToken, usersAirbnbController.deleteUser);
+router.post('/users-airbnb/batch', verifyToken, empresaMiddleware, usersAirbnbController.createUsersBatch);
+router.delete('/users-airbnb/:id', verifyToken, empresaMiddleware, usersAirbnbController.deleteUser);
 
 // PredioAirbnb routes
-router.get('/predios-airbnb', verifyToken, predioAirbnbController.getAllPredios);
-router.get('/predios-airbnb/:id', verifyToken, predioAirbnbController.getPredioById);
-router.post('/predios-airbnb', verifyToken, predioAirbnbController.createPredio);
-router.put('/predios-airbnb/:id', verifyToken, predioAirbnbController.updatePredio);
-router.delete('/predios-airbnb/:id', verifyToken, predioAirbnbController.deletePredio);
+router.get('/predios-airbnb', verifyToken, empresaMiddleware, predioAirbnbController.getAllPredios);
+router.get('/predios-airbnb/:id', verifyToken, empresaMiddleware, predioAirbnbController.getPredioById);
+router.post('/predios-airbnb', verifyToken, empresaMiddleware, predioAirbnbController.createPredio);
+router.put('/predios-airbnb/:id', verifyToken, empresaMiddleware, predioAirbnbController.updatePredio);
+router.delete('/predios-airbnb/:id', verifyToken, empresaMiddleware, predioAirbnbController.deletePredio);
 
 // ApartamentosAirbnb routes
-router.get('/apartamentos-airbnb',verifyToken, apartamentosAirbnbController.getAllApartamentos);
-router.get('/apartamentos-airbnb/:id', verifyToken, apartamentosAirbnbController.getApartamentoById);
-router.post('/apartamentos-airbnb', verifyToken, apartamentosAirbnbController.createApartamento);
-router.get('/apartamentos-airbnb/predios/:predioId', verifyToken, apartamentosAirbnbController.getApartamentosByPredioId);
-router.put('/apartamentos-airbnb/:id', verifyToken, apartamentosAirbnbController.updateApartamento);
-router.delete('/apartamentos-airbnb/:id', verifyToken, apartamentosAirbnbController.deleteApartamento);
+router.get('/apartamentos-airbnb',verifyToken, empresaMiddleware, apartamentosAirbnbController.getAllApartamentos);
+router.get('/apartamentos-airbnb/:id', verifyToken, empresaMiddleware, apartamentosAirbnbController.getApartamentoById);
+router.post('/apartamentos-airbnb', verifyToken, empresaMiddleware, apartamentosAirbnbController.createApartamento);
+router.get('/apartamentos-airbnb/predios/:predioId', verifyToken, empresaMiddleware, apartamentosAirbnbController.getApartamentosByPredioId);
+router.put('/apartamentos-airbnb/:id', verifyToken, empresaMiddleware, apartamentosAirbnbController.updateApartamento);
+router.delete('/apartamentos-airbnb/:id', verifyToken, empresaMiddleware, apartamentosAirbnbController.deleteApartamento);
 
 
 // Rotas de Check-in
-router.get('/checkins', verifyToken, checkinFormController.getAllCheckins); // Listar todos os check-ins
-router.get('/checkins/:id', verifyToken, checkinFormController.getCheckinById); // Obter um check-in por ID
-router.get('/checkins/reserva/:reservaId', verifyToken, checkinFormController.getCheckinsByReservaId); // Obter check-ins por reservaId
-router.get('/checkins/search/:reservaId/:codReserva', verifyToken, checkinFormController.getCheckinByReservaIdOrCodReserva); // Obter check-in por reservaId ou codReserva
-router.put('/checkins/:id', verifyToken, checkinFormController.updateCheckin); // Atualizar um check-in por ID
-router.delete('/checkins/:id', verifyToken, checkinFormController.deleteCheckin); // Deletar um check-in por ID
-router.get('/checkins/user/:userId',verifyToken,checkinFormController.getCheckinsByUserId);
-router.post( '/checkins/envio', verifyToken, checkinFormController.envioPorCheckins);
+router.get('/checkins', verifyToken, empresaMiddleware, checkinFormController.getAllCheckins); // Listar todos os check-ins
+router.get('/checkins/:id', verifyToken, empresaMiddleware, checkinFormController.getCheckinById); // Obter um check-in por ID
+router.get('/checkins/reserva/:reservaId', verifyToken, empresaMiddleware, checkinFormController.getCheckinsByReservaId); // Obter check-ins por reservaId
+router.get('/checkins/search/:reservaId/:codReserva', verifyToken, empresaMiddleware, checkinFormController.getCheckinByReservaIdOrCodReserva); // Obter check-in por reservaId ou codReserva
+router.put('/checkins/:id', verifyToken, empresaMiddleware, checkinFormController.updateCheckin); // Atualizar um check-in por ID
+router.delete('/checkins/:id', verifyToken, empresaMiddleware, checkinFormController.deleteCheckin); // Deletar um check-in por ID
+router.get('/checkins/user/:userId',verifyToken, empresaMiddleware,checkinFormController.getCheckinsByUserId);
+router.post( '/checkins/envio', verifyToken, empresaMiddleware, checkinFormController.envioPorCheckins);
 
 // Rotas de Vistorias
-router.get('/vistorias', verifyToken, vistoriaController.getAllVistorias);
-router.get('/vistorias/:id',verifyToken, vistoriaController.getVistoriaById);
-router.post('/vistorias', verifyToken, vistoriaController.createVistoria);
-router.put('/vistorias/:id',  verifyToken, vistoriaController.updateVistoria);
-router.delete('/vistorias/:id',  verifyToken, vistoriaController.deleteVistoria);
+router.get('/vistorias', verifyToken, empresaMiddleware, vistoriaController.getAllVistorias);
+router.get('/vistorias/:id',verifyToken, empresaMiddleware, vistoriaController.getVistoriaById);
+router.post('/vistorias', verifyToken, empresaMiddleware, vistoriaController.createVistoria);
+router.put('/vistorias/:id',  verifyToken, empresaMiddleware, vistoriaController.updateVistoria);
+router.delete('/vistorias/:id',  verifyToken, empresaMiddleware, vistoriaController.deleteVistoria);
 
 // Rotas de Portarias
-router.get('/portarias', verifyToken, portariasController.getAllPortarias);
-router.get('/portarias/:id', verifyToken, portariasController.getPortariaById);
-router.post('/portarias', verifyToken, portariasController.createPortaria);
-router.put('/portarias/:id', verifyToken, portariasController.updatePortaria);
-router.delete('/portarias/:id', verifyToken, portariasController.deletePortaria);
+router.get('/portarias', verifyToken, empresaMiddleware, portariasController.getAllPortarias);
+router.get('/portarias/:id', verifyToken, empresaMiddleware, portariasController.getPortariaById);
+router.post('/portarias', verifyToken, empresaMiddleware, portariasController.createPortaria);
+router.put('/portarias/:id', verifyToken, empresaMiddleware, portariasController.updatePortaria);
+router.delete('/portarias/:id', verifyToken, empresaMiddleware, portariasController.deletePortaria);
 
 // Rotas de Associação Prédio-Portaria
-router.get('/predio-portaria', verifyToken, predioPortariaController.getAllPredioPortaria);
-router.get('/predio-portaria/predio/:predioId', verifyToken, predioPortariaController.getPortariasByPredio);
-router.get('/predio-portaria/portaria/:portariaId', verifyToken, predioPortariaController.getPrediosByPortaria);
-router.post('/predio-portaria', verifyToken, predioPortariaController.linkPortariaToPredio);
-router.delete('/predio-portaria', verifyToken, predioPortariaController.unlinkPortariaFromPredio);
+router.get('/predio-portaria', verifyToken, empresaMiddleware, predioPortariaController.getAllPredioPortaria);
+router.get('/predio-portaria/predio/:predioId', verifyToken, empresaMiddleware, predioPortariaController.getPortariasByPredio);
+router.get('/predio-portaria/portaria/:portariaId', verifyToken, empresaMiddleware, predioPortariaController.getPrediosByPortaria);
+router.post('/predio-portaria', verifyToken, empresaMiddleware, predioPortariaController.linkPortariaToPredio);
+router.delete('/predio-portaria', verifyToken, empresaMiddleware, predioPortariaController.unlinkPortariaFromPredio);
 
 
 // Rotas de Pagamentos
-router.get('/pagamentos', verifyToken, pagamentosController.getAllPagamentos); // Listar todos
-router.get('/pagamentos/:id', verifyToken, pagamentosController.getPagamentoById); // Buscar por ID
-router.post('/pagamentos', verifyToken, pagamentosController.createPagamento); // Criar
-router.put('/pagamentos/:id', verifyToken, pagamentosController.updatePagamento); // Atualizar
-router.delete('/pagamentos/:id', verifyToken, pagamentosController.deletePagamento); // Deletar
-router.get('/pagamentos/reserva/:cod_reserva', verifyToken, pagamentosController.getByCodReserva);
-router.post('/pagamentos/reservas/lista', verifyToken, pagamentosController.getByCodReservaList);
-router.get('/pagamentos/apartamento/:apartamento_id', verifyToken, pagamentosController.getByApartamentoId);
+router.get('/pagamentos', verifyToken, empresaMiddleware, pagamentosController.getAllPagamentos); // Listar todos
+router.get('/pagamentos/:id', verifyToken, empresaMiddleware, pagamentosController.getPagamentoById); // Buscar por ID
+router.post('/pagamentos', verifyToken, empresaMiddleware, pagamentosController.createPagamento); // Criar
+router.put('/pagamentos/:id', verifyToken, empresaMiddleware, pagamentosController.updatePagamento); // Atualizar
+router.delete('/pagamentos/:id', verifyToken, empresaMiddleware, pagamentosController.deletePagamento); // Deletar
+router.get('/pagamentos/reserva/:cod_reserva', verifyToken, empresaMiddleware, pagamentosController.getByCodReserva);
+router.post('/pagamentos/reservas/lista', verifyToken, empresaMiddleware, pagamentosController.getByCodReservaList);
+router.get('/pagamentos/apartamento/:apartamento_id', verifyToken, empresaMiddleware, pagamentosController.getByApartamentoId);
 
 // Rotas para Ticket de Reembolso
-router.get('/ticket-reembolso', verifyToken, ticketReembolsoController.getAllReembolsos);
-router.get('/ticket-reembolso/:id', verifyToken, ticketReembolsoController.getReembolsoById);
-router.post('/ticket-reembolso', verifyToken, ticketReembolsoController.createReembolso);
-router.put('/ticket-reembolso/:id', verifyToken, ticketReembolsoController.updateReembolso);
-router.delete('/ticket-reembolso/:id', verifyToken, ticketReembolsoController.deleteReembolso);
+router.get('/ticket-reembolso', verifyToken, empresaMiddleware, ticketReembolsoController.getAllReembolsos);
+router.get('/ticket-reembolso/:id', verifyToken, empresaMiddleware, ticketReembolsoController.getReembolsoById);
+router.post('/ticket-reembolso', verifyToken, empresaMiddleware, ticketReembolsoController.createReembolso);
+router.put('/ticket-reembolso/:id', verifyToken, empresaMiddleware, ticketReembolsoController.updateReembolso);
+router.delete('/ticket-reembolso/:id', verifyToken, empresaMiddleware, ticketReembolsoController.deleteReembolso);
 router.get('/ticket-reembolso/auth/:auth', ticketReembolsoController.getTicketByAuth);
 
 // Rotas para arquivos de ticket de reembolso
-router.post('/ticket-reembolso/arquivo', verifyToken, ticketReembolsoController.createArquivoReembolso);
-router.put('/ticket-reembolso/arquivo/:id', verifyToken, ticketReembolsoController.updateArquivoReembolso);
-router.delete('/ticket-reembolso/arquivo/:id', verifyToken, ticketReembolsoController.deleteArquivoReembolso);
+router.post('/ticket-reembolso/arquivo', verifyToken, empresaMiddleware, ticketReembolsoController.createArquivoReembolso);
+router.put('/ticket-reembolso/arquivo/:id', verifyToken, empresaMiddleware, ticketReembolsoController.updateArquivoReembolso);
+router.delete('/ticket-reembolso/arquivo/:id', verifyToken, empresaMiddleware, ticketReembolsoController.deleteArquivoReembolso);
 
 // Rotas para vínculo proprietário-apartamento (Airbnb)
-router.post('/apartamentos-proprietario', verifyToken, apartamentosProprietarioController.addProprietarioToApartamento); // Adiciona vínculo
-router.delete('/apartamentos-proprietario', verifyToken, apartamentosProprietarioController.removeProprietarioFromApartamento); // Remove vínculo
-router.get('/apartamentos-proprietario/proprietarios/:apartamento_id', verifyToken, apartamentosProprietarioController.getProprietariosByApartamento); // Lista proprietários de um apartamento
-router.get('/apartamentos-proprietario/apartamentos/:user_id', verifyToken, apartamentosProprietarioController.getApartamentosByProprietario); // Lista apartamentos de um proprietário
-router.delete('/apartamentos-proprietario/apartamento', verifyToken, apartamentosProprietarioController.removeAllProprietariosFromApartamento); // Remove todos os vínculos de um apartamento
-router.delete('/apartamentos-proprietario/proprietario', verifyToken, apartamentosProprietarioController.removeAllApartamentosFromProprietario); // Remove todos os vínculos de um proprietário
+router.post('/apartamentos-proprietario', verifyToken, empresaMiddleware, apartamentosProprietarioController.addProprietarioToApartamento); // Adiciona vínculo
+router.delete('/apartamentos-proprietario', verifyToken, empresaMiddleware, apartamentosProprietarioController.removeProprietarioFromApartamento); // Remove vínculo
+router.get('/apartamentos-proprietario/proprietarios/:apartamento_id', verifyToken, empresaMiddleware, apartamentosProprietarioController.getProprietariosByApartamento); // Lista proprietários de um apartamento
+router.get('/apartamentos-proprietario/apartamentos/:user_id', verifyToken, empresaMiddleware, apartamentosProprietarioController.getApartamentosByProprietario); // Lista apartamentos de um proprietário
+router.delete('/apartamentos-proprietario/apartamento', verifyToken, empresaMiddleware, apartamentosProprietarioController.removeAllProprietariosFromApartamento); // Remove todos os vínculos de um apartamento
+router.delete('/apartamentos-proprietario/proprietario', verifyToken, empresaMiddleware, apartamentosProprietarioController.removeAllApartamentosFromProprietario); // Remove todos os vínculos de um proprietário
 
 // Rotas para NodeMCU-Prédio
-router.get('/nodemcu-predios', verifyToken, nodemcuPrediosController.getAllNodemcuPredios);
-router.get('/nodemcu-predios/:id', verifyToken, nodemcuPrediosController.getNodemcuPredioById);
-router.get('/nodemcu-predios/nodemcu/:idNodemcu', verifyToken, nodemcuPrediosController.getNodemcuPredioByNodemcu);
-router.get('/nodemcu-predios/predio/:predio_id', verifyToken, nodemcuPrediosController.getNodesByPredioID);
-router.post('/nodemcu-predios', verifyToken, nodemcuPrediosController.createNodemcuPredio);
-router.put('/nodemcu-predios/:id', verifyToken, nodemcuPrediosController.updateNodemcuPredio);
-router.delete('/nodemcu-predios/:id', verifyToken, nodemcuPrediosController.deleteNodemcuPredio);
+router.get('/nodemcu-predios', verifyToken, empresaMiddleware, nodemcuPrediosController.getAllNodemcuPredios);
+router.get('/nodemcu-predios/:id', verifyToken, empresaMiddleware, nodemcuPrediosController.getNodemcuPredioById);
+router.get('/nodemcu-predios/nodemcu/:idNodemcu', verifyToken, empresaMiddleware, nodemcuPrediosController.getNodemcuPredioByNodemcu);
+router.get('/nodemcu-predios/predio/:predio_id', verifyToken, empresaMiddleware, nodemcuPrediosController.getNodesByPredioID);
+router.post('/nodemcu-predios', verifyToken, empresaMiddleware, nodemcuPrediosController.createNodemcuPredio);
+router.put('/nodemcu-predios/:id', verifyToken, empresaMiddleware, nodemcuPrediosController.updateNodemcuPredio);
+router.delete('/nodemcu-predios/:id', verifyToken, empresaMiddleware, nodemcuPrediosController.deleteNodemcuPredio);
 
 // Rotas para aberturas NodeMCU
-router.get('/nodemcu-aberturas', verifyToken, aberturaNodeMcuController.getAllAberturas);
-router.get('/nodemcu-aberturas/:id', verifyToken, aberturaNodeMcuController.getAberturaById);
-router.get('/nodemcu-aberturas/nodemcu/:idNodemcu', verifyToken, aberturaNodeMcuController.getAberturasByNodemcu);
-router.get('/nodemcu-aberturas/reserva/:reserva_id', verifyToken, aberturaNodeMcuController.getAberturasByReservaId);
-router.get('/nodemcu-aberturas/predio/:predio_id', verifyToken, aberturaNodeMcuController.getAberturasByPredioId);
-router.post('/nodemcu-aberturas', verifyToken, aberturaNodeMcuController.createAbertura);
-router.delete('/nodemcu-aberturas/:id', verifyToken, aberturaNodeMcuController.deleteAbertura);
+router.get('/nodemcu-aberturas', verifyToken, empresaMiddleware, aberturaNodeMcuController.getAllAberturas);
+router.get('/nodemcu-aberturas/:id', verifyToken, empresaMiddleware, aberturaNodeMcuController.getAberturaById);
+router.get('/nodemcu-aberturas/nodemcu/:idNodemcu', verifyToken, empresaMiddleware, aberturaNodeMcuController.getAberturasByNodemcu);
+router.get('/nodemcu-aberturas/reserva/:reserva_id', verifyToken, empresaMiddleware, aberturaNodeMcuController.getAberturasByReservaId);
+router.get('/nodemcu-aberturas/predio/:predio_id', verifyToken, empresaMiddleware, aberturaNodeMcuController.getAberturasByPredioId);
+router.post('/nodemcu-aberturas', verifyToken, empresaMiddleware, aberturaNodeMcuController.createAbertura);
+router.delete('/nodemcu-aberturas/:id', verifyToken, empresaMiddleware, aberturaNodeMcuController.deleteAbertura);
 
 // Rota para acionar NodeMCU via WebSocket (POST, recebe nodeId e cod_reserva no body)
 router.post('/nodemcu-predios/ligar', require('./src/WebSocket/webSocketFunctions').ligarNodeMcu);

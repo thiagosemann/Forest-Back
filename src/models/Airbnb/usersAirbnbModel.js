@@ -15,14 +15,16 @@ const getUserFiles = async (userId) => {
   return rows[0] || { imagemBase64: null, documentBase64: null };
 };
 
-const getAllUsers = async () => {
-  const [users] = await connection.execute(
-    `SELECT u.* 
-     FROM users u`
-  );
+const getAllUsers = async (empresaId) => {
+  let query = `SELECT u.* FROM users u`;
+  let params = [];
+  if (empresaId && empresaId !== 1) {
+    query += ' WHERE u.role = ?';
+    params.push('terceirizado');
+  }
+  const [users] = await connection.execute(query, params);
   return users;
 };
-
 
 const createUser = async (user) => {
   const {
@@ -100,15 +102,18 @@ const loginUser = async (email, password) => {
   return { user, token };
 };
 
-const getUser = async (id) => {
-  // Fetch user and join files
-  const query = `
+const getUser = async (id, empresaId) => {
+  let query = `
     SELECT u.*, uf.imagemBase64, uf.documentBase64
     FROM users u
     LEFT JOIN user_files uf ON u.id = uf.user_id
-    WHERE u.id = ?
-  `;
-  const [rows] = await connection.execute(query, [id]);
+    WHERE u.id = ?`;
+  let params = [id];
+  if (empresaId && empresaId !== 1) {
+    query += ' AND u.role = ?';
+    params.push('terceirizado');
+  }
+  const [rows] = await connection.execute(query, params);
   return rows[0] || null;
 };
 
@@ -217,10 +222,15 @@ const getUserByCPF = async (cpf) => {
   return users[0] || null;
 };
 
-const getUsersByRole = async (role) => {
+const getUsersByRole = async (role, empresaId) => {
+  let query = 'SELECT * FROM users WHERE role = ?';
   let params = [role];
+  if (empresaId && empresaId !== 1) {
+    query += ' AND role = ?';
+    params.push('terceirizado');
+  }
   try {
-    const [users] = await connection.execute('SELECT * FROM users WHERE role = ?', params);
+    const [users] = await connection.execute(query, params);
     return users;
   } catch (error) {
     console.error('Erro ao buscar usuários por role:', error);
@@ -228,10 +238,21 @@ const getUsersByRole = async (role) => {
   }
 };
 
-const getUserByTelefone = async (telefone) => {
-  const query = 'SELECT * FROM users WHERE Telefone = ?';
-  const [users] = await connection.execute(query, [telefone]);
+const getUserByTelefone = async (telefone, empresaId) => {
+  let query = 'SELECT * FROM users WHERE Telefone = ?';
+  let params = [telefone];
+  if (empresaId && empresaId !== 1) {
+    query += ' AND role = ?';
+    params.push('terceirizado');
+  }
+  const [users] = await connection.execute(query, params);
   return users[0] || null;
+};
+
+const getEmpresaIdByUserId = async (userId) => {
+  const query = 'SELECT empresa_id FROM users WHERE id = ?';
+  const [rows] = await connection.execute(query, [userId]);
+  return rows[0]?.empresa_id || null;
 };
 
 // Other methods (batch inserts, get by CPF/role) left unchanged
@@ -245,5 +266,6 @@ module.exports = {
   getUserByCPF,
   getUsersByRole,
   getUserFiles,
-  getUserByTelefone
+  getUserByTelefone,
+  getEmpresaIdByUserId
 };

@@ -4,7 +4,8 @@ const whatsControle   = require('../../WhatsApp/whats_Controle');
 const apartamentoModel = require('../../models/Airbnb/apartamentosAirbnbModel');
 const getAllReservas = async (request, response) => {
   try {
-    const reservas = await reservaModel.getAllReservas();
+    const { empresaId } = request;
+    const reservas = await reservaModel.getAllReservas(empresaId);
     return response.status(200).json(reservas);
   } catch (error) {
     console.error('Erro ao obter reservas:', error);
@@ -25,7 +26,8 @@ const createReserva = async (request, response) => {
 const getReservaById = async (request, response) => {
   try {
     const { id } = request.params;
-    const reserva = await reservaModel.getReservaById(id);
+    const { empresaId } = request;
+    const reserva = await reservaModel.getReservaById(id, empresaId);
 
     if (reserva) {
       return response.status(200).json(reserva);
@@ -41,7 +43,8 @@ const getReservaById = async (request, response) => {
 const getReservasByApartamentoId = async (request, response) => {
   try {
     const { apartamentoId } = request.params;
-    const reservas = await reservaModel.getReservasByApartamentoId(apartamentoId);
+    const { empresaId } = request;
+    const reservas = await reservaModel.getReservasByApartamentoId(apartamentoId, empresaId);
     return response.status(200).json(reservas);
   } catch (error) {
     console.error('Erro ao obter reservas por apartamento:', error);
@@ -109,13 +112,14 @@ const deleteReserva = async (request, response) => {
 const getReservasPorPeriodo = async (request, response) => {
   try {
     const { start, end } = request.query;
+    const { empresaId } = request;
     if (!start || !end) {
       return response.status(400).json({ 
         error: 'Datas inicial e final são obrigatórias' 
       });
     }
 
-    const reservas = await reservaModel.getReservasPorPeriodo(start, end);
+    const reservas = await reservaModel.getReservasPorPeriodo(start, end, empresaId);
     return response.status(200).json(reservas);
     
   } catch (error) {
@@ -130,13 +134,14 @@ const getReservasPorPeriodo = async (request, response) => {
 const getFaxinasPorPeriodo = async (request, response) => {
   try {
     const { start, end } = request.query;
+    const { empresaId } = request;
     if (!start || !end) {
       return response.status(400).json({ 
         error: 'Datas inicial e final são obrigatórias' 
       });
     }
 
-    const faxinas = await reservaModel.getFaxinasPorPeriodo(start, end);
+    const faxinas = await reservaModel.getFaxinasPorPeriodo(start, end, empresaId);
 
     return response.status(200).json(faxinas);
     
@@ -151,13 +156,14 @@ const getFaxinasPorPeriodo = async (request, response) => {
 const getReservasPorPeriodoCalendario = async (request, response) => {
   try {
     const { start, end } = request.query;
+    const { empresaId } = request;
     if (!start || !end) {
       return response.status(400).json({
         error: 'Datas inicial (start) e final (end) são obrigatórias'
       });
     }
 
-    const reservas = await reservaModel.getReservasPorPeriodoCalendario(start, end);
+    const reservas = await reservaModel.getReservasPorPeriodoCalendario(start, end, empresaId);
     return response.status(200).json(reservas);
 
   } catch (error) {
@@ -169,7 +175,8 @@ const getReservasPorPeriodoCalendario = async (request, response) => {
 };
 const getReservasCanceladasHoje = async (request, response) => {
   try {
-    const reservas = await reservaModel.getReservasCanceladasHoje();
+    const { empresaId } = request;
+    const reservas = await reservaModel.getReservasCanceladasHoje(empresaId);
     return response.status(200).json(reservas);
   } catch (error) {
     console.error('Erro ao obter reservas canceladas de hoje:', error);
@@ -181,6 +188,7 @@ const getReservasPorPeriodoCalendarioPorApartamento = async (request, response) 
   try {
     const { apartamentoId } = request.params;
     const { start, end } = request.query;
+    const { empresaId } = request;
 
     if (!apartamentoId) {
       return response.status(400).json({ error: 'apartamentoId é obrigatório' });
@@ -189,7 +197,7 @@ const getReservasPorPeriodoCalendarioPorApartamento = async (request, response) 
       return response.status(400).json({ error: 'Datas inicial (start) e final (end) são obrigatórias' });
     }
 
-    const reservas = await reservaModel.getReservasPorPeriodoCalendarioPorApartamento(start, end, apartamentoId);
+    const reservas = await reservaModel.getReservasPorPeriodoCalendarioPorApartamento(start, end, apartamentoId, empresaId);
     return response.status(200).json(reservas);
 
   } catch (error) {

@@ -1,8 +1,9 @@
 const usersModel = require('../../models/Airbnb/usersAirbnbModel');
 
-const getAllUsers = async (_request, response) => {
+const getAllUsers = async (request, response) => {
   try {
-    const users = await usersModel.getAllUsers();
+    const { empresaId } = request;
+    const users = await usersModel.getAllUsers(empresaId);
     return response.status(200).json(users);
   } catch (error) {
     console.error('Erro ao obter usuários:', error);
@@ -41,7 +42,8 @@ const loginUser = async (request, response) => {
 const getUser = async (request, response) => {
   try {
     const { id } = request.params;
-    const user = await usersModel.getUser(id);
+    const { empresaId } = request;
+    const user = await usersModel.getUser(id, empresaId);
 
     if (user) {
       return response.status(200).json(user);
@@ -94,17 +96,20 @@ const createUsersBatch = async (request, response) => {
 const getUsersByRole = async (request, response) => {
   try {
     const { role } = request.params; // Obtém o papel (role) da URL
-    const users = await usersModel.getUsersByRole(role);
+    const { empresaId } = request;
+    const users = await usersModel.getUsersByRole(role, empresaId);
     return response.status(200).json(users);
   } catch (error) {
     console.error('Erro ao obter usuários por papel:', error);
     return response.status(500).json({ error: 'Erro ao obter usuários por papel' });
   }
 };
+
 const getUserByTelefone = async (request, response) => {
   try {
     const { telefone } = request.params; // `telefone` vem da URL
-    const user = await usersModel.getUserByTelefone(telefone);
+    const { empresaId } = request;
+    const user = await usersModel.getUserByTelefone(telefone, empresaId);
 
     if (user) {
       return response.status(200).json(user);
@@ -116,6 +121,7 @@ const getUserByTelefone = async (request, response) => {
     return response.status(500).json({ error: 'Erro ao obter usuário por telefone' });
   }
 };
+
 module.exports = {
   getAllUsers,
   createUser,

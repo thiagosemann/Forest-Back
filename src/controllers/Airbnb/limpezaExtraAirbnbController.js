@@ -5,7 +5,8 @@ const whatsControle = require('../../WhatsApp/whats_Controle');
 
 const getAllLimpezasExtras = async (request, response) => {
   try {
-    const limpezas = await limpezaExtraModel.getAllLimpezasExtras();
+    const { empresaId } = request;
+    const limpezas = await limpezaExtraModel.getAllLimpezasExtras(empresaId);
     return response.status(200).json(limpezas);
   } catch (error) {
     console.error('Erro ao obter limpezas extras:', error);
@@ -16,7 +17,8 @@ const getAllLimpezasExtras = async (request, response) => {
 const getLimpezaExtraById = async (request, response) => {
   try {
     const { id } = request.params;
-    const limpeza = await limpezaExtraModel.getLimpezaExtraById(id);
+    const { empresaId } = request;
+    const limpeza = await limpezaExtraModel.getLimpezaExtraById(id, empresaId);
 
     if (limpeza) {
       return response.status(200).json(limpeza);
@@ -124,9 +126,11 @@ const deleteLimpezaExtra = async (request, response) => {
     return response.status(500).json({ error: 'Erro ao deletar limpeza extra' });
   }
 };
+
 const getLimpezasExtrasHoje = async (request, response) => {
   try {
-    const limpezas = await limpezaExtraModel.getLimpezasExtrasHoje();
+    const { empresaId } = request;
+    const limpezas = await limpezaExtraModel.getLimpezasExtrasHoje(empresaId);
     return response.status(200).json(limpezas);
   } catch (error) {
     console.error('Erro ao obter limpezas extras de hoje:', error);
@@ -136,7 +140,8 @@ const getLimpezasExtrasHoje = async (request, response) => {
 
 const getLimpezasExtrasSemana = async (request, response) => {
   try {
-    const limpezas = await limpezaExtraModel.getLimpezasExtrasSemana();
+    const { empresaId } = request;
+    const limpezas = await limpezaExtraModel.getLimpezasExtrasSemana(empresaId);
     return response.status(200).json(limpezas);
   } catch (error) {
     console.error('Erro ao obter limpezas extras desta semana:', error);
@@ -146,7 +151,8 @@ const getLimpezasExtrasSemana = async (request, response) => {
 
 const getLimpezasExtrasSemanaQueVem = async (request, response) => {
   try {
-    const limpezas = await limpezaExtraModel.getLimpezasExtrasSemanaQueVem();
+    const { empresaId } = request;
+    const limpezas = await limpezaExtraModel.getLimpezasExtrasSemanaQueVem(empresaId);
     return response.status(200).json(limpezas);
   } catch (error) {
     console.error('Erro ao obter limpezas extras da semana que vem:', error);
@@ -157,11 +163,12 @@ const getLimpezasExtrasSemanaQueVem = async (request, response) => {
 const getLimpezasExtrasPorPeriodo = async (request, response) => {
   try {
     const { startDate, endDate } = request.query;
+    const { empresaId } = request;
     if (!startDate || !endDate) {
       return response.status(400).json({ error: 'Informe startDate e endDate no formato YYYY-MM-DD' });
     }
 
-    const limpezas = await limpezaExtraModel.getLimpezasExtrasPorPeriodo(startDate, endDate);
+    const limpezas = await limpezaExtraModel.getLimpezasExtrasPorPeriodo(startDate, endDate, empresaId);
     return response.status(200).json(limpezas);
   } catch (error) {
     console.error('Erro ao obter limpezas extras por período:', error);

@@ -16,12 +16,12 @@ const createApartamento = async (apartamento) => {
   if (!apartamento.nome || !apartamento.predio_id) {
     throw new Error("Os campos 'nome' e 'predio_id' são obrigatórios.");
   }
-
   const {
     nome,
     predio_id,
     link_airbnb_calendario,
     link_booking_calendario,
+    link_stays_calendario, // NOVO
     nome_anuncio,
     endereco,
     bairro,
@@ -72,7 +72,8 @@ const createApartamento = async (apartamento) => {
     modificado_user_id,
     data_ultima_modificacao,
     link_fotos,
-    cod_link_proprietario
+    cod_link_proprietario,
+    empresa_id
   } = apartamento;
 
   const insertApartamentoQuery = `
@@ -81,6 +82,7 @@ const createApartamento = async (apartamento) => {
     predio_id = ?, 
     link_airbnb_calendario = ?,
     link_booking_calendario = ?,
+    link_stays_calendario = ?,
     nome_anuncio = ?, 
     endereco = ?, 
     bairro = ?, 
@@ -131,7 +133,8 @@ const createApartamento = async (apartamento) => {
     modificado_user_id = ?,
     data_ultima_modificacao = ?,
     link_fotos = ?,
-    cod_link_proprietario = ?;
+    cod_link_proprietario = ?,
+    empresa_id = ?
   `;
 
   const values = [
@@ -139,6 +142,7 @@ const createApartamento = async (apartamento) => {
     predio_id,
     link_airbnb_calendario ?? null,
     link_booking_calendario ?? null,
+    link_stays_calendario ?? null,
     nome_anuncio ?? null,
     endereco ?? null,
     bairro ?? null,
@@ -189,7 +193,8 @@ const createApartamento = async (apartamento) => {
     modificado_user_id ?? null,
     getCurrentDateTimeString(),
     link_fotos ?? null,
-    cod_link_proprietario ?? null
+    cod_link_proprietario ?? null,
+    empresa_id // <- sempre do argumento
   ];
 
   try {
@@ -212,6 +217,7 @@ const updateApartamento = async (apartamento) => {
     predio_id = null,
     link_airbnb_calendario = null,
     link_booking_calendario = null,
+    link_stays_calendario = null, // NOVO
     nome_anuncio = null,
     endereco = null,
     bairro = null,
@@ -271,6 +277,7 @@ const updateApartamento = async (apartamento) => {
       predio_id = ?,
       link_airbnb_calendario = ?,
       link_booking_calendario = ?,
+      link_stays_calendario = ?,
       nome_anuncio = ?,
       endereco = ?,
       bairro = ?,
@@ -330,6 +337,7 @@ const updateApartamento = async (apartamento) => {
     predio_id,
     link_airbnb_calendario,
     link_booking_calendario,
+    link_stays_calendario,
     nome_anuncio,
     endereco,
     bairro,
@@ -472,6 +480,23 @@ const deleteApartamento = async (id) => {
   }
 };
 
+// Buscar todos os apartamentos de uma empresa
+const getAllApartamentosByEmpresa = async (empresaId) => {
+  const [apartamentos] = await connection.execute('SELECT * FROM apartamentos WHERE empresa_id = ?', [empresaId]);
+  return apartamentos;
+};
+
+// Buscar apartamento por id e empresa
+const getApartamentoByIdAndEmpresa = async (id, empresaId) => {
+  const [apartamentos] = await connection.execute('SELECT * FROM apartamentos WHERE id = ? AND empresa_id = ?', [id, empresaId]);
+  return apartamentos.length > 0 ? apartamentos[0] : null;
+};
+
+// Buscar apartamentos por prédio e empresa
+const getApartamentosByPredioIdAndEmpresa = async (predioId, empresaId) => {
+  const [apartamentos] = await connection.execute('SELECT * FROM apartamentos WHERE predio_id = ? AND empresa_id = ?', [predioId, empresaId]);
+  return apartamentos;
+};
 
 module.exports = {
   getAllApartamentos,
@@ -480,5 +505,8 @@ module.exports = {
   getApartamentoByCodProprietario,
   getApartamentosByPredioId,
   updateApartamento,
-  deleteApartamento
+  deleteApartamento,
+  getAllApartamentosByEmpresa,
+  getApartamentoByIdAndEmpresa,
+  getApartamentosByPredioIdAndEmpresa
 };

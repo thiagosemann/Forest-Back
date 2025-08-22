@@ -2,7 +2,8 @@ const apartamentoModel = require('../../models/Airbnb/apartamentosAirbnbModel');
 
 const getAllApartamentos = async (request, response) => {
   try {
-    const apartamentos = await apartamentoModel.getAllApartamentos();
+    const { empresaId } = request;
+    const apartamentos = await apartamentoModel.getAllApartamentosByEmpresa(empresaId);
     return response.status(200).json(apartamentos);
   } catch (error) {
     console.error('Erro ao obter apartamentos:', error);
@@ -12,7 +13,8 @@ const getAllApartamentos = async (request, response) => {
 
 const createApartamento = async (request, response) => {
   try {
-    const createdApartamento = await apartamentoModel.createApartamento(request.body);
+    const { empresaId } = request;
+    const createdApartamento = await apartamentoModel.createApartamento({ ...request.body, empresa_id: empresaId });
     return response.status(201).json(createdApartamento);
   } catch (error) {
     console.error('Erro ao criar apartamento:', error);
@@ -23,7 +25,8 @@ const createApartamento = async (request, response) => {
 const getApartamentoById = async (request, response) => {
   try {
     const { id } = request.params;
-    const apartamento = await apartamentoModel.getApartamentoById(id);
+    const { empresaId } = request;
+    const apartamento = await apartamentoModel.getApartamentoByIdAndEmpresa(id, empresaId);
 
     if (apartamento) {
       return response.status(200).json(apartamento);
@@ -54,7 +57,8 @@ const getApartamentoByCodProprietario = async (request, response) => {
 const getApartamentosByPredioId = async (request, response) => {
   try {
     const { predioId } = request.params;
-    const apartamentos = await apartamentoModel.getApartamentosByPredioId(predioId);
+    const { empresaId } = request;
+    const apartamentos = await apartamentoModel.getApartamentosByPredioIdAndEmpresa(predioId, empresaId);
     return response.status(200).json(apartamentos);
   } catch (error) {
     console.error('Erro ao obter apartamentos por prédio:', error);

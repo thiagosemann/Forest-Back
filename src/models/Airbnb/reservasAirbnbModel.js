@@ -4,15 +4,16 @@ const axios = require('axios');
 const ical = require('ical.js');
 const moment = require('moment-timezone');
 // Função para buscar todas as reservas com o nome do apartamento
-const getAllReservas = async () => {
+const getAllReservas = async (empresaId) => {
   const query = `
     SELECT r.*, 
            COALESCE(a.nome, 'Apartamento não encontrado') AS apartamento_nome,
            EXISTS (SELECT 1 FROM checkin c WHERE c.reserva_id = r.id) AS documentosEnviados
     FROM reservas r
     LEFT JOIN apartamentos a ON r.apartamento_id = a.id
+    WHERE a.empresa_id = ?
   `;
-  const [reservas] = await connection.execute(query);
+  const [reservas] = await connection.execute(query, [empresaId]);
   return reservas;
 };
 // Função para criar reserva (atualizada com cod_reserva e faxina_userId)
@@ -79,7 +80,8 @@ const createReserva = async (reserva) => {
   // 1) Recupera e filtra apartamentos com link de calendário
   async function getApartamentosComLink() {
     const todos = await apartamentosModel.getAllApartamentos();
-    return todos.filter(a => a.link_airbnb_calendario || a.link_booking_calendario);
+    // Se houver link_stays_calendario, prioriza ele e ignora os outros
+    return todos.filter(a => a.link_stays_calendario || a.link_airbnb_calendario || a.link_booking_calendario);
   }
 
 
@@ -140,6 +142,33 @@ const createReserva = async (reserva) => {
       return { start, end, summary, cod_reserva, link_reserva };
     }
 
+  // 4c) Parser específico para Stays
+  function parseEventoStays(vevent, apartamento) {
+    // Exemplo de DESCRIPTION:
+    // DESCRIPTION:ID: ZV07I\nIDEX: pleeh-ZV07I\nDT: 2025-08-14\nIURL: \nIURLC: pl
+    const toDate = prop => moment(prop.toString()).tz('America/Sao_Paulo').toDate();
+    const start = toDate(vevent.getFirstPropertyValue('dtstart'));
+    const end = toDate(vevent.getFirstPropertyValue('dtend'));
+    let summary = vevent.getFirstPropertyValue('summary') || '';
+    const desc = vevent.getFirstPropertyValue('description') || '';
+    // Extrai o ID único
+    let cod_reserva = null;
+    const match = desc.match(/ID:\s*([\w-]+)/);
+    if (match) {
+      cod_reserva = `STAYS-${match[1]}`;
+    }
+    // Fallback: se não achar, gera um hash simples
+    if (!cod_reserva) {
+      cod_reserva = `STAYS-${Buffer.from(desc).toString('base64').slice(0,12)}`;
+    }
+    if(!cod_reserva.includes("IDEX")){
+      summary = 'Reserved';
+    }
+    // O link_reserva pode ser vazio ou algum campo do stays
+    let link_reserva = apartamento.link_stays_calendario || '';
+    return { start, end, summary, cod_reserva, link_reserva };
+  }
+
   //5. Processa todos os eventos de um apartamento:
 
     async function processarEventos(vevents, apartamento, hoje, dataLimite, parserFn) {
@@ -163,7 +192,7 @@ const createReserva = async (reserva) => {
                 for(const limpeza in limpezasHoje) {
                   const limpezaObj = limpezasHoje[limpeza];
                   if(limpezaObj.apartamento_id === obj.apartamento_id) {
-                    const apartamento = await apartamentoModel.getApartamentoById(obj.apartamento_id);
+                    const apartamento = await apartamentosModel.getApartamentoById(obj.apartamento_id);
                     const user = await usersModel.getUser(limpezaObj.faxina_userId);
                     whatsControle.criarMensagemTercerizadaLimpezaReservaAtribuidaNoDia({
                       apartamento_name: apartamento.nome,
@@ -221,15 +250,22 @@ const createReserva = async (reserva) => {
       for (const apt of aps) {
         try {
           const ativos = new Set();
-          if (apt.link_airbnb_calendario) {
-            const evA = await fetchVevents(apt.link_airbnb_calendario);
-            const codA = await processarEventos(evA, apt, hoje, dataLimite, parseEventoAirbnb);
-            codA.forEach(c => ativos.add(c));
-          }
-          if (apt.link_booking_calendario) {
-            const evB = await fetchVevents(apt.link_booking_calendario);
-            const codB = await processarEventos(evB, apt, hoje, dataLimite, parseEventoBooking);
-            codB.forEach(c => ativos.add(c));
+          if (apt.link_stays_calendario) {
+            // Se houver stays, só processa stays
+            const evS = await fetchVevents(apt.link_stays_calendario);
+            const codS = await processarEventos(evS, apt, hoje, dataLimite, parseEventoStays);
+            codS.forEach(c => ativos.add(c));
+          } else {
+            if (apt.link_airbnb_calendario) {
+              const evA = await fetchVevents(apt.link_airbnb_calendario);
+              const codA = await processarEventos(evA, apt, hoje, dataLimite, parseEventoAirbnb);
+              codA.forEach(c => ativos.add(c));
+            }
+            if (apt.link_booking_calendario) {
+              const evB = await fetchVevents(apt.link_booking_calendario);
+              const codB = await processarEventos(evB, apt, hoje, dataLimite, parseEventoBooking);
+              codB.forEach(c => ativos.add(c));
+            }
           }
           await cancelarReservasAusentes(apt.id, ativos, hoje);
         } catch (e) {
@@ -259,14 +295,15 @@ startAutoSync();
 
 
 // Função para buscar uma reserva pelo ID
-const getReservaById = async (id) => {
+const getReservaById = async (id, empresaId) => {
   const query = `
     SELECT r.*, 
            EXISTS (SELECT 1 FROM checkin c WHERE c.reserva_id = r.id) AS documentosEnviados 
     FROM reservas r 
-    WHERE r.id = ?
+    LEFT JOIN apartamentos a ON r.apartamento_id = a.id
+    WHERE r.id = ? AND a.empresa_id = ?
   `;
-  const [reservas] = await connection.execute(query, [id]);
+  const [reservas] = await connection.execute(query, [id, empresaId]);
   return reservas[0] || null;
 };
 
@@ -283,14 +320,15 @@ const getReservaByCod = async (cod_reserva) => {
 };
 
 // Função para buscar reservas pelo ID do apartamento
-const getReservasByApartamentoId = async (apartamentoId) => {
+const getReservasByApartamentoId = async (apartamentoId, empresaId) => {
   const query = `
     SELECT r.*, 
            EXISTS (SELECT 1 FROM checkin c WHERE c.reserva_id = r.id) AS documentosEnviados 
     FROM reservas r 
-    WHERE r.apartamento_id = ?
+    LEFT JOIN apartamentos a ON r.apartamento_id = a.id
+    WHERE r.apartamento_id = ? AND a.empresa_id = ?
   `;
-  const [reservas] = await connection.execute(query, [apartamentoId]);
+  const [reservas] = await connection.execute(query, [apartamentoId, empresaId]);
   return reservas;
 };
 
@@ -359,7 +397,7 @@ const deleteReserva = async (id) => {
 };
 
 // Função para buscar reservas por período incluindo pagamentos via subquery
-async function getReservasPorPeriodo(startDate, endDate) {
+async function getReservasPorPeriodo(startDate, endDate, empresaId) {
   const query = `
     SELECT
       r.*,
@@ -396,11 +434,11 @@ async function getReservasPorPeriodo(startDate, endDate) {
       ) AS pagamentos
     FROM reservas r
     LEFT JOIN apartamentos a ON a.id = r.apartamento_id
-    WHERE DATE(r.start_date) BETWEEN ? AND ?
+    WHERE DATE(r.start_date) BETWEEN ? AND ? AND a.empresa_id = ?
     ORDER BY r.start_date ASC;
   `;
 
-  const [rows] = await connection.execute(query, [startDate, endDate]);
+  const [rows] = await connection.execute(query, [startDate, endDate, empresaId]);
 
   // Trata possíveis formatos de retorno de JSON_ARRAYAGG do MySQL
   return rows.map(row => {
@@ -489,7 +527,7 @@ async function getReservasPorPeriodoByApartamentoID(apartamentoId, startDate, en
 }
 
 
-async function getReservasPorPeriodoCalendario(startDate, endDate) {
+async function getReservasPorPeriodoCalendario(startDate, endDate, empresaId) {
   const query = `
     SELECT
       r.*,
@@ -530,10 +568,11 @@ async function getReservasPorPeriodoCalendario(startDate, endDate) {
       AND 
       /* termine depois do início do mês */
       DATE(r.end_data) >= ?
+      AND a.empresa_id = ?
     ORDER BY r.start_date ASC;
   `;
 
-  const [rows] = await connection.execute(query, [endDate, startDate]);
+  const [rows] = await connection.execute(query, [endDate, startDate, empresaId]);
 
   return rows.map(row => {
     // parse de JSON_ARRAYAGG caso venha string
@@ -549,7 +588,7 @@ async function getReservasPorPeriodoCalendario(startDate, endDate) {
 }
 
 
-const getFaxinasPorPeriodo = async (inicio_end_data, fim_end_date) => {
+const getFaxinasPorPeriodo = async (inicio_end_data, fim_end_date, empresaId) => {
   const query = `
     SELECT 
       r.*, 
@@ -568,14 +607,15 @@ const getFaxinasPorPeriodo = async (inicio_end_data, fim_end_date) => {
     LEFT JOIN apartamentos a ON r.apartamento_id = a.id
     WHERE r.description = 'Reserved'
       AND r.end_data BETWEEN ? AND ?
+      AND a.empresa_id = ?
     ORDER BY r.end_data ASC
   `;
 
-  const [faxinas] = await connection.execute(query, [inicio_end_data, fim_end_date]);
+  const [faxinas] = await connection.execute(query, [inicio_end_data, fim_end_date, empresaId]);
   return faxinas;
 };
 
-async function getReservasCanceladasHoje() {
+async function getReservasCanceladasHoje(empresaId) {
   // Data de hoje (00:00:00) em São Paulo
   const hoje = moment().tz('America/Sao_Paulo').startOf('day').format('YYYY-MM-DD');
 
@@ -586,14 +626,15 @@ async function getReservasCanceladasHoje() {
     FROM reservas r
     LEFT JOIN apartamentos a ON a.id = r.apartamento_id
     WHERE ? BETWEEN DATE(r.start_date) AND DATE(r.end_data)
-      AND r.description = 'CANCELADA';
+      AND r.description = 'CANCELADA'
+      AND a.empresa_id = ?;
   `;
 
-  const [reservas] = await connection.execute(query, [hoje]);
+  const [reservas] = await connection.execute(query, [hoje, empresaId]);
   return reservas;
 }
 
-async function getReservasPorPeriodoCalendarioPorApartamento(startDate, endDate, apartamentoId) {
+async function getReservasPorPeriodoCalendarioPorApartamento(startDate, endDate, apartamentoId, empresaId) {
   const query = `
     SELECT
       r.*,
@@ -624,11 +665,12 @@ async function getReservasPorPeriodoCalendarioPorApartamento(startDate, endDate,
       r.apartamento_id = ?                  /* apenas o apartamento desejado */
       AND DATE(r.start_date) <= ?           /* começa antes do fim do range */
       AND DATE(r.end_data)  >= ?           /* termina depois do início       */
+      AND a.empresa_id = ?
     ORDER BY r.start_date ASC;
   `;
 
   // atenção à ordem dos parâmetros!
-  const [rows] = await connection.execute(query, [apartamentoId, endDate, startDate]);
+  const [rows] = await connection.execute(query, [apartamentoId, endDate, startDate, empresaId]);
 
   // Normaliza colunas agregadas JSON (caso venham como string)
   return rows.map(row => {
