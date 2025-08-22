@@ -19,8 +19,8 @@ const getAllUsers = async (empresaId) => {
   let query = `SELECT u.* FROM users u`;
   let params = [];
   if (empresaId && empresaId !== 1) {
-    query += ' WHERE u.role = ?';
-    params.push('terceirizado');
+    query += ' WHERE u.role = ? AND u.empresa_id = ?';
+    params.push('terceirizado', empresaId);
   }
   const [users] = await connection.execute(query, params);
   return users;
@@ -110,8 +110,8 @@ const getUser = async (id, empresaId) => {
     WHERE u.id = ?`;
   let params = [id];
   if (empresaId && empresaId !== 1) {
-    query += ' AND u.role = ?';
-    params.push('terceirizado');
+    query += ' AND u.role = ? AND u.empresa_id = ?';
+    params.push('terceirizado', empresaId);
   }
   const [rows] = await connection.execute(query, params);
   return rows[0] || null;
@@ -216,6 +216,7 @@ const deleteUser = async (id) => {
     throw error;
   }
 };
+
 const getUserByCPF = async (cpf) => {
   const query = 'SELECT * FROM users WHERE cpf = ?';
   const [users] = await connection.execute(query, [cpf]);
@@ -225,9 +226,16 @@ const getUserByCPF = async (cpf) => {
 const getUsersByRole = async (role, empresaId) => {
   let query = 'SELECT * FROM users WHERE role = ?';
   let params = [role];
-  if (empresaId && empresaId !== 1) {
-    query += ' AND role = ?';
-    params.push('terceirizado');
+  if (role === 'terceirizado') {
+    if (empresaId && empresaId !== 1) {
+      query += ' AND empresa_id = ?';
+      params.push(empresaId);
+    } else if (empresaId === 1) {
+      // Para empresaId 1, só filtra por role terceirizado, sem filtrar empresa
+    }
+  } else if (empresaId && empresaId !== 1) {
+    // Para outros roles, se empresaId != 1, não retorna nada
+    return [];
   }
   try {
     const [users] = await connection.execute(query, params);
@@ -242,8 +250,8 @@ const getUserByTelefone = async (telefone, empresaId) => {
   let query = 'SELECT * FROM users WHERE Telefone = ?';
   let params = [telefone];
   if (empresaId && empresaId !== 1) {
-    query += ' AND role = ?';
-    params.push('terceirizado');
+    query += ' AND role = ? AND empresa_id = ?';
+    params.push('terceirizado', empresaId);
   }
   const [users] = await connection.execute(query, params);
   return users[0] || null;
