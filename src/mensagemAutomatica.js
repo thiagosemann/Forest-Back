@@ -232,7 +232,7 @@ async function envioMensagemListaTercerizadas() {
 }
 
 
-//envioMensagemListaTercerizadas();
+envioMensagemListaTercerizadas();
 //envioMensagemTercerizadasHoje()
 //envioMensagensInstrucoesEntrada();
 //envioCredenciaisHoje();
