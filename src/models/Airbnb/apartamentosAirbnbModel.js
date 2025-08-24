@@ -8,7 +8,12 @@ const getCurrentDateTimeString = () => {
 
 // Função para buscar todos os apartamentos
 const getAllApartamentos = async () => {
-  const [apartamentos] = await connection.execute('SELECT * FROM apartamentos');
+  const query = `
+    SELECT a.*, p.nome AS predio_name
+    FROM apartamentos a
+    LEFT JOIN predios p ON a.predio_id = p.id
+  `;
+  const [apartamentos] = await connection.execute(query);
   return apartamentos;
 };
 
@@ -482,7 +487,13 @@ const deleteApartamento = async (id) => {
 
 // Buscar todos os apartamentos de uma empresa
 const getAllApartamentosByEmpresa = async (empresaId) => {
-  const [apartamentos] = await connection.execute('SELECT * FROM apartamentos WHERE empresa_id = ?', [empresaId]);
+  const query = `
+    SELECT a.*, p.nome AS predio_name
+    FROM apartamentos a
+    LEFT JOIN predios p ON a.predio_id = p.id
+    WHERE a.empresa_id = ?
+  `;
+  const [apartamentos] = await connection.execute(query, [empresaId]);
   return apartamentos;
 };
 
