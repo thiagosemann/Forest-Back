@@ -2,7 +2,8 @@ const predioModel = require('../../models/Airbnb/predioAirbnbModel');
 
 const getAllPredios = async (request, response) => {
   try {
-    const predios = await predioModel.getAllPredios();
+    const { empresaId } = request;
+    const predios = await predioModel.getAllPredios(empresaId);
     return response.status(200).json(predios);
   } catch (error) {
     console.error('Erro ao obter prédios:', error);
@@ -12,7 +13,8 @@ const getAllPredios = async (request, response) => {
 
 const createPredio = async (request, response) => {
   try {
-    const createdPredio = await predioModel.createPredio(request.body);
+    const { empresaId } = request;
+    const createdPredio = await predioModel.createPredio({ ...request.body, empresa_id: empresaId });
     return response.status(201).json(createdPredio);
   } catch (error) {
     console.error('Erro ao criar prédio:', error);
@@ -23,7 +25,8 @@ const createPredio = async (request, response) => {
 const getPredioById = async (request, response) => {
   try {
     const { id } = request.params;
-    const predio = await predioModel.getPredioById(id);
+    const { empresaId } = request;
+    const predio = await predioModel.getPredioById(id, empresaId);
 
     if (predio) {
       return response.status(200).json(predio);

@@ -1,8 +1,14 @@
 const connection = require('../connection2');
 
 // Função para buscar todos os prédios
-const getAllPredios = async () => {
-  const [predios] = await connection.execute('SELECT * FROM predios');
+const getAllPredios = async (empresaId) => {
+  let query = 'SELECT * FROM predios';
+  let params = [];
+  if (empresaId) {
+    query += ' WHERE empresa_id = ?';
+    params.push(empresaId);
+  }
+  const [predios] = await connection.execute(query, params);
   return predios;
 };
 
@@ -24,6 +30,7 @@ const createPredio = async (predio) => {
     bicicletario,
     estacionamento_visitas,
     elevador_social,
+    empresa_id // novo campo
   } = predio;
 
   const insertQuery = `
@@ -42,9 +49,10 @@ const createPredio = async (predio) => {
       lavanderia,
       bicicletario,
       estacionamento_visitas,
-      elevador_social
+      elevador_social,
+      empresa_id
     )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
   const values = [
@@ -63,6 +71,7 @@ const createPredio = async (predio) => {
     bicicletario || 0,
     estacionamento_visitas || 0,
     elevador_social || 0,
+    empresa_id // novo valor
   ];
 
   try {
@@ -75,9 +84,14 @@ const createPredio = async (predio) => {
 };
 
 // Função para buscar um prédio pelo ID
-const getPredioById = async (id) => {
-  const query = 'SELECT * FROM predios WHERE id = ?';
-  const [predios] = await connection.execute(query, [id]);
+const getPredioById = async (id, empresaId) => {
+  let query = 'SELECT * FROM predios WHERE id = ?';
+  let params = [id];
+  if (empresaId) {
+    query += ' AND empresa_id = ?';
+    params.push(empresaId);
+  }
+  const [predios] = await connection.execute(query, params);
   return predios.length > 0 ? predios[0] : null;
 };
 
