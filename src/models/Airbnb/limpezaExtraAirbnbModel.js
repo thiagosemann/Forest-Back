@@ -116,7 +116,10 @@ const getLimpezasExtrasPorPeriodo = async (startDate, endDate, empresaId) => {
     SELECT le.*,
            COALESCE(a.nome, 'Apartamento não encontrado')       AS apartamento_nome,
            COALESCE(a.valor_limpeza, 0)                        AS valor_limpeza,
-           COALESCE(a.senha_porta, '')                          AS apartamento_senha
+           COALESCE(a.senha_porta, '')                          AS apartamento_senha,
+           COALESCE(a.endereco, '')                          AS apartamento_endereco,
+           COALESCE(a.bairro, '')                          AS apartamento_bairro
+
     FROM limpeza_extra le
     LEFT JOIN apartamentos a ON le.apartamento_id = a.id
     WHERE le.end_data BETWEEN ? AND ?`;

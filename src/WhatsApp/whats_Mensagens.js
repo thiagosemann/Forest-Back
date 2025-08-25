@@ -77,6 +77,7 @@ function criarMensagemListaAtualizadaTerceirizadaLimpeza(obj) {
     for (const reservaId in reservas) {
       const reserva = reservas[reservaId];
       text+=`*${reserva.apartamento_nome}*. ${reserva.entramHoje ? 'Entrada no dia' : 'Sem entradas'}. Senha: ${reserva.apartamento_senha}\n`;
+      text+=`Endereço: ${reserva.apartamento_endereco}, ${reserva.apartamento_bairro} \n`;
       if(reservas.length-1 == reservaId  && obj.reservas.length-1 != id) {
         text+=`\n\n`;
       }

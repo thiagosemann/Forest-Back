@@ -548,6 +548,8 @@ const getFaxinasPorPeriodo = async (inicio_end_data, fim_end_date, empresaId) =>
       r.*, 
       a.nome AS apartamento_nome,
       a.senha_porta AS apartamento_senha,
+      a.endereco AS apartamento_endereco,
+      a.bairro AS apartamento_bairro,
       a.valor_limpeza,
       EXISTS (
         SELECT 1 FROM reservas r2
