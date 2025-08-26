@@ -30,13 +30,20 @@ const createCheckin = async (checkinData) => {
     cod_reserva,
     horarioPrevistoChegada
   } = checkinData;
-
   // 1) Busca a reserva pelo código
   const [reservas] = await connection.execute(
     'SELECT id FROM reservas WHERE cod_reserva = ?',
     [cod_reserva]
   );
   const reserva_id = reservas[0]?.id || null;
+  
+  // 1.1) Atualiza telefone_principal da reserva se estiver vazio
+  if (reserva_id) {
+    const [reservaRows] = await connection.execute('SELECT telefone_principal FROM reservas WHERE id = ?', [reserva_id]);
+    if (reservaRows.length && (!reservaRows[0].telefone_principal || reservaRows[0].telefone_principal === '')) {
+      await connection.execute('UPDATE reservas SET telefone_principal = ? WHERE id = ?', [Telefone, reserva_id]);
+    }
+  }
 
   // 2) Cria ou atualiza o usuário
   let user = await usersModel.getUserByCPF(CPF);
@@ -86,6 +93,8 @@ const createCheckin = async (checkinData) => {
       message: 'Check-in existente atualizado com sucesso.'
     };
   }
+
+
 
   // 4) Insere novo check-in
   const insertCheckinQuery = `
