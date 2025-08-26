@@ -216,7 +216,19 @@ async function criarMensagemTercerizadaLimpezaReservaAtribuidaNoDia(obj) {
 }
 
 
+async function criarMensagemCadastroViaLink(obj) {
+  try {
+    let text = `Forest:\nObrigado por escolher nossa acomodação!\nPara acessar o condomínio, é necessário que todos os hóspedes realizem o cadastro no link abaixo.\nEssas informações serão utilizadas exclusivamente para controle de acesso ao condomínio.\n`;
+    text+= `${obj.tipoSite}:\n`;
+    text+=`Início:  ${formatarData(obj.dataEntrada)}\n`;
+    text+=`Término:  ${formatarData(obj.dataSaida)}\n`;
+    text += `${obj.linkCadastro}\n`;
 
+    await sendWapiMessage(obj.telefone, text);
+  } catch (err) {
+    await sendWapiMessageAdmin('5541991017913', 'envioMensagemLimpezaExtra', obj);
+  }
+}
 
 module.exports = {
   sendWapiMessage,
@@ -234,5 +246,6 @@ module.exports = {
   criarMensagemSelecionadaComoTerceirizadaLimpeza,
   criarMensagemDiariaTerceirizadaLimpeza,
   criarMensagemListaAtualizadaTerceirizadaLimpeza,
-  criarMensagemTercerizadaLimpezaReservaAtribuidaNoDia
+  criarMensagemTercerizadaLimpezaReservaAtribuidaNoDia,
+  criarMensagemCadastroViaLink
 };

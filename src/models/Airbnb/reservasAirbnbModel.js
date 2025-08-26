@@ -36,12 +36,12 @@ const createReserva = async (reserva) => {
     check_in, 
     check_out,
     faxina_userId,
-    telefone_principal
+    telefone_principal = null // valor padrão null
   } = reserva;
 
   const insertReservaQuery = `
     INSERT INTO reservas 
-    (apartamento_id, description, end_data, start_date, Observacoes, cod_reserva, link_reserva, limpeza_realizada, credencial_made, informed, check_in, check_out, faxina_userId) 
+    (apartamento_id, description, end_data, start_date, Observacoes, cod_reserva, link_reserva, limpeza_realizada, credencial_made, informed, check_in, check_out, faxina_userId, telefone_principal) 
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
   const values = [
@@ -58,7 +58,7 @@ const createReserva = async (reserva) => {
     check_in, 
     check_out,
     faxina_userId,
-    telefone_principal
+    telefone_principal // já será null se não vier
   ];
 
   try {

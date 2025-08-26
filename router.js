@@ -43,7 +43,7 @@ const ticketReembolsoController = require('./src/controllers/Airbnb/ticketReembo
 const apartamentosProprietarioController = require('./src/controllers/Airbnb/apartamentosProprietarioController');
 const nodemcuPrediosController = require('./src/controllers/Airbnb/nodemcuPrediosController');
 const aberturaNodeMcuController = require('./src/controllers/Airbnb/aberturaNodeMcuController');
-
+const mensagemCadastroViaLinkController = require('./src/controllers/Airbnb/mensagemCadastroViaLinkController');
 // Funções WebSocket
 const { ligarNodeMcu } = require('./src/WebSocket/webSocketFunctions');
 
@@ -232,6 +232,12 @@ router.post('/checkins', checkinFormController.createCheckin); // Criar um novo 
 router.post('/mercadoPago/processar-webhook', mercadoPagoApi.processarWebhookMercadoPago);
 router.post('/mercadopago/preference',  verifyToken, mercadoPagoApi.criarPreferencia);
 router.get('/reservas-airbnb/reservas/por-periodo-calendario/:apartamentoId', reservasAirbnbController.getReservasPorPeriodoCalendarioPorApartamento);
+// Rota para acionar NodeMCU via WebSocket (POST, recebe nodeId e cod_reserva no body)
+router.post('/nodemcu-predios/ligar', require('./src/WebSocket/webSocketFunctions').ligarNodeMcu);
+// Rota para enviar mensagem cadastro.
+router.post('/mensagem-cadastro-link', mensagemCadastroViaLinkController.sendMensagemCadastroViaLink);
+
+
 
 
 // ReservasAirbnb routes
@@ -364,8 +370,6 @@ router.get('/nodemcu-aberturas/predio/:predio_id', verifyToken, empresaMiddlewar
 router.post('/nodemcu-aberturas', verifyToken, empresaMiddleware, aberturaNodeMcuController.createAbertura);
 router.delete('/nodemcu-aberturas/:id', verifyToken, empresaMiddleware, aberturaNodeMcuController.deleteAbertura);
 
-// Rota para acionar NodeMCU via WebSocket (POST, recebe nodeId e cod_reserva no body)
-router.post('/nodemcu-predios/ligar', require('./src/WebSocket/webSocketFunctions').ligarNodeMcu);
 
 module.exports = router;
 
