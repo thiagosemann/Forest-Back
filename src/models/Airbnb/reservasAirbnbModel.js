@@ -35,13 +35,14 @@ const createReserva = async (reserva) => {
     informed, 
     check_in, 
     check_out,
-    faxina_userId // Nova coluna
+    faxina_userId,
+    telefone_principal
   } = reserva;
 
   const insertReservaQuery = `
     INSERT INTO reservas 
     (apartamento_id, description, end_data, start_date, Observacoes, cod_reserva, link_reserva, limpeza_realizada, credencial_made, informed, check_in, check_out, faxina_userId) 
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
   const values = [
     apartamento_id, 
@@ -56,7 +57,8 @@ const createReserva = async (reserva) => {
     informed, 
     check_in, 
     check_out,
-    faxina_userId // Nova coluna
+    faxina_userId,
+    telefone_principal
   ];
 
   try {
@@ -346,6 +348,7 @@ const getReservasByApartamentoId = async (apartamentoId, empresaId) => {
 
 // Função para atualizar reserva (atualizada com faxina_userId)
 const updateReserva = async (reserva) => {
+  console.log('Atualizando reserva:', reserva);
   const {
     id,
     apartamento_id,
@@ -360,12 +363,13 @@ const updateReserva = async (reserva) => {
     informed,
     check_in,
     check_out,
-    faxina_userId // Nova coluna
+    faxina_userId,
+    telefone_principal
   } = reserva;
 
   const updateReservaQuery = `
     UPDATE reservas 
-    SET apartamento_id = ?, description = ?, end_data = ?, start_date = ?, Observacoes = ?, cod_reserva = ?, link_reserva = ?, limpeza_realizada = ?, credencial_made = ?, informed = ?, check_in = ?, check_out = ?, faxina_userId = ?
+    SET apartamento_id = ?, description = ?, end_data = ?, start_date = ?, Observacoes = ?, cod_reserva = ?, link_reserva = ?, limpeza_realizada = ?, credencial_made = ?, informed = ?, check_in = ?, check_out = ?, faxina_userId = ?, telefone_principal = ?
     WHERE id = ?
   `;
 
@@ -382,7 +386,8 @@ const updateReserva = async (reserva) => {
     informed,
     check_in,
     check_out,
-    faxina_userId, // Nova coluna
+    faxina_userId,
+    telefone_principal,
     id, // O ID deve ser o último valor, pois corresponde ao WHERE id = ?
   ];
 
