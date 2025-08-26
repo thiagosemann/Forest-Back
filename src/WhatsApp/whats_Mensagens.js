@@ -64,6 +64,8 @@ function criarMensagemDiariaTerceirizadaLimpeza(obj) {
       entramHojeMsg = 'Não entram hoje';
     }
       text+=`*${reserva.apartamento_nome}*. *${entramHojeMsg}*. Senha: *${reserva.apartamento_senha}*\n`;
+      text+=`Endereço: ${reserva.apartamento_endereco}, ${reserva.apartamento_bairro} \n`;
+
   })
   text+=`\n Não esqueça de verificar as limpezas no sistema:\n https://www.apartamentosforest.com.br`;
   return text;

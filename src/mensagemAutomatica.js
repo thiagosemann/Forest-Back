@@ -208,6 +208,7 @@ async function envioMensagemListaTercerizadas() {
             user = await usersModel.getUser(userId);
             userCache[userId] = user;
           }
+
           let diaDaSemana = dataAtual.toLocaleDateString('pt-BR', { weekday: 'long' });
           diaDaSemana = diaDaSemana.charAt(0).toUpperCase() + diaDaSemana.slice(1);
           if(mensagensParaEnviar[userId] === undefined){
