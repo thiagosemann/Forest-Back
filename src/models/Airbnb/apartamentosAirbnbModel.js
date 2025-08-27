@@ -447,19 +447,19 @@ const deleteApartamento = async (id) => {
   try {
     await conn.beginTransaction();
 
-    // 1) Remove todos os pagamentos associados diretamente ao apartamento
+    // 1) Seta apartamento_id como null nos pagamentos associados
     await conn.execute(
-      'DELETE FROM pagamento_por_reserva WHERE apartamento_id = ?',
+      'UPDATE pagamento_por_reserva SET apartamento_id = NULL WHERE apartamento_id = ?',
       [id]
     );
     await conn.execute(
-      'DELETE FROM pagamento_por_reserva_extra WHERE apartamento_id = ?',
+      'UPDATE pagamento_por_reserva_extra SET apartamento_id = NULL WHERE apartamento_id = ?',
       [id]
     );
 
-    // 2) Busca IDs de reservas do apt para remoção em cascata
+    // 2) Busca IDs de reservas do apt para remoção em cascata, mas só as que faxina_userId IS NULL
     const [reservas] = await conn.execute(
-      'SELECT id FROM reservas WHERE apartamento_id = ?',
+      'SELECT id FROM reservas WHERE apartamento_id = ? AND (faxina_userId IS NULL OR faxina_userId = "")',
       [id]
     );
     const reservaIds = reservas.map(r => r.id);
@@ -480,7 +480,7 @@ const deleteApartamento = async (id) => {
       );
     }
 
-    // 5) Finalmente deleta o apartamento
+    // 5) Finalmente deleta o apartamento (só se todos os passos anteriores deram certo)
     const [result] = await conn.execute(
       'DELETE FROM apartamentos WHERE id = ?',
       [id]
