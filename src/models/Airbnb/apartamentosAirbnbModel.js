@@ -500,9 +500,10 @@ const deleteApartamento = async (id) => {
 // Buscar todos os apartamentos de uma empresa
 const getAllApartamentosByEmpresa = async (empresaId) => {
   const query = `
-    SELECT a.*, p.nome AS predio_name
+    SELECT a.*, p.nome AS predio_name, u.first_name AS modificado_user_nome
     FROM apartamentos a
     LEFT JOIN predios p ON a.predio_id = p.id
+    LEFT JOIN users u ON a.modificado_user_id = u.id
     WHERE a.empresa_id = ?
   `;
   const [apartamentos] = await connection.execute(query, [empresaId]);

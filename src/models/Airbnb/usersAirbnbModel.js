@@ -110,8 +110,8 @@ const getUser = async (id, empresaId) => {
     WHERE u.id = ?`;
   let params = [id];
   if (empresaId && empresaId !== 1) {
-    query += ' AND u.role = ? AND u.empresa_id = ?';
-    params.push('terceirizado', empresaId);
+    query += ' AND (u.role = ? OR u.role = ?) AND u.empresa_id = ?';
+    params.push('terceirizado', 'admin', empresaId);
   }
   const [rows] = await connection.execute(query, params);
   return rows[0] || null;

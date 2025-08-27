@@ -215,6 +215,18 @@ async function criarMensagemTercerizadaLimpezaReservaAtribuidaNoDia(obj) {
   }
 }
 
+async function criarMensagemErrosSincronização(erroWhatsapp) {
+  if (!erroWhatsapp || !erroWhatsapp.Erros || erroWhatsapp.Erros.length === 0) return;
+  let msg = `*Erros na Sincronização Airbnb:*
+`;
+  msg += `Total Processado: ${erroWhatsapp.TotalProcessado}\nTotal Atualizados: ${erroWhatsapp.TotalAtualizados}\nTotal Sem Reservas: ${erroWhatsapp.TotalSemReservas}\nTotal erros: ${erroWhatsapp.TotalErros}\nTempo: ${erroWhatsapp.Tempo}\n`;
+  msg += `\n*Detalhes dos erros:*\n`;
+  erroWhatsapp.Erros.forEach((err, idx) => {
+    msg += `\n${idx + 1}. *Apartamento:* ${err.nome || '-'} | *Empresa:* ${err.empresa_id || '-'} | *Erro:* ${err.error || '-'} | *Código:* ${err.errorCode || '-'}\n`;
+  });
+  // Envia para o admin (ajuste o número conforme necessário)
+  await sendWapiMessage('5541991017913', msg);
+}
 
 async function criarMensagemCadastroViaLink(obj) {
   try {
@@ -247,5 +259,6 @@ module.exports = {
   criarMensagemDiariaTerceirizadaLimpeza,
   criarMensagemListaAtualizadaTerceirizadaLimpeza,
   criarMensagemTercerizadaLimpezaReservaAtribuidaNoDia,
+  criarMensagemErrosSincronização,
   criarMensagemCadastroViaLink
 };
