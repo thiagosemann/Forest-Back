@@ -104,10 +104,26 @@ const createReserva = async (reserva) => {
    * 3. Busca e parseia o ICS de um apartamento em uma lista de vevents
    */
     async function fetchVevents(icsUrl) {
-      const res = await axios.get(icsUrl);
-      const jcal = ical.parse(res.data);
-      const comp = new ical.Component(jcal);
-      return comp.getAllSubcomponents('vevent');
+      let res;
+      try {
+        res = await axios.get(icsUrl);
+        if (!res.data || !res.data.includes('BEGIN:VEVENT')) {
+          // ICS vazio ou sem eventos
+          return [];
+        }
+        const jcal = ical.parse(res.data);
+        const comp = new ical.Component(jcal);
+        return comp.getAllSubcomponents('vevent');
+      } catch (e) {
+        // Trate qualquer erro HTTP (404, 504, etc) e continue a sincronização
+        const status = e.response?.status;
+        if (status) {
+          console.warn(`[Airbnb Sync] Falha ao buscar ICS (${status}) para ${icsUrl}: ${e.response?.data || e.message}`);
+          return [];
+        }
+        console.error('Erro ao processar ICS:', icsUrl, e, res ? res.data : null);
+        return [];
+      }
     }
 
   /**
@@ -250,47 +266,60 @@ const createReserva = async (reserva) => {
   /**
    * 7. Função principal de sincronização, agora orquestrando as funções acima
    */
-    async function syncAirbnbReservations() {
-      const aps = await getApartamentosComLink();
-      const { hoje, dataLimite } = getDatasReferencia();
-      for (const apt of aps) {
-        try {
-          const ativos = new Set();
-          if (apt.link_stays_calendario) {
-            // Se houver stays, só processa stays
-            const evS = await fetchVevents(apt.link_stays_calendario);
-            const codS = await processarEventos(evS, apt, hoje, dataLimite, parseEventoStays);
-            codS.forEach(c => ativos.add(c));
-          } else {
-            if (apt.link_airbnb_calendario) {
-              const evA = await fetchVevents(apt.link_airbnb_calendario);
-              const codA = await processarEventos(evA, apt, hoje, dataLimite, parseEventoAirbnb);
-              codA.forEach(c => ativos.add(c));
-            }
-            if (apt.link_booking_calendario) {
-              const evB = await fetchVevents(apt.link_booking_calendario);
-              const codB = await processarEventos(evB, apt, hoje, dataLimite, parseEventoBooking);
-              codB.forEach(c => ativos.add(c));
-            }
+async function syncAirbnbReservations() {
+  const aps = await getApartamentosComLink();
+  const { hoje, dataLimite } = getDatasReferencia();
+
+  // Processa todos os apartamentos em paralelo
+  await Promise.allSettled(
+    aps.map(async (apt) => {
+      try {
+        const ativos = new Set();
+        if (apt.link_stays_calendario) {
+          const evS = await fetchVevents(apt.link_stays_calendario);
+          const codS = await processarEventos(evS, apt, hoje, dataLimite, parseEventoStays);
+          codS.forEach(c => ativos.add(c));
+        } else {
+          if (apt.link_airbnb_calendario) {
+            const evA = await fetchVevents(apt.link_airbnb_calendario);
+            const codA = await processarEventos(evA, apt, hoje, dataLimite, parseEventoAirbnb);
+            codA.forEach(c => ativos.add(c));
           }
-          await cancelarReservasAusentes(apt.id, ativos, hoje);
-        } catch (e) {
-          console.error(`Erro no apt ${apt.id}:`, e.message);
+          if (apt.link_booking_calendario) {
+            const evB = await fetchVevents(apt.link_booking_calendario);
+            const codB = await processarEventos(evB, apt, hoje, dataLimite, parseEventoBooking);
+            codB.forEach(c => ativos.add(c));
+          }
         }
+        await cancelarReservasAusentes(apt.id, ativos, hoje);
+      } catch (e) {
+        console.error(`[Airbnb Sync] Erro no apt ${apt.id}:`, e.message);
       }
-      return { success: true, message: 'Sincronização concluída' };
-    }
+    })
+  );
+  return { success: true, message: 'Sincronização concluída' };
+}
 
 // Função de sincronização automática
 const startAutoSync = () => {
   // Executa imediatamente
-  syncAirbnbReservations().catch(error => {
+  console.log('[Airbnb Sync] Iniciando sincronização automática:', new Date().toISOString());
+  const startTime = Date.now();
+  syncAirbnbReservations().then(() => {
+    const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
+    console.log(`[Airbnb Sync] Sincronização concluída em ${elapsed}s - ${new Date().toISOString()}`);
+  }).catch(error => {
     console.error('Erro na sincronização inicial:', error.message);
   });
 
   // Configura o intervalo de 5 minutos (300000 ms)
   setInterval(() => {
-    syncAirbnbReservations().catch(error => {
+    console.log('[Airbnb Sync] Iniciando sincronização automática:', new Date().toISOString());
+    const startTime = Date.now();
+    syncAirbnbReservations().then(() => {
+      const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
+      console.log(`[Airbnb Sync] Sincronização concluída em ${elapsed}s - ${new Date().toISOString()}`);
+    }).catch(error => {
       console.error('Erro na sincronização periódica:', error.message);
     });
   }, 300000); 
@@ -348,7 +377,6 @@ const getReservasByApartamentoId = async (apartamentoId, empresaId) => {
 
 // Função para atualizar reserva (atualizada com faxina_userId)
 const updateReserva = async (reserva) => {
-  console.log('Atualizando reserva:', reserva);
   const {
     id,
     apartamento_id,
