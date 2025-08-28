@@ -80,7 +80,8 @@ const createApartamento = async (apartamento) => {
     cod_link_proprietario,
     empresa_id,
     link_anuncio_airbnb = null, // Garante null se não vier
-    link_anuncio_booking = null // Garante null se não vier
+    link_anuncio_booking = null, // Garante null se não vier
+    categoria = null // NOVO
   } = apartamento;
 
   const insertApartamentoQuery = `
@@ -143,7 +144,8 @@ const createApartamento = async (apartamento) => {
     cod_link_proprietario = ?,
     empresa_id = ?,
     link_anuncio_airbnb = ?,
-    link_anuncio_booking = ?
+    link_anuncio_booking = ?,
+    categoria = ?
   `;
 
   const values = [
@@ -205,7 +207,8 @@ const createApartamento = async (apartamento) => {
     cod_link_proprietario ?? null,
     empresa_id,
     link_anuncio_airbnb ?? null,
-    link_anuncio_booking ?? null
+    link_anuncio_booking ?? null,
+    categoria ?? null
   ];
 
   try {
@@ -281,7 +284,8 @@ const updateApartamento = async (apartamento) => {
     link_fotos = null,
     cod_link_proprietario = null,
     link_anuncio_airbnb = null, // Garante null se não vier
-    link_anuncio_booking = null // Garante null se não vier
+    link_anuncio_booking = null, // Garante null se não vier
+    categoria = null // NOVO
   } = apartamento;
 
   const updateApartamentoQuery = `
@@ -343,7 +347,8 @@ const updateApartamento = async (apartamento) => {
       link_fotos = ?,
       cod_link_proprietario = ?,
       link_anuncio_airbnb = ?,
-      link_anuncio_booking = ?
+      link_anuncio_booking = ?,
+      categoria = ?
     WHERE id = ?
   `;
 
@@ -406,6 +411,7 @@ const updateApartamento = async (apartamento) => {
     cod_link_proprietario,
     link_anuncio_airbnb ?? null,
     link_anuncio_booking ?? null,
+    categoria ?? null,
     id
   ];
 
