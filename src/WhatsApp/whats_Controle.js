@@ -26,6 +26,7 @@ async function sendWapiMessage(phone, message) {
     await axios.post(W_API_URL_TEXT, { phone, message }, { headers: HEADERS });
   } catch (err) {
     console.error('[ERRO] Falha ao enviar texto:', phone, err.response?.data || err.message);
+    console.error("[ERRO] Mensagem:", message);
   }
 }
 
@@ -34,7 +35,8 @@ async function sendWapiImage(phone, imageBase64, caption) {
     const image = `data:image/png;base64,${imageBase64}`;
     await axios.post(W_API_URL_MEDIA, { phone, image, caption }, { headers: HEADERS });
   } catch (err) {
-    console.error('[ERRO] Falha ao enviar imagem:', phone, err.response?.data || err.message);
+    console.error('[ERRO] Falha ao enviar imagem:', phone, err.response?.data || err.caption);
+    console.error("[ERRO] Mensagem:", caption);
   }
 }
 
