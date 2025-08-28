@@ -93,6 +93,7 @@ function parseEventoStays(vevent, apartamento) {
 
 async function processarEventos(vevents, apartamento, hoje, dataLimite, parserFn) {
   const ativos = new Set();
+  let criadas = 0;
   for (const vevent of vevents) {
     const parsed = parserFn(vevent, apartamento);
     if (!parsed) continue;
@@ -105,6 +106,7 @@ async function processarEventos(vevents, apartamento, hoje, dataLimite, parserFn
     );
     if (existing.length === 0) {
       await reservasModel.createReserva({ apartamento_id: apartamento.id, description: summary, start_date: start, end_data: end, Observacoes: '', cod_reserva, link_reserva, limpeza_realizada: false, credencial_made: false, informed: false, check_in: '15:00', check_out: '11:00', faxina_userId: null });
+      criadas++;
       if(start=== hoje){
         const limpezasHoje = await reservasModel.getFaxinasPorPeriodo(obj.start, obj.start);
         if (limpezasHoje.length > 0) {
@@ -128,13 +130,11 @@ async function processarEventos(vevents, apartamento, hoje, dataLimite, parserFn
       }
     }
   }
-  return ativos;
+  return { ativos, criadas };
 }
 
-
-
 const BATCH_SIZE = 3;
-const DELAY_BETWEEN_CYCLES_MS = 10 * 60 * 1000;
+const DELAY_BETWEEN_CYCLES_MS = 5 * 60 * 1000;
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -142,6 +142,8 @@ function sleep(ms) {
 
 async function processarApartamento(apt, hoje, dataLimite) {
   try {
+    let criadas = 0;
+    let canceladas = 0;
     const ativos = new Set();
     let icsVazio = false;
     let icsErro = false;
@@ -151,35 +153,44 @@ async function processarApartamento(apt, hoje, dataLimite) {
       const { eventos: evS, erro, msg, status } = await fetchVevents(apt.link_stays_calendario);
       if (erro) { icsErro = true; erroMsg = msg; erroStatus = status; }
       else if (evS.length === 0) icsVazio = true;
-      const codS = await processarEventos(evS, apt, hoje, dataLimite, parseEventoStays);
+      const { ativos: codS, criadas: criadasS } = await processarEventos(evS, apt, hoje, dataLimite, parseEventoStays);
       codS.forEach(c => ativos.add(c));
+      criadas += criadasS;
     } else {
       if (apt.link_airbnb_calendario) {
         const { eventos: evA, erro, msg, status } = await fetchVevents(apt.link_airbnb_calendario);
         if (erro) { icsErro = true; erroMsg = msg; erroStatus = status; }
         else if (evA.length === 0) icsVazio = true;
-        const codA = await processarEventos(evA, apt, hoje, dataLimite, parseEventoAirbnb);
+        const { ativos: codA, criadas: criadasA } = await processarEventos(evA, apt, hoje, dataLimite, parseEventoAirbnb);
         codA.forEach(c => ativos.add(c));
+        criadas += criadasA;
       }
       if (apt.link_booking_calendario) {
         const { eventos: evB, erro, msg, status } = await fetchVevents(apt.link_booking_calendario);
         if (erro) { icsErro = true; erroMsg = msg; erroStatus = status; }
         else if (evB.length === 0) icsVazio = true;
-        const codB = await processarEventos(evB, apt, hoje, dataLimite, parseEventoBooking);
+        const { ativos: codB, criadas: criadasB } = await processarEventos(evB, apt, hoje, dataLimite, parseEventoBooking);
         codB.forEach(c => ativos.add(c));
+        criadas += criadasB;
       }
     }
-    await reservasModel.cancelarReservasAusentes(apt.id, ativos, hoje);
+    // Canceladas
+    if (typeof reservasModel.cancelarReservasAusentes === 'function') {
+      const canceladasCount = await reservasModel.cancelarReservasAusentes(apt.id, ativos, hoje);
+      if (typeof canceladasCount === 'number') canceladas = canceladasCount;
+    } else {
+      await reservasModel.cancelarReservasAusentes(apt.id, ativos, hoje);
+    }
     if (icsErro) {
-      return { id: apt.id, nome: apt.nome, empresa_id: apt.empresa_id, status: 'erro', error: erroMsg, errorCode: erroStatus };
+      return { id: apt.id, nome: apt.nome, empresa_id: apt.empresa_id, status: 'erro', error: erroMsg, errorCode: erroStatus, criadas, canceladas };
     }
     if (icsVazio) {
-      return { id: apt.id, nome: apt.nome, empresa_id: apt.empresa_id, status: 'sem_reservas' };
+      return { id: apt.id, nome: apt.nome, empresa_id: apt.empresa_id, status: 'sem_reservas', criadas, canceladas };
     }
-    return { id: apt.id, nome: apt.nome, empresa_id: apt.empresa_id, status: 'ok' };
+    return { id: apt.id, nome: apt.nome, empresa_id: apt.empresa_id, status: 'ok', criadas, canceladas };
   } catch (e) {
     console.error(`[Airbnb Sync] Erro no apt ${apt.id}:`, e.message);
-    return { id: apt.id, nome: apt.nome, empresa_id: apt.empresa_id, status: 'erro', error: e.message };
+    return { id: apt.id, nome: apt.nome, empresa_id: apt.empresa_id, status: 'erro', error: e.message, criadas: 0, canceladas: 0 };
   }
 }
 
