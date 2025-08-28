@@ -457,7 +457,7 @@ const deleteApartamento = async (id) => {
       [id]
     );
 
-    // 2) Busca IDs de reservas do apt para remoção em cascata, mas só as que faxina_userId IS NULL
+    // 2) Busca IDs de reservas do apt para remoção em cascata, mas só as que faxina_userId IS NULL ou vazio
     const [reservas] = await conn.execute(
       'SELECT id FROM reservas WHERE apartamento_id = ? AND (faxina_userId IS NULL OR faxina_userId = "")',
       [id]
