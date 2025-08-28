@@ -38,12 +38,14 @@ const predioPortariaController = require('./src/controllers/Airbnb/predioPortari
 const mensagemAutomatica    = require('./src/mensagemAutomatica')
 const limpezaExtraController = require('./src/controllers/Airbnb/limpezaExtraAirbnbController');
 const pagamentosController = require('./src/controllers/Airbnb/pagamento_por_reservaController');
-const mercadoPagoApi = require('./src/mercadoPago');
+const mercadoPagoApi = require('./src/controllers/Airbnb/mercadoPagoController');
 const ticketReembolsoController = require('./src/controllers/Airbnb/ticketReembolsoController');
 const apartamentosProprietarioController = require('./src/controllers/Airbnb/apartamentosProprietarioController');
 const nodemcuPrediosController = require('./src/controllers/Airbnb/nodemcuPrediosController');
 const aberturaNodeMcuController = require('./src/controllers/Airbnb/aberturaNodeMcuController');
 const mensagemCadastroViaLinkController = require('./src/controllers/Airbnb/mensagemCadastroViaLinkController');
+const scripts = require('./src/Scripts/sincronizacaoReservas');
+
 // Funções WebSocket
 const { ligarNodeMcu } = require('./src/WebSocket/webSocketFunctions');
 
@@ -370,6 +372,8 @@ router.get('/nodemcu-aberturas/predio/:predio_id', verifyToken, empresaMiddlewar
 router.post('/nodemcu-aberturas', verifyToken, empresaMiddleware, aberturaNodeMcuController.createAbertura);
 router.delete('/nodemcu-aberturas/:id', verifyToken, empresaMiddleware, aberturaNodeMcuController.deleteAbertura);
 
+// Valida um arquivo ICS enviado pelo frontend
+router.post('/validar-ical', require('./src/Scripts/sincronizacaoReservas').validarIcalRoute);
 
 module.exports = router;
 

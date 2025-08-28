@@ -1,6 +1,6 @@
 // controllers/ticketReembolsoController.js
 const ticketModel = require('../../models/Airbnb/ticketReembolsoModel');
-const mercadoPagoApi = require('../../mercadoPago');
+const mercadoPagoApi = require('../../controllers/Airbnb/mercadoPagoController');
 
 // Buscar todos os tickets
 const getAllReembolsos = async (_req, res) => {

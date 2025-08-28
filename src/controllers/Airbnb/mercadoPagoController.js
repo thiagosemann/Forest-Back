@@ -1,10 +1,10 @@
 const { MercadoPagoConfig, Preference } = require('mercadopago');
-const pagamentoModel = require('./models/Airbnb/pagamento_por_reserva_extraModel');
-const ticketModel = require('./models/Airbnb/ticketReembolsoModel');
-const usersModel = require('./models/Airbnb/usersAirbnbModel');
-const apartamentosModel = require('./models/Airbnb/apartamentosAirbnbModel');
-const reservasModel = require('./models/Airbnb/reservasAirbnbModel');
-const whatsControle = require('./WhatsApp/whats_Controle')
+const pagamentoModel = require('../../models/Airbnb/pagamento_por_reserva_extraModel');
+const ticketModel = require('../../models/Airbnb/ticketReembolsoModel');
+const usersModel = require('../../models/Airbnb/usersAirbnbModel');
+const apartamentosModel = require('../../models/Airbnb/apartamentosAirbnbModel');
+const reservasModel = require('../../models/Airbnb/reservasAirbnbModel');
+const whatsControle = require('../../WhatsApp/whats_Controle');
 const axios = require('axios');
 require('dotenv').config();
 
