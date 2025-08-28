@@ -287,7 +287,6 @@ async function validarIcal(icalData) {
 async function validarIcalRoute(req, res) {
   try {
     const { icalData } = req.body;
-    console.log('Recebido ICS para validação:', icalData ? icalData.slice(0, 100) + '...' : 'Nenhum dado');
     const result = await validarIcal(icalData);
     res.json(result);
   } catch (err) {
