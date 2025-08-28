@@ -46,11 +46,13 @@ function parseEventoAirbnb(vevent, apartamento) {
   const end = toDate(vevent.getFirstPropertyValue('dtend'));
   const summary = vevent.getFirstPropertyValue('summary') || '';
   let cod_reserva, link_reserva;
-  const desc = vevent.getFirstPropertyValue('description') || '';
-  if (desc) {
-    cod_reserva = desc.match(/\/details\/([A-Z0-9]+)/)?.[1];
-    link_reserva = desc.match(/https:\/\/www\\.airbnb\\.com\/hosting\/reservations\/details\/[A-Z0-9]+/)?.[0];
-  }
+  let desc = vevent.getFirstPropertyValue('description') || '';
+  // Corrige quebras de linha e espaços extras
+  desc = desc.replace(/\n/g, ' ').replace(/\s+/g, ' ');
+  // Extrai o código da reserva
+  cod_reserva = desc.match(/details\/([A-Z0-9]+)/)?.[1];
+  // Extrai a URL da reserva
+  link_reserva = desc.match(/https:\/\/www\.airbnb\.com\/hosting\/reservations\/details\/[A-Z0-9]+/)?.[0];
   if (!cod_reserva) return null;
   if (!link_reserva) {
     link_reserva = 'https://www.admforest.com.br/';
