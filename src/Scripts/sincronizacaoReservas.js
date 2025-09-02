@@ -175,15 +175,10 @@ async function processarApartamento(apt, hoje, dataLimite) {
       codS.forEach(c => ativos.add(c));
       criadas += criadasS;
     } else if (apt.link_ayrton_calendario) {
-      console.log(`[AYRTON] Processando apartamento: ${apt.id} - ${apt.nome}`);
       const { eventos: evAy, erro, msg, status } = await fetchVevents(apt.link_ayrton_calendario);
       if (erro) { icsErro = true; erroMsg = msg; erroStatus = status; }
       else if (evAy.length === 0) icsVazio = true;
-      else {
-        console.log(`[AYRTON] Eventos encontrados: ${evAy.length}`);
-      }
       const { ativos: codAy, criadas: criadasAy } = await processarEventos(evAy, apt, hoje, dataLimite, parseEventoAyrton);
-      console.log(`[AYRTON] Reservas criadas: ${criadasAy}`);
       codAy.forEach(c => ativos.add(c));
       criadas += criadasAy;
     } else {
