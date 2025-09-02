@@ -20,9 +20,15 @@ function getDatasReferencia() {
 }
 
 async function fetchVevents(icsUrl) {
+  const https = require('https');
   let res;
   try {
-    res = await axios.get(icsUrl);
+    let axiosConfig = {};
+    // Ignora certificado apenas para Ayrton
+    if (icsUrl.includes('ayrton.net.br')) {
+      axiosConfig.httpsAgent = new https.Agent({ rejectUnauthorized: false });
+    }
+    res = await axios.get(icsUrl, axiosConfig);
     if (!res.data || !res.data.includes('BEGIN:VEVENT')) {
       return { eventos: [], erro: false };
     }
