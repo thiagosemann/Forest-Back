@@ -10,7 +10,7 @@ const connection = require('../models/connection2');
 // 1) Recupera e filtra apartamentos com link de calendário
 async function getApartamentosComLink() {
   const todos = await apartamentosModel.getAllApartamentos();
-  return todos.filter(a => a.link_stays_calendario || a.link_airbnb_calendario || a.link_booking_calendario);
+  return todos.filter(a => a.link_stays_calendario || a.link_airbnb_calendario || a.link_booking_calendario || a.link_ayrton_calendario);
 }
 
 function getDatasReferencia() {
@@ -72,6 +72,7 @@ function parseEventoBooking(vevent, apartamento) {
   return { start, end, summary, cod_reserva, link_reserva };
 }
 
+
 function parseEventoStays(vevent, apartamento) {
   const toDate = prop => moment(prop.toString()).tz('America/Sao_Paulo').toDate();
   const start = toDate(vevent.getFirstPropertyValue('dtstart'));
@@ -90,6 +91,21 @@ function parseEventoStays(vevent, apartamento) {
     summary = 'Reserved';
   }
   let link_reserva = apartamento.link_stays_calendario || '';
+  return { start, end, summary, cod_reserva, link_reserva };
+}
+
+// Função para parsear eventos Ayrton
+function parseEventoAyrton(vevent, apartamento) {
+  // Datas vêm como YYYYMMDD, formato VALUE=DATE
+  const toDate = prop =>
+    moment(prop.toString(), 'YYYYMMDD').tz('America/Sao_Paulo').startOf('day').toDate();
+  const start = toDate(vevent.getFirstPropertyValue('dtstart'));
+  const end = toDate(vevent.getFirstPropertyValue('dtend'));
+  const summary = 'Reserved';
+  // Usa UID para gerar código único
+  const uid = vevent.getFirstPropertyValue('uid') || '';
+  const cod_reserva = `AYRTON-${uid}`;
+  const link_reserva = apartamento.link_ayrton_calendario || '';
   return { start, end, summary, cod_reserva, link_reserva };
 }
 
@@ -158,6 +174,18 @@ async function processarApartamento(apt, hoje, dataLimite) {
       const { ativos: codS, criadas: criadasS } = await processarEventos(evS, apt, hoje, dataLimite, parseEventoStays);
       codS.forEach(c => ativos.add(c));
       criadas += criadasS;
+    } else if (apt.link_ayrton_calendario) {
+      console.log(`[AYRTON] Processando apartamento: ${apt.id} - ${apt.nome}`);
+      const { eventos: evAy, erro, msg, status } = await fetchVevents(apt.link_ayrton_calendario);
+      if (erro) { icsErro = true; erroMsg = msg; erroStatus = status; }
+      else if (evAy.length === 0) icsVazio = true;
+      else {
+        console.log(`[AYRTON] Eventos encontrados: ${evAy.length}`);
+      }
+      const { ativos: codAy, criadas: criadasAy } = await processarEventos(evAy, apt, hoje, dataLimite, parseEventoAyrton);
+      console.log(`[AYRTON] Reservas criadas: ${criadasAy}`);
+      codAy.forEach(c => ativos.add(c));
+      criadas += criadasAy;
     } else {
       if (apt.link_airbnb_calendario) {
         const { eventos: evA, erro, msg, status } = await fetchVevents(apt.link_airbnb_calendario);

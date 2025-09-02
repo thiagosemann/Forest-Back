@@ -24,9 +24,10 @@ const createApartamento = async (apartamento) => {
   const {
     nome,
     predio_id,
-    link_airbnb_calendario,
-    link_booking_calendario,
-    link_stays_calendario, // NOVO
+  link_airbnb_calendario,
+  link_booking_calendario,
+  link_stays_calendario, // NOVO
+  link_ayrton_calendario, // NOVO
     nome_anuncio,
     endereco,
     bairro,
@@ -88,9 +89,10 @@ const createApartamento = async (apartamento) => {
   INSERT INTO apartamentos SET 
     nome = ?, 
     predio_id = ?, 
-    link_airbnb_calendario = ?,
-    link_booking_calendario = ?,
-    link_stays_calendario = ?,
+  link_airbnb_calendario = ?,
+  link_booking_calendario = ?,
+  link_stays_calendario = ?,
+  link_ayrton_calendario = ?,
     nome_anuncio = ?, 
     endereco = ?, 
     bairro = ?, 
@@ -151,9 +153,10 @@ const createApartamento = async (apartamento) => {
   const values = [
     nome,
     predio_id,
-    link_airbnb_calendario ?? null,
-    link_booking_calendario ?? null,
-    link_stays_calendario ?? null,
+  link_airbnb_calendario ?? null,
+  link_booking_calendario ?? null,
+  link_stays_calendario ?? null,
+  link_ayrton_calendario ?? null,
     nome_anuncio ?? null,
     endereco ?? null,
     bairro ?? null,
@@ -232,6 +235,7 @@ const updateApartamento = async (apartamento) => {
     link_airbnb_calendario = null,
     link_booking_calendario = null,
     link_stays_calendario = null, // NOVO
+    link_ayrton_calendario = null, // NOVO
     nome_anuncio = null,
     endereco = null,
     bairro = null,
@@ -292,9 +296,10 @@ const updateApartamento = async (apartamento) => {
     UPDATE apartamentos SET
       nome = ?,
       predio_id = ?,
-      link_airbnb_calendario = ?,
-      link_booking_calendario = ?,
-      link_stays_calendario = ?,
+  link_airbnb_calendario = ?,
+  link_booking_calendario = ?,
+  link_stays_calendario = ?,
+  link_ayrton_calendario = ?,
       nome_anuncio = ?,
       endereco = ?,
       bairro = ?,
@@ -355,9 +360,10 @@ const updateApartamento = async (apartamento) => {
   const values = [
     nome,
     predio_id,
-    link_airbnb_calendario,
-    link_booking_calendario,
-    link_stays_calendario,
+  link_airbnb_calendario,
+  link_booking_calendario,
+  link_stays_calendario,
+  link_ayrton_calendario,
     nome_anuncio,
     endereco,
     bairro,
