@@ -167,21 +167,51 @@ async function processarApartamento(apt, hoje, dataLimite) {
     let icsErro = false;
     let erroMsg = '';
     let erroStatus = null;
-    if (apt.link_stays_calendario) {
-      const { eventos: evS, erro, msg, status } = await fetchVevents(apt.link_stays_calendario);
-      if (erro) { icsErro = true; erroMsg = msg; erroStatus = status; }
-      else if (evS.length === 0) icsVazio = true;
-      const { ativos: codS, criadas: criadasS } = await processarEventos(evS, apt, hoje, dataLimite, parseEventoStays);
-      codS.forEach(c => ativos.add(c));
-      criadas += criadasS;
-    } else if (apt.link_ayrton_calendario) {
-      const { eventos: evAy, erro, msg, status } = await fetchVevents(apt.link_ayrton_calendario);
-      if (erro) { icsErro = true; erroMsg = msg; erroStatus = status; }
-      else if (evAy.length === 0) icsVazio = true;
-      const { ativos: codAy, criadas: criadasAy } = await processarEventos(evAy, apt, hoje, dataLimite, parseEventoAyrton);
-      codAy.forEach(c => ativos.add(c));
-      criadas += criadasAy;
-    } else {
+      if (apt.link_stays_calendario) {
+        const { eventos: evS, erro, msg, status } = await fetchVevents(apt.link_stays_calendario);
+        if (erro) {
+          icsErro = true; erroMsg = msg; erroStatus = status;
+          console.log(`[STAYS][ERRO] Apartamento: ${apt.id} - ${apt.nome} | Erro: ${erroMsg} | Status: ${erroStatus}`);
+        } else if (evS.length === 0) icsVazio = true;
+        const { ativos: codS, criadas: criadasS } = await processarEventos(evS, apt, hoje, dataLimite, parseEventoStays);
+        codS.forEach(c => ativos.add(c));
+        criadas += criadasS;
+      } else if (apt.link_ayrton_calendario) {
+        console.log(`[AYRTON] Processando apartamento: ${apt.id} - ${apt.nome}`);
+        const { eventos: evAy, erro, msg, status } = await fetchVevents(apt.link_ayrton_calendario);
+        if (erro) {
+          icsErro = true; erroMsg = msg; erroStatus = status;
+          console.log(`[AYRTON][ERRO] Apartamento: ${apt.id} - ${apt.nome} | Erro: ${erroMsg} | Status: ${erroStatus}`);
+        } else if (evAy.length === 0) icsVazio = true;
+        else {
+          console.log(`[AYRTON] Eventos encontrados: ${evAy.length}`);
+        }
+        const { ativos: codAy, criadas: criadasAy } = await processarEventos(evAy, apt, hoje, dataLimite, parseEventoAyrton);
+        console.log(`[AYRTON] Reservas criadas: ${criadasAy}`);
+        codAy.forEach(c => ativos.add(c));
+        criadas += criadasAy;
+      } else {
+        if (apt.link_airbnb_calendario) {
+          const { eventos: evA, erro, msg, status } = await fetchVevents(apt.link_airbnb_calendario);
+          if (erro) {
+            icsErro = true; erroMsg = msg; erroStatus = status;
+            console.log(`[AIRBNB][ERRO] Apartamento: ${apt.id} - ${apt.nome} | Erro: ${erroMsg} | Status: ${erroStatus}`);
+          } else if (evA.length === 0) icsVazio = true;
+          const { ativos: codA, criadas: criadasA } = await processarEventos(evA, apt, hoje, dataLimite, parseEventoAirbnb);
+          codA.forEach(c => ativos.add(c));
+          criadas += criadasA;
+        }
+        if (apt.link_booking_calendario) {
+          const { eventos: evB, erro, msg, status } = await fetchVevents(apt.link_booking_calendario);
+          if (erro) {
+            icsErro = true; erroMsg = msg; erroStatus = status;
+            console.log(`[BOOKING][ERRO] Apartamento: ${apt.id} - ${apt.nome} | Erro: ${erroMsg} | Status: ${erroStatus}`);
+          } else if (evB.length === 0) icsVazio = true;
+          const { ativos: codB, criadas: criadasB } = await processarEventos(evB, apt, hoje, dataLimite, parseEventoBooking);
+          codB.forEach(c => ativos.add(c));
+          criadas += criadasB;
+        }
+      }
       if (apt.link_airbnb_calendario) {
         const { eventos: evA, erro, msg, status } = await fetchVevents(apt.link_airbnb_calendario);
         if (erro) { icsErro = true; erroMsg = msg; erroStatus = status; }
