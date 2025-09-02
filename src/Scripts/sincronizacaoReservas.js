@@ -32,6 +32,11 @@ async function fetchVevents(icsUrl) {
         'Accept': 'text/calendar,application/ics,text/plain,*/*',
         'Referer': icsUrl
       };
+      axiosConfig.maxRedirects = 5;
+      axiosConfig.responseType = 'text';
+      axiosConfig.validateStatus = function (status) {
+        return status >= 200 && status < 400; // Aceita 3xx para capturar redirecionamento
+      };
     }
     res = await axios.get(icsUrl, axiosConfig);
     if (!res.data || !res.data.includes('BEGIN:VEVENT')) {
