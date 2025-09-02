@@ -1,6 +1,7 @@
 const apartamentosModel = require('../models/Airbnb/apartamentosAirbnbModel');
 const reservasModel = require('../models/Airbnb/reservasAirbnbModel');
 const axios = require('axios');
+const https = require('https');
 const ical = require('ical.js');
 const moment = require('moment-timezone');
 const whatsControle = require('../WhatsApp/whats_Controle');
@@ -20,10 +21,15 @@ function getDatasReferencia() {
 }
 
 async function fetchVevents(icsUrl) {
-  const https = require('https');
   let res;
   try {
-    let axiosConfig = {};
+    let axiosConfig = {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36',
+        'Accept': 'text/calendar,application/ics,text/plain,*/*',
+        'Referer': icsUrl
+      }
+    };
     // Ignora certificado apenas para Ayrton
     if (icsUrl.includes('ayrton.net.br')) {
       axiosConfig.httpsAgent = new https.Agent({ rejectUnauthorized: false });
