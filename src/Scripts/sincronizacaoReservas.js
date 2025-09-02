@@ -23,12 +23,17 @@ function getDatasReferencia() {
 async function fetchVevents(icsUrl) {
   let res;
   try {
-    let axiosConfig = {
-      headers: {
+    let axiosConfig = {};
+    // Ignora certificado e adiciona headers de navegador apenas para Ayrton
+    if (icsUrl.includes('ayrton.net.br')) {
+      axiosConfig.httpsAgent = new https.Agent({ rejectUnauthorized: false });
+      axiosConfig.headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36',
         'Accept': 'text/calendar,application/ics,text/plain,*/*',
         'Referer': icsUrl
-      }
+      };
+    }
+    res = await axios.get(icsUrl, axiosConfig);
     };
     // Ignora certificado apenas para Ayrton
     if (icsUrl.includes('ayrton.net.br')) {
