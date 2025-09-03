@@ -29,60 +29,49 @@ async function fetchVevents(icsUrl) {
       console.log(`[ICS] URL sanitizada: '${icsUrl}' -> '${safeUrl}'`);
     }
 
-    // Fluxo especializado para Ayrton: múltiplas tentativas com headers diferentes
+    // Fluxo especializado para Ayrton: simular navegador e propagar cookies manualmente
     if (safeUrl.includes('ayrton.net.br')) {
       const httpsAgent = new https.Agent({ rejectUnauthorized: false });
-      const attempts = [
-        {
-          name: 'AYRTON#1-minimal',
-          headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36',
-            'Accept': 'text/calendar,*/*;q=0.9',
-            'Accept-Encoding': 'identity'
-          }
+      const commonHeaders = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36',
+        'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7'
+      };
+      // 1) Prime cookies na raiz do domínio
+      console.log('[ICS][AYRTON] Priming cookies...');
+      const primeRes = await axios.get('https://reservas.ayrton.net.br/', {
+        httpsAgent,
+        headers: { ...commonHeaders, 'Accept': 'text/html,*/*;q=0.8' },
+        maxRedirects: 5,
+        responseType: 'text',
+        validateStatus: () => true
+      });
+      const setCookies = primeRes.headers?.['set-cookie'] || [];
+      const cookieHeader = Array.isArray(setCookies) && setCookies.length > 0
+        ? setCookies.map(c => c.split(';')[0]).join('; ')
+        : '';
+      // 2) Baixar ICS com headers de calendário
+      const r = await axios.get(safeUrl, {
+        httpsAgent,
+        headers: {
+          ...commonHeaders,
+          'Accept': 'text/calendar,application/ics,text/plain,*/*',
+          'Referer': safeUrl,
+          'Origin': 'https://reservas.ayrton.net.br',
+          'Accept-Encoding': 'identity',
+          ...(cookieHeader ? { 'Cookie': cookieHeader } : {})
         },
-        {
-          name: 'AYRTON#2-generic',
-          headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36',
-            'Accept': '*/*',
-            'Accept-Encoding': 'identity'
-          }
-        },
-        {
-          name: 'AYRTON#3-with-referer',
-          headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36',
-            'Accept': 'text/calendar,application/ics,text/plain,*/*',
-            'Accept-Encoding': 'identity',
-            'Referer': safeUrl
-          }
-        }
-      ];
-
-      for (const att of attempts) {
-        try {
-          console.log(`[ICS][${att.name}] GET ${safeUrl}`);
-          const r = await axios.get(safeUrl, {
-            httpsAgent,
-            headers: att.headers,
-            maxRedirects: 5,
-            responseType: 'text',
-            validateStatus: () => true // vamos avaliar manualmente
-          });
-          if (r.status >= 200 && r.status < 300 && typeof r.data === 'string' && r.data.includes('BEGIN:VEVENT')) {
-            const jcal = ical.parse(r.data);
-            const comp = new ical.Component(jcal);
-            return { eventos: comp.getAllSubcomponents('vevent'), erro: false };
-          }
-          const bodyStr = typeof r.data === 'string' ? r.data.slice(0, 200) : '';
-          console.warn(`[ICS][${att.name}] status=${r.status} bodyPreview=${bodyStr}`);
-          // tenta próximo header set
-        } catch (innerErr) {
-          console.warn(`[ICS][${att.name}] falhou: ${innerErr.message}`);
-        }
+        maxRedirects: 5,
+        responseType: 'text',
+        validateStatus: () => true
+      });
+      const bodyStr = typeof r.data === 'string' ? r.data.slice(0, 200) : '';
+      console.log(`[ICS][AYRTON] status=${r.status} preview=${bodyStr}`);
+      if (r.status >= 200 && r.status < 300 && typeof r.data === 'string' && r.data.includes('BEGIN:VCALENDAR')) {
+        const jcal = ical.parse(r.data);
+        const comp = new ical.Component(jcal);
+        return { eventos: comp.getAllSubcomponents('vevent'), erro: false };
       }
-      return { eventos: [], erro: true, msg: 'Falha ao baixar ICS Ayrton após múltiplas tentativas', status: 404 };
+      return { eventos: [], erro: true, msg: `Falha ao baixar ICS Ayrton (status ${r.status})`, status: r.status };
     }
 
     // Fluxo padrão para demais provedores
