@@ -1,7 +1,6 @@
 const apartamentosModel = require('../models/Airbnb/apartamentosAirbnbModel');
 const reservasModel = require('../models/Airbnb/reservasAirbnbModel');
 const axios = require('axios');
-const https = require('https');
 const ical = require('ical.js');
 const moment = require('moment-timezone');
 const whatsControle = require('../WhatsApp/whats_Controle');
@@ -23,59 +22,7 @@ function getDatasReferencia() {
 async function fetchVevents(icsUrl) {
   let res;
   try {
-    // Sanitiza URL: remove espaços/quebras de linha ocultos
-    const safeUrl = (icsUrl || '').trim().replace(/\s+/g, '');
-    if (safeUrl !== icsUrl) {
-      console.log(`[ICS] URL sanitizada: '${icsUrl}' -> '${safeUrl}'`);
-    }
-
-    // Fluxo especializado para Ayrton: simular navegador e propagar cookies manualmente
-    if (safeUrl.includes('ayrton.net.br')) {
-      const httpsAgent = new https.Agent({ rejectUnauthorized: false });
-      const commonHeaders = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36',
-        'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7'
-      };
-      // 1) Prime cookies na raiz do domínio
-      console.log('[ICS][AYRTON] Priming cookies...');
-      const primeRes = await axios.get('https://reservas.ayrton.net.br/', {
-        httpsAgent,
-        headers: { ...commonHeaders, 'Accept': 'text/html,*/*;q=0.8' },
-        maxRedirects: 5,
-        responseType: 'text',
-        validateStatus: () => true
-      });
-      const setCookies = primeRes.headers?.['set-cookie'] || [];
-      const cookieHeader = Array.isArray(setCookies) && setCookies.length > 0
-        ? setCookies.map(c => c.split(';')[0]).join('; ')
-        : '';
-      // 2) Baixar ICS com headers de calendário
-      const r = await axios.get(safeUrl, {
-        httpsAgent,
-        headers: {
-          ...commonHeaders,
-          'Accept': 'text/calendar,application/ics,text/plain,*/*',
-          'Referer': safeUrl,
-          'Origin': 'https://reservas.ayrton.net.br',
-          'Accept-Encoding': 'identity',
-          ...(cookieHeader ? { 'Cookie': cookieHeader } : {})
-        },
-        maxRedirects: 5,
-        responseType: 'text',
-        validateStatus: () => true
-      });
-      const bodyStr = typeof r.data === 'string' ? r.data.slice(0, 200) : '';
-      console.log(`[ICS][AYRTON] status=${r.status} preview=${bodyStr}`);
-      if (r.status >= 200 && r.status < 300 && typeof r.data === 'string' && r.data.includes('BEGIN:VCALENDAR')) {
-        const jcal = ical.parse(r.data);
-        const comp = new ical.Component(jcal);
-        return { eventos: comp.getAllSubcomponents('vevent'), erro: false };
-      }
-      return { eventos: [], erro: true, msg: `Falha ao baixar ICS Ayrton (status ${r.status})`, status: r.status };
-    }
-
-    // Fluxo padrão para demais provedores
-    res = await axios.get(safeUrl);
+    res = await axios.get(icsUrl);
     if (!res.data || !res.data.includes('BEGIN:VEVENT')) {
       return { eventos: [], erro: false };
     }
