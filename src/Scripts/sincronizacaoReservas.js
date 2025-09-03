@@ -23,14 +23,19 @@ function getDatasReferencia() {
 async function fetchVevents(icsUrl) {
   let res;
   try {
+    // Sanitiza URL: remove espaços/quebras de linha ocultos
+    const safeUrl = (icsUrl || '').trim().replace(/\s+/g, '');
+    if (safeUrl !== icsUrl) {
+      console.log(`[ICS] URL sanitizada: '${icsUrl}' -> '${safeUrl}'`);
+    }
     let axiosConfig = {};
     // Ignora certificado e adiciona headers de navegador apenas para Ayrton
-    if (icsUrl.includes('ayrton.net.br')) {
+    if (safeUrl.includes('ayrton.net.br')) {
       axiosConfig.httpsAgent = new https.Agent({ rejectUnauthorized: false });
       axiosConfig.headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36',
         'Accept': 'text/calendar,application/ics,text/plain,*/*',
-        'Referer': icsUrl,
+        'Referer': safeUrl,
         'Origin': 'https://reservas.ayrton.net.br',
         'Sec-Fetch-Mode': 'navigate',
         'Sec-Fetch-Site': 'same-origin',
@@ -44,7 +49,7 @@ async function fetchVevents(icsUrl) {
         return status >= 200 && status < 400; // Aceita 3xx para capturar redirecionamento
       };
     }
-    res = await axios.get(icsUrl, axiosConfig);
+    res = await axios.get(safeUrl, axiosConfig);
     if (!res.data || !res.data.includes('BEGIN:VEVENT')) {
       return { eventos: [], erro: false };
     }
@@ -54,6 +59,38 @@ async function fetchVevents(icsUrl) {
   } catch (e) {
     const status = e.response?.status;
     if (status) {
+      // Fallback: alguns servidores retornam 404 com script de redirecionamento; tenta novamente com headers alternativos
+      const body = typeof e.response?.data === 'string' ? e.response.data : '';
+      if (status === 404 && body.includes('window.location')) {
+        try {
+          const altUrl = (icsUrl || '').trim().replace(/\s+/g, '');
+          const altConfig = {
+            httpsAgent: altUrl.includes('ayrton.net.br') ? new https.Agent({ rejectUnauthorized: false }) : undefined,
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36',
+              'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+              'Upgrade-Insecure-Requests': '1',
+              'Referer': altUrl,
+              'Origin': 'https://reservas.ayrton.net.br',
+              'Connection': 'keep-alive',
+              'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7'
+            },
+            maxRedirects: 5,
+            responseType: 'text'
+          };
+          const retryRes = await axios.get(altUrl, altConfig);
+          if (!retryRes.data || !retryRes.data.includes('BEGIN:VEVENT')) {
+            console.warn(` Fallback não retornou ICS válido para ${altUrl}`);
+            return { eventos: [], erro: true, msg: `Falha ao buscar ICS (${status})`, status };
+          }
+          const jcal = ical.parse(retryRes.data);
+          const comp = new ical.Component(jcal);
+          return { eventos: comp.getAllSubcomponents('vevent'), erro: false };
+        } catch (retryErr) {
+          console.warn(` Fallback também falhou (${status}) para ${icsUrl}: ${retryErr.response?.data || retryErr.message}`);
+          return { eventos: [], erro: true, msg: `Falha ao buscar ICS (${status})`, status };
+        }
+      }
       console.warn(` Falha ao buscar ICS (${status}) para ${icsUrl}: ${e.response?.data || e.message}`);
       return { eventos: [], erro: true, msg: `Falha ao buscar ICS (${status})`, status };
     }
