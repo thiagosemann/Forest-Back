@@ -12,15 +12,20 @@ function fetchUrlWithTlsBypass(url, maxRedirects = 3) {
   return new Promise((resolve, reject) => {
     try {
       const u = new URL(url);
-      const options = {
+    const options = {
         hostname: u.hostname,
         port: u.port || 443,
         path: (u.pathname || '/') + (u.search || ''),
         method: 'GET',
         rejectUnauthorized: false,
         headers: {
-          'User-Agent': 'ForestBack/ics-fetch',
-          'Accept': 'text/calendar, text/plain, */*'
+      // Cabeçalhos mais "browser-like" para evitar bloqueios/CDN
+      'Host': u.hostname,
+      'Connection': 'close',
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+      'Accept': 'text/calendar, text/plain, application/json, */*;q=0.8',
+      'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7',
+      'Accept-Encoding': 'identity'
         }
       };
       const req = https.request(options, (res) => {
