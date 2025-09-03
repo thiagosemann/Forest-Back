@@ -8,7 +8,7 @@ const whatsControle = require('../WhatsApp/whats_Controle');
 const connection = require('../models/connection2');
 
 // Fetch auxiliar: bypass de TLS APENAS quando o host é "ayrton" e houve erro de hostname.
-function fetchUrlWithTlsBypass(url, maxRedirects = 3) {
+function fetchUrlWithTlsBypass(url, maxRedirects = 3, retryOnBlock = true) {
   return new Promise((resolve, reject) => {
     try {
       const u = new URL(url);
@@ -36,19 +36,67 @@ function fetchUrlWithTlsBypass(url, maxRedirects = 3) {
         if ([301, 302, 303, 307, 308].includes(res.statusCode) && res.headers.location && maxRedirects > 0) {
           const nextUrl = new URL(res.headers.location, url).toString();
           res.resume(); // libera o socket
-          return resolve(fetchUrlWithTlsBypass(nextUrl, maxRedirects - 1));
+          return resolve(fetchUrlWithTlsBypass(nextUrl, maxRedirects - 1, retryOnBlock));
         }
-        if (res.statusCode < 200 || res.statusCode >= 300) {
-          let chunks = '';
-          res.setEncoding('utf8');
-          res.on('data', d => chunks += d);
-          res.on('end', () => reject(new Error(`HTTP ${res.statusCode}: ${chunks?.slice(0,200) || ''}`)));
-          return;
-        }
-        let data = '';
+        let chunks = '';
         res.setEncoding('utf8');
-        res.on('data', chunk => { data += chunk; });
-        res.on('end', () => resolve(data));
+        res.on('data', d => chunks += d);
+        res.on('end', () => {
+          if (res.statusCode >= 200 && res.statusCode < 300) {
+            return resolve(chunks);
+          }
+          const looksBlocked = res.statusCode === 404 && /window\.location\s*=\s*['"]/i.test(chunks || '');
+          if (looksBlocked && retryOnBlock) {
+            try {
+              const bust = Date.now();
+              const u2 = new URL(url);
+              u2.searchParams.set('_', String(bust));
+              const altHeaders = {
+                'Host': u2.hostname,
+                'Connection': 'close',
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+                'Accept': 'text/calendar, text/plain, application/json, text/html;q=0.8,*/*;q=0.7',
+                'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7',
+                'Accept-Encoding': 'identity',
+                'Upgrade-Insecure-Requests': '1',
+                'Sec-Fetch-Mode': 'navigate',
+                'Sec-Fetch-Dest': 'document',
+                'Sec-Fetch-Site': 'none',
+                'Cache-Control': 'no-cache',
+                'Pragma': 'no-cache',
+                'Referer': `${u2.protocol}//${u2.hostname}/`
+              };
+              const altOpts = {
+                hostname: u2.hostname,
+                port: u2.port || 443,
+                path: (u2.pathname || '/') + (u2.search || ''),
+                method: 'GET',
+                rejectUnauthorized: false,
+                headers: altHeaders
+              };
+              const req2 = https.request(altOpts, (res2) => {
+                if ([301, 302, 303, 307, 308].includes(res2.statusCode) && res2.headers.location && maxRedirects > 0) {
+                  const nextUrl = new URL(res2.headers.location, u2.toString()).toString();
+                  res2.resume();
+                  return resolve(fetchUrlWithTlsBypass(nextUrl, maxRedirects - 1, false));
+                }
+                let data2 = '';
+                res2.setEncoding('utf8');
+                res2.on('data', c => data2 += c);
+                res2.on('end', () => {
+                  if (res2.statusCode >= 200 && res2.statusCode < 300) return resolve(data2);
+                  return reject(new Error(`HTTP ${res2.statusCode}: ${data2?.slice(0,200) || ''}`));
+                });
+              });
+              req2.on('error', reject);
+              req2.end();
+              return;
+            } catch (innerErr) {
+              return reject(innerErr);
+            }
+          }
+          return reject(new Error(`HTTP ${res.statusCode}: ${chunks?.slice(0,200) || ''}`));
+        });
       });
       req.on('error', reject);
       req.end();
