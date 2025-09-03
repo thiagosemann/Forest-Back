@@ -19,7 +19,6 @@ function getDatasReferencia() {
   const dataLimite = new Date(); dataLimite.setMonth(dataLimite.getMonth() + 3);
   return { hoje, dataLimite };
 }
-
 async function fetchVevents(icsUrl) {
   let res;
   try {
@@ -31,31 +30,6 @@ async function fetchVevents(icsUrl) {
     const comp = new ical.Component(jcal);
     return { eventos: comp.getAllSubcomponents('vevent'), erro: false };
   } catch (e) {
-    // Fallback: certificado inválido apenas para Ayrton
-    const isAyrton = typeof icsUrl === 'string' && icsUrl.includes('ayrton.net.br');
-    const certErr = e?.code === 'ERR_TLS_CERT_ALTNAME_INVALID' || /cert('|)s altnames|certificate/i.test(e?.message || '');
-    if (isAyrton && certErr) {
-      try {
-        console.warn(`[ICS][AYRTON] Certificado inválido detectado. Requisitando com httpsAgent (rejectUnauthorized:false) -> ${icsUrl}`);
-        const r = await axios.get(icsUrl, {
-          httpsAgent: new https.Agent({ rejectUnauthorized: false })
-        });
-        if (!r.data || !r.data.includes('BEGIN:VEVENT')) {
-          return { eventos: [], erro: false };
-        }
-        const jcal = ical.parse(r.data);
-        const comp = new ical.Component(jcal);
-        return { eventos: comp.getAllSubcomponents('vevent'), erro: false };
-      } catch (e2) {
-        const status2 = e2.response?.status;
-        if (status2) {
-          console.warn(` Falha ao buscar ICS (${status2}) para ${icsUrl}: ${e2.response?.data || e2.message}`);
-          return { eventos: [], erro: true, msg: `Falha ao buscar ICS (${status2})`, status: status2 };
-        }
-        console.error('Erro ao processar ICS (fallback Ayrton):', icsUrl, e2, res ? res.data : null);
-        return { eventos: [], erro: true, msg: e2.message, status: null };
-      }
-    }
     const status = e.response?.status;
     if (status) {
       console.warn(` Falha ao buscar ICS (${status}) para ${icsUrl}: ${e.response?.data || e.message}`);
