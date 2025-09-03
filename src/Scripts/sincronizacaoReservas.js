@@ -7,6 +7,48 @@ const moment = require('moment-timezone');
 const whatsControle = require('../WhatsApp/whats_Controle');
 const connection = require('../models/connection2');
 
+// Fetch auxiliar: bypass de TLS APENAS quando o host é "ayrton" e houve erro de hostname.
+function fetchUrlWithTlsBypass(url, maxRedirects = 3) {
+  return new Promise((resolve, reject) => {
+    try {
+      const u = new URL(url);
+      const options = {
+        hostname: u.hostname,
+        port: u.port || 443,
+        path: (u.pathname || '/') + (u.search || ''),
+        method: 'GET',
+        rejectUnauthorized: false,
+        headers: {
+          'User-Agent': 'ForestBack/ics-fetch',
+          'Accept': 'text/calendar, text/plain, */*'
+        }
+      };
+      const req = https.request(options, (res) => {
+        // Trata redirecionamentos simples
+        if ([301, 302, 303, 307, 308].includes(res.statusCode) && res.headers.location && maxRedirects > 0) {
+          const nextUrl = new URL(res.headers.location, url).toString();
+          res.resume(); // libera o socket
+          return resolve(fetchUrlWithTlsBypass(nextUrl, maxRedirects - 1));
+        }
+        if (res.statusCode < 200 || res.statusCode >= 300) {
+          let chunks = '';
+          res.setEncoding('utf8');
+          res.on('data', d => chunks += d);
+          res.on('end', () => reject(new Error(`HTTP ${res.statusCode}: ${chunks?.slice(0,200) || ''}`)));
+          return;
+        }
+        let data = '';
+        res.setEncoding('utf8');
+        res.on('data', chunk => { data += chunk; });
+        res.on('end', () => resolve(data));
+      });
+      req.on('error', reject);
+      req.end();
+    } catch (err) {
+      reject(err);
+    }
+  });
+}
 
 // 1) Recupera e filtra apartamentos com link de calendário
 async function getApartamentosComLink() {
@@ -30,6 +72,27 @@ async function fetchVevents(icsUrl) {
     const comp = new ical.Component(jcal);
     return { eventos: comp.getAllSubcomponents('vevent'), erro: false };
   } catch (e) {
+    // Tenta bypass específico para host Ayrton quando houver erro de hostname/SAN
+    try {
+      const hostMatch = /https?:\/\/([^\/]+)/i.exec(icsUrl);
+      const host = hostMatch?.[1] || '';
+      const isAyrton = host.includes('ayrton');
+      const isAltNameErr = e?.code === 'ERR_TLS_CERT_ALTNAME_INVALID' ||
+                           /altnames|hostname.*does not match/i.test(e?.message || '') ||
+                           /CERT_COMMON_NAME_INVALID/i.test(e?.message || '');
+      if (isAyrton && isAltNameErr) {
+        const raw = await fetchUrlWithTlsBypass(icsUrl);
+        if (!raw || !raw.includes('BEGIN:VEVENT')) {
+          return { eventos: [], erro: false };
+        }
+        const jcal = ical.parse(raw);
+        const comp = new ical.Component(jcal);
+        return { eventos: comp.getAllSubcomponents('vevent'), erro: false };
+      }
+    } catch (fallbackErr) {
+      // Se o fallback também falhar, continua para o tratamento padrão abaixo
+      e = fallbackErr;
+    }
     const status = e.response?.status;
     if (status) {
       console.warn(` Falha ao buscar ICS (${status}) para ${icsUrl}: ${e.response?.data || e.message}`);
@@ -286,8 +349,24 @@ async function validarIcal(icalData) {
     // Se for uma URL, faz o download do conteúdo
     if (typeof icalData === 'string' && icalData.startsWith('http')) {
       try {
-        const res = await axios.get(icalData);
-        icsText = res.data;
+        let res;
+        try {
+          res = await axios.get(icalData);
+          icsText = res.data;
+        } catch (e) {
+          // Fallback Ayrton apenas quando for erro de hostname/SAN
+          const hostMatch = /https?:\/\/([^\/]+)/i.exec(icalData);
+          const host = hostMatch?.[1] || '';
+          const isAyrton = host.includes('ayrton');
+          const isAltNameErr = e?.code === 'ERR_TLS_CERT_ALTNAME_INVALID' ||
+                               /altnames|hostname.*does not match/i.test(e?.message || '') ||
+                               /CERT_COMMON_NAME_INVALID/i.test(e?.message || '');
+          if (isAyrton && isAltNameErr) {
+            icsText = await fetchUrlWithTlsBypass(icalData);
+          } else {
+            throw e;
+          }
+        }
       } catch (e) {
         return { success: false, message: 'Erro ao baixar ICS da URL.', error: e.message };
       }
