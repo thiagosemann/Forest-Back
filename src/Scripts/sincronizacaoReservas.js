@@ -22,7 +22,6 @@ function getDatasReferencia() {
 async function fetchVevents(icsUrl) {
   let res;
   try {
-    // Tenta primeiro de forma segura
     res = await axios.get(icsUrl);
     if (!res.data || !res.data.includes('BEGIN:VEVENT')) {
       return { eventos: [], erro: false };
@@ -31,29 +30,6 @@ async function fetchVevents(icsUrl) {
     const comp = new ical.Component(jcal);
     return { eventos: comp.getAllSubcomponents('vevent'), erro: false };
   } catch (e) {
-    // Se houver erro de hostname no certificado do Ayrton, e a mitigação temporária estiver habilitada,
-    // re-tenta a requisição ignorando validação de hostname (NÃO recomendado em produção permanente).
-    const hostMatch = /https?:\/\/([^\/]+)/i.exec(icsUrl);
-    const host = hostMatch?.[1] || '';
-    const isAyrton = host.includes('ayrton');
-    if (
-      isAyrton &&
-      (e?.code === 'ERR_TLS_CERT_ALTNAME_INVALID' || e?.reason?.includes('altnames'))
-    ) {
-      try {
-        const agent = new https.Agent({ rejectUnauthorized: false });
-        res = await axios.get(icsUrl, { httpsAgent: agent });
-        if (!res.data || !res.data.includes('BEGIN:VEVENT')) {
-          return { eventos: [], erro: false };
-        }
-        const jcal = ical.parse(res.data);
-        const comp = new ical.Component(jcal);
-        return { eventos: comp.getAllSubcomponents('vevent'), erro: false };
-      } catch (retryErr) {
-        // Continua para o bloco de tratamento padrão abaixo
-        e = retryErr;
-      }
-    }
     const status = e.response?.status;
     if (status) {
       console.warn(` Falha ao buscar ICS (${status}) para ${icsUrl}: ${e.response?.data || e.message}`);
@@ -310,21 +286,7 @@ async function validarIcal(icalData) {
     // Se for uma URL, faz o download do conteúdo
     if (typeof icalData === 'string' && icalData.startsWith('http')) {
       try {
-        let res;
-        try {
-          res = await axios.get(icalData);
-        } catch (e) {
-          // Mesma mitigação temporária para URLs do Ayrton ao validar via rota (sem .env)
-          const hostMatch = /https?:\/\/([^\/]+)/i.exec(icalData);
-          const host = hostMatch?.[1] || '';
-          const isAyrton = host.includes('ayrton');
-          if (isAyrton && (e?.code === 'ERR_TLS_CERT_ALTNAME_INVALID' || e?.reason?.includes('altnames'))) {
-            const agent = new https.Agent({ rejectUnauthorized: false });
-            res = await axios.get(icalData, { httpsAgent: agent });
-          } else {
-            throw e;
-          }
-        }
+        const res = await axios.get(icalData);
         icsText = res.data;
       } catch (e) {
         return { success: false, message: 'Erro ao baixar ICS da URL.', error: e.message };
