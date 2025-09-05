@@ -234,6 +234,8 @@ router.post('/checkins', checkinFormController.createCheckin); // Criar um novo 
 router.post('/mercadoPago/processar-webhook', mercadoPagoApi.processarWebhookMercadoPago);
 router.post('/mercadopago/preference',  verifyToken, mercadoPagoApi.criarPreferencia);
 router.get('/reservas-airbnb/reservas/por-periodo-calendario/:apartamentoId', reservasAirbnbController.getReservasPorPeriodoCalendarioPorApartamento);
+router.get('/reservas-airbnb/reservas/cod/:cod_reserva', reservasAirbnbController.getReservasByCodReserva);
+
 // Rota para acionar NodeMCU via WebSocket (POST, recebe nodeId e cod_reserva no body)
 router.post('/nodemcu-predios/ligar', require('./src/WebSocket/webSocketFunctions').ligarNodeMcu);
 // Rota para enviar mensagem cadastro.

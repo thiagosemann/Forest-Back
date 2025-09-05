@@ -205,6 +205,22 @@ const getReservasPorPeriodoCalendarioPorApartamento = async (request, response) 
     return response.status(500).json({ error: 'Erro ao buscar reservas por período/apartamento' });
   }
 };
+
+// Buscar reservas por código de reserva
+const getReservasByCodReserva = async (request, response) => {
+  try {
+    const { cod_reserva } = request.params;
+    const { empresaId } = request;
+    if (!cod_reserva) {
+      return response.status(400).json({ error: 'cod_reserva é obrigatório' });
+    }
+    const reservas = await reservaModel.getReservasByCodReserva(cod_reserva, empresaId);
+    return response.status(200).json(reservas);
+  } catch (error) {
+    console.error('Erro ao obter reservas por cod_reserva:', error);
+    return response.status(500).json({ error: 'Erro ao obter reservas por cod_reserva' });
+  }
+};
 module.exports = {
   getAllReservas,
   createReserva,
@@ -216,5 +232,6 @@ module.exports = {
   getFaxinasPorPeriodo,
   getReservasPorPeriodoCalendario,
   getReservasCanceladasHoje,
-  getReservasPorPeriodoCalendarioPorApartamento
+  getReservasPorPeriodoCalendarioPorApartamento,
+  getReservasByCodReserva
 };

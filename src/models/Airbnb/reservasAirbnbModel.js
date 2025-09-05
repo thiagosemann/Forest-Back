@@ -108,6 +108,24 @@ const getReservaByCod = async (cod_reserva) => {
   return reservas[0] || null;
 };
 
+// Buscar reservas por código de reserva (pode retornar múltiplas) com filtro opcional por empresa
+const getReservasByCodReserva = async (cod_reserva, empresaId) => {
+  let query = `
+    SELECT r.*, 
+           COALESCE(a.nome, 'Apartamento não encontrado') AS apartamento_nome,
+           EXISTS (SELECT 1 FROM checkin c WHERE c.reserva_id = r.id) AS documentosEnviados
+    FROM reservas r
+    LEFT JOIN apartamentos a ON r.apartamento_id = a.id
+    WHERE r.cod_reserva = ?`;
+  const params = [cod_reserva];
+  if (empresaId) {
+    query += ' AND a.empresa_id = ?';
+    params.push(empresaId);
+  }
+  const [reservas] = await connection.execute(query, params);
+  return reservas;
+};
+
 // Função para buscar reservas pelo ID do apartamento
 const getReservasByApartamentoId = async (apartamentoId, empresaId) => {
   let query = `
@@ -520,6 +538,7 @@ module.exports = {
   createReserva,
   getReservaById,
   getReservaByCod,
+  getReservasByCodReserva,
   getReservasByApartamentoId,
   updateReserva,
   deleteReserva,
