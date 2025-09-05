@@ -440,7 +440,20 @@ async function getReservasPorPeriodoCalendario(startDate, endDate, empresaId) {
 
 async function getReservasCanceladasHoje(empresaId) {
   // Data de hoje (00:00:00) em São Paulo
-  const hoje = moment().tz('America/Sao_Paulo').startOf('day').format('YYYY-MM-DD');
+  // Usa moment-timezone se disponível; caso contrário, faz fallback para cálculo manual
+  let hoje;
+  try {
+    // Evita ReferenceError mesmo que a importação de topo não exista no ambiente remoto
+    const m = require('moment-timezone');
+    hoje = m().tz('America/Sao_Paulo').startOf('day').format('YYYY-MM-DD');
+  } catch (e) {
+    // Fallback sem moment: constrói a data de SP manualmente
+    const nowSP = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
+    const y = nowSP.getFullYear();
+    const mth = String(nowSP.getMonth() + 1).padStart(2, '0');
+    const d = String(nowSP.getDate()).padStart(2, '0');
+    hoje = `${y}-${mth}-${d}`;
+  }
 
   let query = `
     SELECT r.*, 
