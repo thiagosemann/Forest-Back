@@ -439,15 +439,12 @@ async function getReservasPorPeriodoCalendario(startDate, endDate, empresaId) {
 
 
 async function getReservasCanceladasHoje(empresaId) {
-  // Data de hoje (00:00:00) em São Paulo
-  // Usa moment-timezone se disponível; caso contrário, faz fallback para cálculo manual
+  // Data de hoje (00:00:00) em São Paulo
   let hoje;
   try {
-    // Evita ReferenceError mesmo que a importação de topo não exista no ambiente remoto
     const m = require('moment-timezone');
     hoje = m().tz('America/Sao_Paulo').startOf('day').format('YYYY-MM-DD');
   } catch (e) {
-    // Fallback sem moment: constrói a data de SP manualmente
     const nowSP = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
     const y = nowSP.getFullYear();
     const mth = String(nowSP.getMonth() + 1).padStart(2, '0');
@@ -463,12 +460,34 @@ async function getReservasCanceladasHoje(empresaId) {
     LEFT JOIN apartamentos a ON a.id = r.apartamento_id
     WHERE ? BETWEEN DATE(r.start_date) AND DATE(r.end_data)
       AND r.description = 'CANCELADA'`;
-  let params = [hoje];
+  const params = [hoje];
   if (empresaId) {
     query += ' AND a.empresa_id = ?';
     params.push(empresaId);
   }
-  query += ';';
+  query += ' ORDER BY r.start_date ASC;';
+
+  const [reservas] = await connection.execute(query, params);
+  return reservas;
+}
+
+// Reservas canceladas por período (sobreposição com o intervalo)
+async function getReservasCanceladasPorPeriodo(startDate, endDate, empresaId) {
+  let query = `
+    SELECT r.*, 
+           COALESCE(a.nome, 'Apartamento não encontrado') AS apartamento_nome,
+           EXISTS (SELECT 1 FROM checkin c WHERE c.reserva_id = r.id) AS documentosEnviados
+    FROM reservas r
+    LEFT JOIN apartamentos a ON a.id = r.apartamento_id
+    WHERE r.description = 'CANCELADA'
+      AND DATE(r.start_date) <= ?
+      AND DATE(r.end_data)   >= ?`;
+  const params = [endDate, startDate];
+  if (empresaId) {
+    query += ' AND a.empresa_id = ?';
+    params.push(empresaId);
+  }
+  query += ' ORDER BY r.start_date ASC;';
 
   const [reservas] = await connection.execute(query, params);
   return reservas;
@@ -560,6 +579,7 @@ module.exports = {
   getFaxinasPorPeriodo,
   getReservasPorPeriodoCalendario,
   getReservasCanceladasHoje,
+  getReservasCanceladasPorPeriodo,
   getReservasPorPeriodoCalendarioPorApartamento,
   getReservasPorPeriodoByApartamentoID,
   cancelarReservasAusentes

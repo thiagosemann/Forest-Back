@@ -249,6 +249,7 @@ router.get('/reservas-airbnb',verifyToken, empresaMiddleware, reservasAirbnbCont
 router.get('/reservas-airbnb/:id', verifyToken, empresaMiddleware, reservasAirbnbController.getReservaById);
 router.post('/reservas-airbnb', verifyToken, empresaMiddleware, reservasAirbnbController.createReserva);
 router.get('/reservas-airbnb/cancelados/hoje', verifyToken, empresaMiddleware, reservasAirbnbController.getReservasCanceladasHoje);
+router.get('/reservas-airbnb/cancelados/por-periodo', verifyToken, empresaMiddleware, reservasAirbnbController.getReservasCanceladasPorPeriodo);
 router.get('/reservas-airbnb/apartamentos/:apartamentoId', verifyToken, empresaMiddleware, reservasAirbnbController.getReservasByApartamentoId);
 router.put('/reservas-airbnb/:id', verifyToken, empresaMiddleware, reservasAirbnbController.updateReserva);
 router.delete('/reservas-airbnb/:id', verifyToken, empresaMiddleware, reservasAirbnbController.deleteReserva);
