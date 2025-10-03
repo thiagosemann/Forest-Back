@@ -178,7 +178,6 @@ async function criarMensagemSelecionadaComoTerceirizadaLimpeza(obj) {
 
 async function criarMensagemDiariaTerceirizadaLimpeza(obj) {
   const text = mensagens.criarMensagemDiariaTerceirizadaLimpeza(obj);
-
   try {
     if(obj.grupo_whats){
        await sendWapiMessage(obj.grupo_whats, text);
