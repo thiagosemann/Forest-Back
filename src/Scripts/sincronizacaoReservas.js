@@ -71,13 +71,17 @@ function parseEventoAirbnb(vevent, apartamento) {
 }
 
 function parseEventoBooking(vevent, apartamento) {
-  const toDate = prop =>
-    moment(prop.toString(), 'YYYYMMDD').tz('America/Sao_Paulo').startOf('day').toDate();
+  // Datas do Booking vêm como VALUE=DATE (YYYYMMDD). Parse diretamente no fuso de São Paulo
+  const toDate = prop => {
+    const s = prop.toString();
+    return moment.tz(s, 'YYYYMMDD', 'America/Sao_Paulo').startOf('day').toDate();
+  };
   const start = toDate(vevent.getFirstPropertyValue('dtstart'));
   const end = toDate(vevent.getFirstPropertyValue('dtend'));
   const summary = 'Reserved';
   const fmt = d => `${String(d.getDate()).padStart(2,'0')}${String(d.getMonth()+1).padStart(2,'0')}${d.getFullYear()}`;
   const cod_reserva = `B-${apartamento.nome}${fmt(start)}`;
+  console.log('parseEventoBooking cod_reserva:', cod_reserva);
   const link_reserva = apartamento.link_booking_calendario || '';
   return { start, end, summary, cod_reserva, link_reserva };
 }
@@ -106,9 +110,11 @@ function parseEventoStays(vevent, apartamento) {
 
 // Função para parsear eventos Ayrton
 function parseEventoAyrton(vevent, apartamento) {
-  // Datas vêm como YYYYMMDD, formato VALUE=DATE
-  const toDate = prop =>
-    moment(prop.toString(), 'YYYYMMDD').tz('America/Sao_Paulo').startOf('day').toDate();
+  // Datas do Ayrton vêm como VALUE=DATE (YYYYMMDD). Parse diretamente no fuso de São Paulo
+  const toDate = prop => {
+    const s = prop.toString();
+    return moment.tz(s, 'YYYYMMDD', 'America/Sao_Paulo').startOf('day').toDate();
+  };
   const start = toDate(vevent.getFirstPropertyValue('dtstart'));
   const end = toDate(vevent.getFirstPropertyValue('dtend'));
   const summary = 'Reserved';
@@ -133,7 +139,7 @@ async function processarEventos(vevents, apartamento, hoje, dataLimite, parserFn
       'SELECT id, start_date, end_data, description FROM reservas WHERE cod_reserva = ?', [cod_reserva]
     );
     if (existing.length === 0) {
-      await reservasModel.createReserva({ apartamento_id: apartamento.id, description: summary, start_date: start, end_data: end, Observacoes: '', cod_reserva, link_reserva, limpeza_realizada: false, credencial_made: false, informed: false, check_in: '15:00', check_out: '11:00', faxina_userId: null });
+      //await reservasModel.createReserva({ apartamento_id: apartamento.id, description: summary, start_date: start, end_data: end, Observacoes: '', cod_reserva, link_reserva, limpeza_realizada: false, credencial_made: false, informed: false, check_in: '15:00', check_out: '11:00', faxina_userId: null });
       criadas++;
       if(start=== hoje){
         const limpezasHoje = await reservasModel.getFaxinasPorPeriodo(obj.start, obj.start);
@@ -345,4 +351,4 @@ module.exports = {
   validarIcalRoute
 };
 
-//startAutoSync();
+startAutoSync();
