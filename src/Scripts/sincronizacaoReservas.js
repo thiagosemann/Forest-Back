@@ -139,7 +139,7 @@ async function processarEventos(vevents, apartamento, hoje, dataLimite, parserFn
       'SELECT id, start_date, end_data, description FROM reservas WHERE cod_reserva = ?', [cod_reserva]
     );
     if (existing.length === 0) {
-      //await reservasModel.createReserva({ apartamento_id: apartamento.id, description: summary, start_date: start, end_data: end, Observacoes: '', cod_reserva, link_reserva, limpeza_realizada: false, credencial_made: false, informed: false, check_in: '15:00', check_out: '11:00', faxina_userId: null });
+      await reservasModel.createReserva({ apartamento_id: apartamento.id, description: summary, start_date: start, end_data: end, Observacoes: '', cod_reserva, link_reserva, limpeza_realizada: false, credencial_made: false, informed: false, check_in: '15:00', check_out: '11:00', faxina_userId: null });
       criadas++;
       if(start=== hoje){
         const limpezasHoje = await reservasModel.getFaxinasPorPeriodo(obj.start, obj.start);
