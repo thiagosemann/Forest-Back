@@ -45,6 +45,7 @@ const nodemcuPrediosController = require('./src/controllers/Airbnb/nodemcuPredio
 const aberturaNodeMcuController = require('./src/controllers/Airbnb/aberturaNodeMcuController');
 const mensagemCadastroViaLinkController = require('./src/controllers/Airbnb/mensagemCadastroViaLinkController');
 const scripts = require('./src/Scripts/sincronizacaoReservas');
+const npsLimpezasController = require('./src/controllers/Airbnb/npsLimpezasController');
 
 // Funções WebSocket
 const { ligarNodeMcu } = require('./src/WebSocket/webSocketFunctions');
@@ -374,6 +375,15 @@ router.get('/nodemcu-aberturas/reserva/:reserva_id', verifyToken, empresaMiddlew
 router.get('/nodemcu-aberturas/predio/:predio_id', verifyToken, empresaMiddleware, aberturaNodeMcuController.getAberturasByPredioId);
 router.post('/nodemcu-aberturas', verifyToken, empresaMiddleware, aberturaNodeMcuController.createAbertura);
 router.delete('/nodemcu-aberturas/:id', verifyToken, empresaMiddleware, aberturaNodeMcuController.deleteAbertura);
+
+// Rotas NPS Limpezas
+router.get('/nps-limpezas', verifyToken, empresaMiddleware, npsLimpezasController.getAllNps);
+router.get('/nps-limpezas/:id', verifyToken, empresaMiddleware, npsLimpezasController.getNpsById);
+router.get('/nps-limpezas/apartamento/:apartamentoId', verifyToken, empresaMiddleware, npsLimpezasController.getNpsByApartamentoId);
+router.get('/nps-limpezas/user/:userId', verifyToken, empresaMiddleware, npsLimpezasController.getNpsByUserId);
+router.post('/nps-limpezas', verifyToken, empresaMiddleware, npsLimpezasController.createNps);
+router.put('/nps-limpezas/:id', verifyToken, empresaMiddleware, npsLimpezasController.updateNps);
+router.delete('/nps-limpezas/:id', verifyToken, empresaMiddleware, npsLimpezasController.deleteNps);
 
 // Valida um arquivo ICS enviado pelo frontend
 router.post('/validar-ical', require('./src/Scripts/sincronizacaoReservas').validarIcalRoute);
