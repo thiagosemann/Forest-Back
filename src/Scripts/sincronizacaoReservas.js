@@ -7,17 +7,6 @@ const moment = require('moment-timezone');
 const whatsControle = require('../WhatsApp/whats_Controle');
 const connection = require('../models/connection2');
 
-// Função utilitária para obter a data de "hoje" considerando o fuso de São Paulo,
-// retornando o instante correspondente ao início do dia (00:00:00) em America/Sao_Paulo.
-// Ainda não está sendo utilizada; será integrada posteriormente onde houver new Date() referente a "hoje".
-function getHojeSaoPaulo() {
-  console.log('getHojeSaoPaulo chamado');
-  console.log('Data e hora atual em São Paulo:',moment.tz('America/Sao_Paulo').startOf('day').toDate());
-  console.log('Data e hora atual no sistema:', new Date());
-  return moment.tz('America/Sao_Paulo').startOf('day').toDate();
-}
-
-getHojeSaoPaulo()
 // 1) Recupera e filtra apartamentos com link de calendário
 async function getApartamentosComLink() {
   const todos = await apartamentosModel.getAllApartamentos();
@@ -81,7 +70,6 @@ function parseEventoBooking(vevent, apartamento) {
   const summary = 'Reserved';
   const fmt = d => `${String(d.getDate()).padStart(2,'0')}${String(d.getMonth()+1).padStart(2,'0')}${d.getFullYear()}`;
   const cod_reserva = `B-${apartamento.nome}${fmt(start)}`;
-  console.log('parseEventoBooking cod_reserva:', cod_reserva);
   const link_reserva = apartamento.link_booking_calendario || '';
   return { start, end, summary, cod_reserva, link_reserva };
 }
