@@ -34,13 +34,14 @@ const createReserva = async (reserva) => {
     check_in, 
     check_out,
     faxina_userId,
-    telefone_principal = null // valor padrão null
+    telefone_principal = null, // valor padrão null
+    uid_ical = null // nova coluna uid_ical (padrão null)
   } = reserva;
 
   const insertReservaQuery = `
     INSERT INTO reservas 
-    (apartamento_id, description, end_data, start_date, Observacoes, cod_reserva, link_reserva, limpeza_realizada, credencial_made, informed, check_in, check_out, faxina_userId, telefone_principal) 
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    (apartamento_id, description, end_data, start_date, Observacoes, cod_reserva, uid_ical, link_reserva, limpeza_realizada, credencial_made, informed, check_in, check_out, faxina_userId, telefone_principal) 
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
   const values = [
     apartamento_id, 
@@ -49,6 +50,7 @@ const createReserva = async (reserva) => {
     start_date, 
     Observacoes, 
     cod_reserva, 
+    uid_ical,
     link_reserva, 
     limpeza_realizada, 
     credencial_made, 
@@ -56,7 +58,7 @@ const createReserva = async (reserva) => {
     check_in, 
     check_out,
     faxina_userId,
-    telefone_principal // já será null se não vier
+    telefone_principal 
   ];
 
   try {
@@ -161,12 +163,13 @@ const updateReserva = async (reserva) => {
     check_in,
     check_out,
     faxina_userId,
-    telefone_principal
+    telefone_principal,
+    uid_ical = null // nova coluna no update
   } = reserva;
 
   const updateReservaQuery = `
     UPDATE reservas 
-    SET apartamento_id = ?, description = ?, end_data = ?, start_date = ?, Observacoes = ?, cod_reserva = ?, link_reserva = ?, limpeza_realizada = ?, credencial_made = ?, informed = ?, check_in = ?, check_out = ?, faxina_userId = ?, telefone_principal = ?
+    SET apartamento_id = ?, description = ?, end_data = ?, start_date = ?, Observacoes = ?, cod_reserva = ?, uid_ical = ?, link_reserva = ?, limpeza_realizada = ?, credencial_made = ?, informed = ?, check_in = ?, check_out = ?, faxina_userId = ?, telefone_principal = ?
     WHERE id = ?
   `;
 
@@ -177,6 +180,7 @@ const updateReserva = async (reserva) => {
     start_date,
     Observacoes,
     cod_reserva,
+    uid_ical,
     link_reserva,
     limpeza_realizada,
     credencial_made,

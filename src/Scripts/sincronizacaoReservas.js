@@ -339,4 +339,4 @@ module.exports = {
   validarIcalRoute
 };
 
-//startAutoSync();
+startAutoSync();
