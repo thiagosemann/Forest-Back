@@ -106,9 +106,9 @@ function parseEventoAyrton(vevent, apartamento) {
   const start = toDate(vevent.getFirstPropertyValue('dtstart'));
   const end = toDate(vevent.getFirstPropertyValue('dtend'));
   const summary = 'Reserved';
-  // Usa UID para gerar código único
-  const uid = vevent.getFirstPropertyValue('uid') || '';
-  const cod_reserva = `AYRTON-${uid}`;
+  // Gera código no mesmo padrão do Booking: <prefixo>-<nome><DDMMYYYY>
+  const fmt = d => `${String(d.getDate()).padStart(2,'0')}${String(d.getMonth()+1).padStart(2,'0')}${d.getFullYear()}`;
+  const cod_reserva = `AYRTON-${apartamento.nome}${fmt(start)}`;
   const link_reserva = apartamento.link_ayrton_calendario || '';
   return { start, end, summary, cod_reserva, link_reserva };
 }
