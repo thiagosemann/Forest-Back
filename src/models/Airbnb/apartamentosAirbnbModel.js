@@ -473,7 +473,7 @@ const deleteApartamento = async (id) => {
 
     // 1) Seta apartamento_id como null nos pagamentos associados
     await conn.execute(
-      'UPDATE pagamento_por_reserva SET apartamento_id = NULL WHERE apartamento_id = ?',
+      'UPDATE pagamento_por_reserva SET apt_id = NULL WHERE apt_id = ?',
       [id]
     );
     await conn.execute(
