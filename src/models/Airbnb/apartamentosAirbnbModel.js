@@ -41,6 +41,12 @@ const createApartamento = async (apartamento) => {
     porcentagem_cobrada,
     valor_enxoval,
     valor_limpeza,
+    enxoval_sobre_lencol_casal = null,
+    enxoval_fronha = null,
+    enxoval_sobre_lencol_solteiro = null,
+    enxoval_toalhas = null,
+    enxoval_pisos = null,
+    enxoval_rostos = null,
     qtd_cama_solteiro,
     qtd_cama_casal,
     qtd_sofa_cama,
@@ -151,7 +157,13 @@ const createApartamento = async (apartamento) => {
     link_anuncio_airbnb = ?,
     link_anuncio_booking = ?,
     categoria = ?,
-    tipo_anuncio_repasse = ?
+    tipo_anuncio_repasse = ?,
+    enxoval_sobre_lencol_casal = ?,
+    enxoval_fronha = ?,
+    enxoval_sobre_lencol_solteiro = ?,
+    enxoval_toalhas = ?,
+    enxoval_pisos = ?,
+    enxoval_rostos = ?
   `;
 
   const values = [
@@ -217,7 +229,13 @@ const createApartamento = async (apartamento) => {
     link_anuncio_airbnb ?? null,
     link_anuncio_booking ?? null,
     categoria ?? null,
-    tipo_anuncio_repasse ?? null
+    tipo_anuncio_repasse ?? null,
+    enxoval_sobre_lencol_casal ?? null,
+    enxoval_fronha ?? null,
+    enxoval_sobre_lencol_solteiro ?? null,
+    enxoval_toalhas ?? null,
+    enxoval_pisos ?? null,
+    enxoval_rostos ?? null
   ];
 
   try {
@@ -255,6 +273,12 @@ const updateApartamento = async (apartamento) => {
     porcentagem_cobrada = null,
     valor_enxoval = null,
     valor_limpeza = null,
+    enxoval_sobre_lencol_casal = null,
+    enxoval_fronha = null,
+    enxoval_sobre_lencol_solteiro = null,
+    enxoval_toalhas = null,
+    enxoval_pisos = null,
+    enxoval_rostos = null,
     qtd_cama_solteiro = null,
     qtd_cama_casal = null,
     qtd_sofa_cama = null,
@@ -363,7 +387,13 @@ const updateApartamento = async (apartamento) => {
       link_anuncio_airbnb = ?,
       link_anuncio_booking = ?,
       categoria = ?,
-      tipo_anuncio_repasse = ?
+      tipo_anuncio_repasse = ?,
+      enxoval_sobre_lencol_casal = ?,
+      enxoval_fronha = ?,
+      enxoval_sobre_lencol_solteiro = ?,
+      enxoval_toalhas = ?,
+      enxoval_pisos = ?,
+      enxoval_rostos = ?
     WHERE id = ?
   `;
 
@@ -430,6 +460,12 @@ const updateApartamento = async (apartamento) => {
     link_anuncio_booking ?? null,
     categoria ?? null,
     tipo_anuncio_repasse ?? null,
+    enxoval_sobre_lencol_casal,
+    enxoval_fronha,
+    enxoval_sobre_lencol_solteiro,
+    enxoval_toalhas,
+    enxoval_pisos,
+    enxoval_rostos,
     id
   ];
 
