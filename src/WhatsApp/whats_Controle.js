@@ -87,7 +87,7 @@ async function envioForest(obj) {
 async function envioCadastroConcluido(obj) {
   const text = mensagens.criarMensagemCadastroConcluido(obj);
   try {
-    await sendWapiMessage('5541991017913', text);
+    //await sendWapiMessage('5541991017913', text);
     await sendWapiMessage(obj.telefone_hospede, text);
   } catch (err) {
     await sendWapiMessageAdmin('5541991017913', 'envioCadastroConcluido', obj);
@@ -104,8 +104,8 @@ async function envioInstrucoesEntrada(obj) {
   };
   const text = mensagens.criarMensagemInstrucoesEntrada({ ...base, qtdPortarias: obj.qtdPortarias });
   try {
-    await sendWapiMessage('5541991017913', text);
-    await sendWapiMessage('5541999283936', text);
+    //await sendWapiMessage('5541991017913', text);
+    //await sendWapiMessage('5541999283936', text);
   } catch (err) {
     await sendWapiMessageAdmin('5541991017913', 'envioInstrucoesEntrada', obj);
   }
@@ -115,8 +115,8 @@ async function envioMensagemBoasVindas(obj) {
   const base = { ...obj, checkin: formatarData(obj.dataEntrada) };
   const text = mensagens.criarMensagemBoasVindas(base);
   try {
-    await sendWapiMessage('5541991017913', text);
-    await sendWapiMessage('5541999283936', text);
+  //  await sendWapiMessage('5541991017913', text);
+  //  await sendWapiMessage('5541999283936', text);
   } catch (err) {
     await sendWapiMessageAdmin('5541991017913', 'envioMensagemBoasVindas', obj);
   }
@@ -158,7 +158,7 @@ async function envioPagamentoEarly({ telefone_hospede, nome, apartamento, cod_re
 async function envioEarlyPago(obj) {
   const text = mensagens.criarMensagemEarlyPago(obj);
   try {
-    await sendWapiMessage('5541991017913', text);
+   // await sendWapiMessage('5541991017913', text);
     await sendWapiMessage('5541999283936', text);
   } catch (err) {
     await sendWapiMessageAdmin('5541991017913', 'envioCadastroConcluido', obj);
@@ -228,7 +228,7 @@ async function criarMensagemErrosSincronização(erroWhatsapp) {
     });
   }
   // Envia para o admin (ajuste o número conforme necessário)
-  await sendWapiMessage('5541991017913', msg);
+ // await sendWapiMessage('5541991017913', msg);
 }
 
 async function criarMensagemCadastroViaLink(obj) {
