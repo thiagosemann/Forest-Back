@@ -63,7 +63,7 @@ function criarMensagemDiariaTerceirizadaLimpeza(obj) {
     }else{
       entramHojeMsg = 'Não entram hoje';
     }
-      text+=`*${reserva.apartamento_nome}*. *${entramHojeMsg}*. Senha: *${reserva.apartamento_senha}*\n`;
+      text+=`*${reserva.apartamento_nome}*. *${entramHojeMsg}*. Senha: *${reserva.apartamento_senha}* (R$ ${reserva.valor_limpeza})\n`;
       text+=`Endereço: ${reserva.apartamento_endereco}, ${reserva.apartamento_bairro} \n`;
 
   })

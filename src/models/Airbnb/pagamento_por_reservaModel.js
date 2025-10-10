@@ -4,10 +4,10 @@ const connection = require('../connection2');
 const getAllPagamentos = async () => {
   const [rows] = await connection.execute(`
     SELECT 
-      p.*, 
+      p.*,
       a.nome AS apartamento_nome
     FROM pagamento_por_reserva p
-    LEFT JOIN apartamentos a ON p.apt_id = a.id
+    LEFT JOIN apartamentos a ON p.apartamento_id = a.id
     LEFT JOIN reservas r ON p.reserva_id = r.id
   `);
   return rows;
@@ -22,127 +22,97 @@ const getPagamentoById = async (id) => {
   return rows[0] || null;
 };
 
-// 3) Cria um novo pagamento (novos campos)
+// 3) Cria um novo pagamento (campos fixos)
 const createPagamento = async (dataObj) => {
   const {
-    // chaves de relacionamento
-    apt_id: aptIdInput,
-    reserva_id: reservaIdInput,
     cod_reserva,
-    // dados
-    noites,
-    fonte,
-    tipo,
-    pagamento_total,
     taxas,
-    valor_sem_taxa,
-    valor_limpeza,
-    valor_forest,
-    valor_repasse_proprietario
+    valor_reserva,
+    dataReserva,
+    noites
   } = dataObj;
 
-  // Tenta buscar reserva/apt com base no cod_reserva quando não informados
-  let reserva_id = reservaIdInput ?? null;
-  let apt_id = aptIdInput ?? null;
+  // Tenta buscar a reserva com base no cod_reserva
+  const [reservaRows] = await connection.execute(
+    `SELECT id AS reserva_id, apartamento_id FROM reservas WHERE cod_reserva = ?`,
+    [cod_reserva]
+  );
 
-  if ((!reserva_id || !apt_id) && cod_reserva) {
-    const [reservaRows] = await connection.execute(
-      `SELECT id AS reserva_id, apartamento_id AS apt_id FROM reservas WHERE cod_reserva = ? ORDER BY id DESC LIMIT 1`,
-      [cod_reserva]
-    );
-    if (reservaRows.length > 0) {
-      reserva_id = reserva_id ?? reservaRows[0].reserva_id;
-      apt_id = apt_id ?? reservaRows[0].apt_id;
-    }
+  let reserva_id = null;
+  let apartamento_id = null;
+
+  if (reservaRows.length > 0) {
+    reserva_id = reservaRows[0].reserva_id;
+    apartamento_id = reservaRows[0].apartamento_id;
   }
 
-  // Verifica se já existe um pagamento com a mesma combinação (cod_reserva + fonte + tipo)
-  if (cod_reserva && fonte && tipo) {
-    const [existing] = await connection.execute(
-      `SELECT id FROM pagamento_por_reserva WHERE cod_reserva = ? AND fonte = ? AND tipo = ? LIMIT 1`,
-      [cod_reserva, fonte, tipo]
-    );
-    if (existing.length > 0) {
-      throw new Error('Pagamento já cadastrado para este cod_reserva, fonte e tipo.');
-    }
+  // Verifica se já existe um pagamento com os mesmos dados
+  const [existing] = await connection.execute(`
+    SELECT id FROM pagamento_por_reserva
+    WHERE dataReserva = ? AND valor_reserva = ? AND cod_reserva = ?
+  `, [dataReserva, valor_reserva, cod_reserva]);
+
+  if (existing.length > 0) {
+    throw new Error('Pagamento já cadastrado com a mesma dataReserva, valor_reserva e cod_reserva.');
   }
 
   // Insere o novo pagamento
   const query = `
     INSERT INTO pagamento_por_reserva 
-    (apt_id, reserva_id, cod_reserva, noites, fonte, tipo, pagamento_total, taxas, valor_sem_taxa, valor_limpeza, valor_forest, valor_repasse_proprietario)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    (apartamento_id, reserva_id, cod_reserva, taxas, valor_reserva, dataReserva, noites)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
   `;
 
   const values = [
-    apt_id || null,
-    reserva_id || null,
-    cod_reserva || null,
-    Number.isFinite(noites) ? noites : (noites ? Number(noites) : 0),
-    fonte || null,
-    tipo || null,
-    pagamento_total != null ? Number(pagamento_total) : 0.0,
-    taxas != null ? Number(taxas) : 0.0,
-    valor_sem_taxa != null ? Number(valor_sem_taxa) : 0.0,
-    valor_limpeza != null ? Number(valor_limpeza) : 0.0,
-    valor_forest != null ? Number(valor_forest) : 0.0,
-    valor_repasse_proprietario != null ? Number(valor_repasse_proprietario) : 0.0
+    apartamento_id,
+    reserva_id,
+    cod_reserva,
+    taxas || 0.00,
+    valor_reserva || 0.00,
+    dataReserva || null,
+    noites || null
   ];
 
   const [result] = await connection.execute(query, values);
   return { insertId: result.insertId };
 };
 
-// 4) Atualiza um pagamento (novos campos)
+
+
+
+// 4) Atualiza um pagamento (campos fixos)
 const updatePagamento = async (dataObj) => {
   const {
-    id,
-    apt_id,
-    reserva_id,
-    cod_reserva,
-    noites,
-    fonte,
-    tipo,
-    pagamento_total,
-    taxas,
-    valor_sem_taxa,
-    valor_limpeza,
-    valor_forest,
-    valor_repasse_proprietario
-  } = dataObj;
-
+  id,
+  apartamento_id,
+  reserva_id,
+  cod_reserva,
+  taxas,
+  valor_reserva,
+  dataReserva,
+  noites
+} = dataObj
   if (!id) throw new Error("Campo 'id' é obrigatório para update.");
 
   const query = `
     UPDATE pagamento_por_reserva SET
-      apt_id = ?,
+      apartamento_id = ?,
       reserva_id = ?,
       cod_reserva = ?,
-      noites = ?,
-      fonte = ?,
-      tipo = ?,
-      pagamento_total = ?,
       taxas = ?,
-      valor_sem_taxa = ?,
-      valor_limpeza = ?,
-      valor_forest = ?,
-      valor_repasse_proprietario = ?
+      valor_reserva = ?,
+      dataReserva = ?,
+      noites = ?
     WHERE id = ?
   `;
-
   const values = [
-    apt_id || null,
+    apartamento_id || null,
     reserva_id || null,
     cod_reserva || null,
-    Number.isFinite(noites) ? noites : (noites ? Number(noites) : 0),
-    fonte || null,
-    tipo || null,
-    pagamento_total != null ? Number(pagamento_total) : 0.0,
-    taxas != null ? Number(taxas) : 0.0,
-    valor_sem_taxa != null ? Number(valor_sem_taxa) : 0.0,
-    valor_limpeza != null ? Number(valor_limpeza) : 0.0,
-    valor_forest != null ? Number(valor_forest) : 0.0,
-    valor_repasse_proprietario != null ? Number(valor_repasse_proprietario) : 0.0,
+    taxas || 0.00,
+    valor_reserva || 0.00,
+    dataReserva || null,
+    noites || null,
     id
   ];
 
@@ -182,7 +152,7 @@ const getByCodReservaList = async (codList) => {
 // 8) Busca todos os pagamentos de um apartamento específico
 const getByApartamentoId = async (apartamento_id) => {
   const [rows] = await connection.execute(
-    `SELECT * FROM pagamento_por_reserva WHERE apt_id = ?`,
+    `SELECT * FROM pagamento_por_reserva WHERE apartamento_id = ?`,
     [apartamento_id]
   );
   return rows;

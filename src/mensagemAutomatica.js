@@ -151,6 +151,7 @@ async function envioMensagemTercerizadasHoje() {
           //telefone: '5541991017913',
           diaDaSemana: diaDaSemana,
         });
+        
       }
 
   } catch (error) {
@@ -242,21 +243,21 @@ async function envioMensagemListaTercerizadas() {
 // 22:00 - Envia lista de 7 dias para frente atualizada
 cron.schedule('5 22 * * *', async () => {
   await envioMensagemListaTercerizadas();
-});
+}, { timezone: 'America/Sao_Paulo' });
 
 // 09:00 - Envia lista diária de terceirizadas
 cron.schedule('0 9 * * *', async () => {
   await envioMensagemTercerizadasHoje()
-});
+}, { timezone: 'America/Sao_Paulo' });
 
 // 10:00 - Envia instruções de entrada
 cron.schedule('0 10 * * *', async () => {
- await envioMensagensInstrucoesEntrada();
-});
+  await envioMensagensInstrucoesEntrada();
+}, { timezone: 'America/Sao_Paulo' });
 
-// 10:10 - Envia mensagem diária terceirizadas
+// 10:10 - Envia credenciais
 cron.schedule('10 10 * * *', async () => {
   await envioCredenciaisHoje();
-});
+}, { timezone: 'America/Sao_Paulo' });
 
 
