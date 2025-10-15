@@ -236,6 +236,7 @@ router.post('/mercadoPago/processar-webhook', mercadoPagoApi.processarWebhookMer
 router.post('/mercadopago/preference',  verifyToken, mercadoPagoApi.criarPreferencia);
 router.get('/reservas-airbnb/reservas/por-periodo-calendario/:apartamentoId', reservasAirbnbController.getReservasPorPeriodoCalendarioPorApartamento);
 router.get('/reservas-airbnb/reservas/cod/:cod_reserva', reservasAirbnbController.getReservasByCodReserva);
+router.get('/apartamentos-airbnb/selfie-garagem', apartamentosAirbnbController.getVagaSelfieTemGaragem);
 
 // Rota para acionar NodeMCU via WebSocket (POST, recebe nodeId e cod_reserva no body)
 router.post('/nodemcu-predios/ligar', require('./src/WebSocket/webSocketFunctions').ligarNodeMcu);
@@ -293,7 +294,6 @@ router.post('/apartamentos-airbnb', verifyToken, empresaMiddleware, apartamentos
 router.get('/apartamentos-airbnb/predios/:predioId', verifyToken, empresaMiddleware, apartamentosAirbnbController.getApartamentosByPredioId);
 router.put('/apartamentos-airbnb/:id', verifyToken, empresaMiddleware, apartamentosAirbnbController.updateApartamento);
 router.delete('/apartamentos-airbnb/:id', verifyToken, empresaMiddleware, apartamentosAirbnbController.deleteApartamento);
-router.get('/apartamentos-airbnb/selfie-garagem', verifyToken, empresaMiddleware, apartamentosAirbnbController.getVagaSelfieTemGaragem);
 
 // Rotas de Check-in
 router.get('/checkins', verifyToken, empresaMiddleware, checkinFormController.getAllCheckins); // Listar todos os check-ins
