@@ -293,7 +293,7 @@ router.post('/apartamentos-airbnb', verifyToken, empresaMiddleware, apartamentos
 router.get('/apartamentos-airbnb/predios/:predioId', verifyToken, empresaMiddleware, apartamentosAirbnbController.getApartamentosByPredioId);
 router.put('/apartamentos-airbnb/:id', verifyToken, empresaMiddleware, apartamentosAirbnbController.updateApartamento);
 router.delete('/apartamentos-airbnb/:id', verifyToken, empresaMiddleware, apartamentosAirbnbController.deleteApartamento);
-
+router.get('/apartamentos-airbnb/selfie-garagem', verifyToken, empresaMiddleware, apartamentosAirbnbController.getVagaSelfieTemGaragem);
 
 // Rotas de Check-in
 router.get('/checkins', verifyToken, empresaMiddleware, checkinFormController.getAllCheckins); // Listar todos os check-ins

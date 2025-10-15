@@ -80,6 +80,7 @@ const createApartamento = async (apartamento) => {
     user_prioridade3,
     aquecedor,
     vaga_garagem,
+    tem_garagem, // NOVO
     itens_limpeza,
     air_fryer,
     modificado_user_id,
@@ -148,6 +149,7 @@ const createApartamento = async (apartamento) => {
     user_prioridade3 = ?,
     aquecedor = ?,
     vaga_garagem = ?,
+    tem_garagem = ?, // NOVO
     itens_limpeza = ?,
     air_fryer = ?,
     modificado_user_id = ?,
@@ -221,6 +223,7 @@ const createApartamento = async (apartamento) => {
     user_prioridade3 ?? null,
     aquecedor ?? null,
     vaga_garagem ?? null,
+    tem_garagem ?? null, // NOVO
     itens_limpeza ?? null,
     air_fryer ?? null,
     modificado_user_id ?? null,
@@ -315,6 +318,7 @@ const updateApartamento = async (apartamento) => {
     user_prioridade3 = null,
     aquecedor = null,
     vaga_garagem = null,
+    tem_garagem = null, // NOVO
     itens_limpeza = null,
     air_fryer = null,
     modificado_user_id = null,
@@ -382,6 +386,7 @@ const updateApartamento = async (apartamento) => {
       user_prioridade3 = ?,
       aquecedor = ?,
       vaga_garagem = ?,
+      tem_garagem = ?,
       itens_limpeza = ?,
       air_fryer = ?,
       modificado_user_id = ?,
@@ -455,6 +460,7 @@ const updateApartamento = async (apartamento) => {
     user_prioridade3,
     aquecedor,
     vaga_garagem,
+    tem_garagem,
     itens_limpeza,
     air_fryer,
     modificado_user_id,
@@ -588,6 +594,15 @@ const getApartamentosByPredioIdAndEmpresa = async (predioId, empresaId) => {
   return apartamentos;
 };
 
+// Nova função: retorna vaga_garagem, pedir_selfie e tem_garagem por apartamento_id
+const getVagaSelfieTemGaragem = async (apartamento_id) => {
+  const [rows] = await connection.execute(
+    'SELECT vaga_garagem, pedir_selfie, tem_garagem FROM apartamentos WHERE id = ?',
+    [apartamento_id]
+  );
+  return rows[0] || null;
+};
+
 module.exports = {
   getAllApartamentos,
   createApartamento,
@@ -598,5 +613,6 @@ module.exports = {
   deleteApartamento,
   getAllApartamentosByEmpresa,
   getApartamentoByIdAndEmpresa,
-  getApartamentosByPredioIdAndEmpresa
+  getApartamentosByPredioIdAndEmpresa,
+  getVagaSelfieTemGaragem
 };

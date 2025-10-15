@@ -1,4 +1,5 @@
 const apartamentoModel = require('../../models/Airbnb/apartamentosAirbnbModel');
+const reservasModel = require('../../models/Airbnb/reservasAirbnbModel');
 
 const getAllApartamentos = async (request, response) => {
   try {
@@ -101,6 +102,31 @@ const deleteApartamento = async (request, response) => {
   }
 };
 
+const getVagaSelfieTemGaragem = async (request, response) => {
+  try {
+    const cod_reserva = request.query.cod_reserva || request.params.cod_reserva || request.body?.cod_reserva;
+    const apt_id = request.query.apt_id || request.params.apt_id || request.body?.apt_id;
+
+    if (!cod_reserva || !apt_id) {
+      return response.status(400).json({ error: 'Parâmetros cod_reserva e apt_id são obrigatórios.' });
+    }
+
+    const reserva = await reservasModel.getReservaByCod(cod_reserva);
+    if (!reserva) {
+      return response.status(404).json({ error: 'Reserva não encontrada para o cod_reserva informado.' });
+    }
+
+    const dados = await apartamentoModel.getVagaSelfieTemGaragem(apt_id);
+    if (!dados) {
+      return response.status(404).json({ error: 'Apartamento não encontrado.' });
+    }
+
+    return response.status(200).json(dados);
+  } catch (error) {
+    console.error('Erro ao obter vaga_garagem/pedir_selfie/tem_garagem:', error);
+    return response.status(500).json({ error: 'Erro ao processar solicitação' });
+  }
+};
 
 module.exports = {
   getAllApartamentos,
@@ -109,5 +135,6 @@ module.exports = {
   getApartamentosByPredioId,
   getApartamentoByCodProprietario,
   updateApartamento,
-  deleteApartamento
+  deleteApartamento,
+  getVagaSelfieTemGaragem
 };
