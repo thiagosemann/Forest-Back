@@ -105,15 +105,19 @@ const deleteApartamento = async (request, response) => {
 const getVagaSelfieTemGaragem = async (request, response) => {
   try {
     const cod_reserva = request.query.cod_reserva || request.params.cod_reserva || request.body?.cod_reserva;
-    const apt_id = request.query.apt_id || request.params.apt_id || request.body?.apt_id;
 
-    if (!cod_reserva || !apt_id) {
-      return response.status(400).json({ error: 'Parâmetros cod_reserva e apt_id são obrigatórios.' });
+    if (!cod_reserva) {
+      return response.status(400).json({ error: 'Parâmetro cod_reserva é obrigatório.' });
     }
 
     const reserva = await reservasModel.getReservaByCod(cod_reserva);
     if (!reserva) {
       return response.status(404).json({ error: 'Reserva não encontrada para o cod_reserva informado.' });
+    }
+
+    const apt_id = reserva.apartamento_id;
+    if (!apt_id) {
+      return response.status(404).json({ error: 'Reserva não possui apartamento vinculado.' });
     }
 
     const dados = await apartamentoModel.getVagaSelfieTemGaragem(apt_id);
