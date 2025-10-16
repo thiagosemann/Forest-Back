@@ -201,6 +201,18 @@ const updateReserva = async (reserva) => {
   }
 };
 
+// Atualiza apenas a placa do carro por cod_reserva
+const updatePlacaCarroByCodReserva = async (cod_reserva, placa_carro = null) => {
+  const query = `UPDATE reservas SET placa_carro = ? WHERE cod_reserva = ?`;
+  try {
+    const [result] = await connection.execute(query, [placa_carro, cod_reserva]);
+    return result.affectedRows > 0;
+  } catch (error) {
+    console.error('Erro ao atualizar placa do carro pela reserva:', error);
+    throw error;
+  }
+};
+
 // Função para deletar uma reserva pelo ID
 const deleteReserva = async (id) => {
   const deleteReservaQuery = 'DELETE FROM reservas WHERE id = ?';
@@ -586,6 +598,7 @@ module.exports = {
   getReservasCanceladasPorPeriodo,
   getReservasPorPeriodoCalendarioPorApartamento,
   getReservasPorPeriodoByApartamentoID,
-  cancelarReservasAusentes
+  cancelarReservasAusentes,
+  updatePlacaCarroByCodReserva
 };
 
