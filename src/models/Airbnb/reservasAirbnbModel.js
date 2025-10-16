@@ -34,13 +34,14 @@ const createReserva = async (reserva) => {
     check_in, 
     check_out,
     faxina_userId,
-    telefone_principal = null // valor padrão null
+    telefone_principal = null, // valor padrão null
+    placa_carro = null // NOVO: valor padrão null
   } = reserva;
 
   const insertReservaQuery = `
     INSERT INTO reservas 
-    (apartamento_id, description, end_data, start_date, Observacoes, cod_reserva, link_reserva, limpeza_realizada, credencial_made, informed, check_in, check_out, faxina_userId, telefone_principal) 
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    (apartamento_id, description, end_data, start_date, Observacoes, cod_reserva, link_reserva, limpeza_realizada, credencial_made, informed, check_in, check_out, faxina_userId, telefone_principal, placa_carro) 
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
   const values = [
     apartamento_id, 
@@ -56,7 +57,8 @@ const createReserva = async (reserva) => {
     check_in, 
     check_out,
     faxina_userId,
-    telefone_principal 
+    telefone_principal,
+    placa_carro
   ];
 
   try {
@@ -161,12 +163,13 @@ const updateReserva = async (reserva) => {
     check_in,
     check_out,
     faxina_userId,
-    telefone_principal
+    telefone_principal,
+    placa_carro = null // NOVO
   } = reserva;
 
   const updateReservaQuery = `
     UPDATE reservas 
-    SET apartamento_id = ?, description = ?, end_data = ?, start_date = ?, Observacoes = ?, cod_reserva = ?, link_reserva = ?, limpeza_realizada = ?, credencial_made = ?, informed = ?, check_in = ?, check_out = ?, faxina_userId = ?, telefone_principal = ?
+    SET apartamento_id = ?, description = ?, end_data = ?, start_date = ?, Observacoes = ?, cod_reserva = ?, link_reserva = ?, limpeza_realizada = ?, credencial_made = ?, informed = ?, check_in = ?, check_out = ?, faxina_userId = ?, telefone_principal = ?, placa_carro = ?
     WHERE id = ?
   `;
 
@@ -185,6 +188,7 @@ const updateReserva = async (reserva) => {
     check_out,
     faxina_userId,
     telefone_principal,
+    placa_carro,
     id, // O ID deve ser o último valor, pois corresponde ao WHERE id = ?
   ];
 
