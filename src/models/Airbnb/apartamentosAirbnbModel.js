@@ -149,7 +149,7 @@ const createApartamento = async (apartamento) => {
     user_prioridade3 = ?,
     aquecedor = ?,
     vaga_garagem = ?,
-    tem_garagem = ?, // NOVO
+    tem_garagem = ?,
     itens_limpeza = ?,
     air_fryer = ?,
     modificado_user_id = ?,
