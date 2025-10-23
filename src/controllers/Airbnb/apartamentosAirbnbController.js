@@ -67,6 +67,18 @@ const getApartamentosByPredioId = async (request, response) => {
   }
 };
 
+// Apartamentos inativos (is_active = 0) por empresa
+const getApartamentosInativosByEmpresa = async (request, response) => {
+  try {
+    const { empresaId } = request;
+    const apartamentos = await apartamentoModel.getApartamentosInativosByEmpresa(empresaId);
+    return response.status(200).json(apartamentos);
+  } catch (error) {
+    console.error('Erro ao obter apartamentos inativos:', error);
+    return response.status(500).json({ error: 'Erro ao obter apartamentos inativos' });
+  }
+};
+
 const updateApartamento = async (request, response) => {
   try {
     const { id } = request.params;
@@ -140,5 +152,6 @@ module.exports = {
   getApartamentoByCodProprietario,
   updateApartamento,
   deleteApartamento,
-  getVagaSelfieTemGaragem
+  getVagaSelfieTemGaragem,
+  getApartamentosInativosByEmpresa
 };

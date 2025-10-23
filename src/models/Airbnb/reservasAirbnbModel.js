@@ -9,10 +9,11 @@ const getAllReservas = async (empresaId) => {
            EXISTS (SELECT 1 FROM checkin c WHERE c.reserva_id = r.id) AS documentosEnviados
     FROM reservas r
     LEFT JOIN apartamentos a ON r.apartamento_id = a.id
+    WHERE a.is_active = 1
   `;
   let params = [];
   if (empresaId) {
-    query += ' WHERE a.empresa_id = ?';
+    query += ' AND a.empresa_id = ?';
     params.push(empresaId);
   }
   const [reservas] = await connection.execute(query, params);
@@ -89,7 +90,7 @@ const getReservaById = async (id, empresaId) => {
            EXISTS (SELECT 1 FROM checkin c WHERE c.reserva_id = r.id) AS documentosEnviados 
     FROM reservas r 
     LEFT JOIN apartamentos a ON r.apartamento_id = a.id
-    WHERE r.id = ?`;
+    WHERE r.id = ? AND a.is_active = 1`;
   let params = [id];
   if (empresaId) {
     query += ' AND a.empresa_id = ?';
@@ -105,7 +106,8 @@ const getReservaByCod = async (cod_reserva) => {
     SELECT r.*, 
            EXISTS (SELECT 1 FROM checkin c WHERE c.cod_reserva = r.cod_reserva) AS documentosEnviados 
     FROM reservas r 
-    WHERE r.cod_reserva = ?
+    LEFT JOIN apartamentos a ON r.apartamento_id = a.id
+    WHERE r.cod_reserva = ? AND a.is_active = 1
   `;
   const [reservas] = await connection.execute(query, [cod_reserva]);
   return reservas[0] || null;
@@ -119,7 +121,7 @@ const getReservasByCodReserva = async (cod_reserva, empresaId) => {
            EXISTS (SELECT 1 FROM checkin c WHERE c.reserva_id = r.id) AS documentosEnviados
     FROM reservas r
     LEFT JOIN apartamentos a ON r.apartamento_id = a.id
-    WHERE r.cod_reserva = ?`;
+    WHERE r.cod_reserva = ? AND a.is_active = 1`;
   const params = [cod_reserva];
   if (empresaId) {
     query += ' AND a.empresa_id = ?';
@@ -136,7 +138,7 @@ const getReservasByApartamentoId = async (apartamentoId, empresaId) => {
            EXISTS (SELECT 1 FROM checkin c WHERE c.reserva_id = r.id) AS documentosEnviados 
     FROM reservas r 
     LEFT JOIN apartamentos a ON r.apartamento_id = a.id
-    WHERE r.apartamento_id = ?`;
+    WHERE r.apartamento_id = ? AND a.is_active = 1`;
   let params = [apartamentoId];
   if (empresaId) {
     query += ' AND a.empresa_id = ?';
@@ -264,7 +266,7 @@ async function getReservasPorPeriodo(startDate, endDate, empresaId) {
       ) AS pagamentos
     FROM reservas r
     LEFT JOIN apartamentos a ON a.id = r.apartamento_id
-    WHERE DATE(r.start_date) BETWEEN ? AND ?`;
+    WHERE DATE(r.start_date) BETWEEN ? AND ? AND a.is_active = 1`;
   let params = [startDate, endDate];
   if (empresaId) {
     query += ' AND a.empresa_id = ?';
@@ -331,7 +333,7 @@ async function getReservasPorPeriodoByApartamentoID(apartamentoId, startDate, en
       ) AS pagamentos
     FROM reservas r
     LEFT JOIN apartamentos a ON a.id = r.apartamento_id
-    WHERE r.apartamento_id = ? AND DATE(r.start_date) BETWEEN ? AND ?
+    WHERE r.apartamento_id = ? AND DATE(r.start_date) BETWEEN ? AND ? AND a.is_active = 1
     ORDER BY r.start_date ASC;
   `;
 
@@ -431,7 +433,7 @@ async function getReservasPorPeriodoCalendario(startDate, endDate, empresaId) {
       DATE(r.start_date) <= ? 
       AND 
       /* termine depois do início do mês */
-      DATE(r.end_data) >= ?`;
+      DATE(r.end_data) >= ? AND a.is_active = 1`;
   let params = [endDate, startDate];
   if (empresaId) {
     query += ' AND a.empresa_id = ?';
@@ -475,7 +477,7 @@ async function getReservasCanceladasHoje(empresaId) {
     FROM reservas r
     LEFT JOIN apartamentos a ON a.id = r.apartamento_id
     WHERE ? BETWEEN DATE(r.start_date) AND DATE(r.end_data)
-      AND r.description = 'CANCELADA'`;
+      AND r.description = 'CANCELADA' AND a.is_active = 1`;
   const params = [hoje];
   if (empresaId) {
     query += ' AND a.empresa_id = ?';
@@ -497,7 +499,8 @@ async function getReservasCanceladasPorPeriodo(startDate, endDate, empresaId) {
     LEFT JOIN apartamentos a ON a.id = r.apartamento_id
     WHERE r.description = 'CANCELADA'
       AND DATE(r.start_date) <= ?
-      AND DATE(r.end_data)   >= ?`;
+      AND DATE(r.end_data)   >= ?
+      AND a.is_active = 1`;
   const params = [endDate, startDate];
   if (empresaId) {
     query += ' AND a.empresa_id = ?';
@@ -536,7 +539,7 @@ async function getReservasPorPeriodoCalendarioPorApartamento(startDate, endDate,
        WHERE p.reserva_id = r.id)                                             AS pagamentos
     FROM reservas r
     LEFT JOIN apartamentos a ON a.id = r.apartamento_id
-    WHERE r.apartamento_id = ? AND DATE(r.start_date) <= ? AND DATE(r.end_data)  >= ?`;
+    WHERE r.apartamento_id = ? AND DATE(r.start_date) <= ? AND DATE(r.end_data)  >= ? AND a.is_active = 1`;
   let params = [apartamentoId, endDate, startDate];
   if (empresaId) {
     query += ' AND a.empresa_id = ?';

@@ -12,6 +12,7 @@ const getAllApartamentos = async () => {
     SELECT a.*, p.nome AS predio_name
     FROM apartamentos a
     LEFT JOIN predios p ON a.predio_id = p.id
+    WHERE a.is_active = 1
   `;
   const [apartamentos] = await connection.execute(query);
   return apartamentos;
@@ -92,7 +93,8 @@ const createApartamento = async (apartamento) => {
     link_anuncio_booking = null, // Garante null se não vier
     categoria = null, // NOVO
     tipo_anuncio_repasse = null,
-    pedir_selfie = null
+    pedir_selfie = null,
+    is_active = 1,
   } = apartamento;
 
   const insertApartamentoQuery = `
@@ -162,6 +164,7 @@ const createApartamento = async (apartamento) => {
     categoria = ?,
     tipo_anuncio_repasse = ?,
     pedir_selfie = ?,
+    is_active = ?,
     enxoval_sobre_lencol_casal = ?,
     enxoval_fronha = ?,
     enxoval_sobre_lencol_solteiro = ?,
@@ -236,6 +239,7 @@ const createApartamento = async (apartamento) => {
     categoria ?? null,
     tipo_anuncio_repasse ?? null,
     pedir_selfie ?? null,
+    is_active ?? 1,
     enxoval_sobre_lencol_casal ?? null,
     enxoval_fronha ?? null,
     enxoval_sobre_lencol_solteiro ?? null,
@@ -492,7 +496,7 @@ const updateApartamento = async (apartamento) => {
 
 // Função para buscar um apartamento pelo ID
 const getApartamentoById = async (id) => {
-  const query = 'SELECT * FROM apartamentos WHERE id = ?';
+  const query = 'SELECT * FROM apartamentos WHERE id = ? AND is_active = 1';
   const [apartamentos] = await connection.execute(query, [id]);
 
   return apartamentos.length > 0 ? apartamentos[0] : null;
@@ -500,7 +504,7 @@ const getApartamentoById = async (id) => {
 
 // Função para buscar um apartamento pelo ID
 const getApartamentoByCodProprietario = async (cod_link_proprietario) => {
-  const query = 'SELECT * FROM apartamentos WHERE cod_link_proprietario = ?';
+  const query = 'SELECT * FROM apartamentos WHERE cod_link_proprietario = ? AND is_active = 1';
   const [apartamentos] = await connection.execute(query, [cod_link_proprietario]);
 
   return apartamentos.length > 0 ? apartamentos[0] : null;
@@ -508,65 +512,18 @@ const getApartamentoByCodProprietario = async (cod_link_proprietario) => {
 
 // Função para buscar apartamentos pelo ID do prédio
 const getApartamentosByPredioId = async (predioId) => {
-  const query = 'SELECT * FROM apartamentos WHERE predio_id = ?';
+  const query = 'SELECT * FROM apartamentos WHERE predio_id = ? AND is_active = 1';
   const [apartamentos] = await connection.execute(query, [predioId]);
   return apartamentos;
 };
 
 // Função para deletar um apartamento pelo ID
 const deleteApartamento = async (id) => {
-  const conn = await connection.getConnection();
-  try {
-    await conn.beginTransaction();
-
-    // 1) Seta apartamento_id como null nos pagamentos associados
-    await conn.execute(
-      'UPDATE pagamento_por_reserva SET apt_id = NULL WHERE apt_id = ?',
-      [id]
-    );
-    await conn.execute(
-      'UPDATE pagamento_por_reserva_extra SET apartamento_id = NULL WHERE apartamento_id = ?',
-      [id]
-    );
-
-    // 2) Busca IDs de reservas do apt para remoção em cascata, mas só as que faxina_userId IS NULL ou vazio
-    const [reservas] = await conn.execute(
-      'SELECT id FROM reservas WHERE apartamento_id = ? AND (faxina_userId IS NULL OR faxina_userId = "")',
-      [id]
-    );
-    const reservaIds = reservas.map(r => r.id);
-
-    if (reservaIds.length > 0) {
-      const placeholders = reservaIds.map(() => '?').join(',');
-
-      // 3) Deleta check-ins vinculados às reservas
-      await conn.execute(
-        `DELETE FROM checkin WHERE reserva_id IN (${placeholders})`,
-        reservaIds
-      );
-
-      // 4) Deleta as próprias reservas
-      await conn.execute(
-        `DELETE FROM reservas WHERE id IN (${placeholders})`,
-        reservaIds
-      );
-    }
-
-    // 5) Finalmente deleta o apartamento (só se todos os passos anteriores deram certo)
-    const [result] = await conn.execute(
-      'DELETE FROM apartamentos WHERE id = ?',
-      [id]
-    );
-
-    await conn.commit();
-    return result.affectedRows > 0;
-  } catch (err) {
-    await conn.rollback();
-    console.error('Erro ao deletar apartamento:', err);
-    throw err;
-  } finally {
-    conn.release();
-  }
+  const [result] = await connection.execute(
+    'UPDATE apartamentos SET is_active = 0, data_ultima_modificacao = ? WHERE id = ?',
+    [getCurrentDateTimeString(), id]
+  );
+  return result.affectedRows > 0;
 };
 
 // Buscar todos os apartamentos de uma empresa
@@ -576,7 +533,20 @@ const getAllApartamentosByEmpresa = async (empresaId) => {
     FROM apartamentos a
     LEFT JOIN predios p ON a.predio_id = p.id
     LEFT JOIN users u ON a.modificado_user_id = u.id
-    WHERE a.empresa_id = ?
+    WHERE a.empresa_id = ? AND a.is_active = 1
+  `;
+  const [apartamentos] = await connection.execute(query, [empresaId]);
+  return apartamentos;
+};
+
+// Buscar todos os apartamentos INATIVOS (is_active = 0) de uma empresa
+const getApartamentosInativosByEmpresa = async (empresaId) => {
+  const query = `
+    SELECT a.*, p.nome AS predio_name, u.first_name AS modificado_user_nome
+    FROM apartamentos a
+    LEFT JOIN predios p ON a.predio_id = p.id
+    LEFT JOIN users u ON a.modificado_user_id = u.id
+    WHERE a.empresa_id = ? AND a.is_active = 0
   `;
   const [apartamentos] = await connection.execute(query, [empresaId]);
   return apartamentos;
@@ -584,20 +554,20 @@ const getAllApartamentosByEmpresa = async (empresaId) => {
 
 // Buscar apartamento por id e empresa
 const getApartamentoByIdAndEmpresa = async (id, empresaId) => {
-  const [apartamentos] = await connection.execute('SELECT * FROM apartamentos WHERE id = ? AND empresa_id = ?', [id, empresaId]);
+  const [apartamentos] = await connection.execute('SELECT * FROM apartamentos WHERE id = ? AND empresa_id = ? AND is_active = 1', [id, empresaId]);
   return apartamentos.length > 0 ? apartamentos[0] : null;
 };
 
 // Buscar apartamentos por prédio e empresa
 const getApartamentosByPredioIdAndEmpresa = async (predioId, empresaId) => {
-  const [apartamentos] = await connection.execute('SELECT * FROM apartamentos WHERE predio_id = ? AND empresa_id = ?', [predioId, empresaId]);
+  const [apartamentos] = await connection.execute('SELECT * FROM apartamentos WHERE predio_id = ? AND empresa_id = ? AND is_active = 1', [predioId, empresaId]);
   return apartamentos;
 };
 
 // Nova função: retorna vaga_garagem, pedir_selfie e tem_garagem por apartamento_id
 const getVagaSelfieTemGaragem = async (apartamento_id) => {
   const [rows] = await connection.execute(
-    'SELECT vaga_garagem, pedir_selfie, tem_garagem FROM apartamentos WHERE id = ?',
+    'SELECT vaga_garagem, pedir_selfie, tem_garagem FROM apartamentos WHERE id = ? AND is_active = 1',
     [apartamento_id]
   );
   return rows[0] || null;
@@ -612,6 +582,7 @@ module.exports = {
   updateApartamento,
   deleteApartamento,
   getAllApartamentosByEmpresa,
+  getApartamentosInativosByEmpresa,
   getApartamentoByIdAndEmpresa,
   getApartamentosByPredioIdAndEmpresa,
   getVagaSelfieTemGaragem
