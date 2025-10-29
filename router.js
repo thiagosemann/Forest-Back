@@ -44,6 +44,7 @@ const apartamentosProprietarioController = require('./src/controllers/Airbnb/apa
 const nodemcuPrediosController = require('./src/controllers/Airbnb/nodemcuPrediosController');
 const aberturaNodeMcuController = require('./src/controllers/Airbnb/aberturaNodeMcuController');
 const mensagemCadastroViaLinkController = require('./src/controllers/Airbnb/mensagemCadastroViaLinkController');
+const credenciaisReservaController = require('./src/controllers/Airbnb/credenciaisReservaController');
 const scripts = require('./src/Scripts/sincronizacaoReservas');
 const npsLimpezasController = require('./src/controllers/Airbnb/npsLimpezasController');
 
@@ -242,9 +243,14 @@ router.get('/apartamentos-airbnb/selfie-garagem', apartamentosAirbnbController.g
 router.post('/nodemcu-predios/ligar', require('./src/WebSocket/webSocketFunctions').ligarNodeMcu);
 // Rota para enviar mensagem cadastro.
 router.post('/mensagem-cadastro-link', mensagemCadastroViaLinkController.sendMensagemCadastroViaLink);
-
-
-
+// Rotas para credenciais de reserva (arquivo Base64)
+router.post('/credenciais-reserva', verifyToken, empresaMiddleware, credenciaisReservaController.createCredencialReserva);
+router.get('/credenciais-reserva', verifyToken, empresaMiddleware, credenciaisReservaController.getAllCredenciais);
+router.get('/credenciais-reserva/:id', verifyToken, empresaMiddleware, credenciaisReservaController.getCredencialById);
+router.get('/credenciais-reserva/reserva/:reservaId', verifyToken, empresaMiddleware, credenciaisReservaController.getCredenciaisByReservaId);
+router.get('/credenciais-reserva/cod/:cod_reserva', verifyToken, empresaMiddleware, credenciaisReservaController.getCredenciaisByCodReserva);
+router.delete('/credenciais-reserva/:id', verifyToken, empresaMiddleware, credenciaisReservaController.deleteCredencial);
+router.delete('/credenciais-reserva/reserva/:reservaId', verifyToken, empresaMiddleware, credenciaisReservaController.deleteCredenciaisByReserva);
 
 // ReservasAirbnb routes
 router.get('/reservas-airbnb',verifyToken, empresaMiddleware, reservasAirbnbController.getAllReservas);
