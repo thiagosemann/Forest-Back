@@ -121,7 +121,7 @@ async function processarEventos(vevents, apartamento, hoje, dataLimite, parserFn
     if (!parsed) continue;
     const { start, end, summary, cod_reserva, link_reserva } = parsed;
     if (summary !== 'Reserved') continue;
-    if (end <= hoje || start > dataLimite) continue;
+    if (start > dataLimite) continue;
     ativos.add(cod_reserva);
     const [existing] = await connection.execute(
       'SELECT id, start_date, end_data, description FROM reservas WHERE cod_reserva = ?', [cod_reserva]
