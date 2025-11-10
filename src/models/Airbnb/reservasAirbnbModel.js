@@ -36,13 +36,15 @@ const createReserva = async (reserva) => {
     check_out,
     faxina_userId,
     telefone_principal = null, // valor padrão null
-    placa_carro = null // NOVO: valor padrão null
+    placa_carro = null, // NOVO: valor padrão null
+    early_checkin = 0, // NOVO: aceita boolean/number; padrão 0
+    late_checkout = 0 // NOVO: aceita boolean/number; padrão 0
   } = reserva;
 
   const insertReservaQuery = `
     INSERT INTO reservas 
-    (apartamento_id, description, end_data, start_date, Observacoes, cod_reserva, link_reserva, limpeza_realizada, credencial_made, informed, check_in, check_out, faxina_userId, telefone_principal, placa_carro) 
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    (apartamento_id, description, end_data, start_date, Observacoes, cod_reserva, link_reserva, limpeza_realizada, credencial_made, informed, check_in, check_out, faxina_userId, telefone_principal, placa_carro, early_checkin, late_checkout) 
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
   const values = [
     apartamento_id, 
@@ -59,7 +61,9 @@ const createReserva = async (reserva) => {
     check_out,
     faxina_userId,
     telefone_principal,
-    placa_carro
+    placa_carro,
+    Number(early_checkin ? 1 : 0),
+    Number(late_checkout ? 1 : 0)
   ];
 
   try {
@@ -150,6 +154,7 @@ const getReservasByApartamentoId = async (apartamentoId, empresaId) => {
 
 // Função para atualizar reserva (atualizada com faxina_userId)
 const updateReserva = async (reserva) => {
+  console.log(reserva)
   const {
     id,
     apartamento_id,
@@ -166,12 +171,14 @@ const updateReserva = async (reserva) => {
     check_out,
     faxina_userId,
     telefone_principal,
-    placa_carro = null // NOVO
+    placa_carro = null, // NOVO
+    early_checkin = 0,
+    late_checkout = 0
   } = reserva;
 
   const updateReservaQuery = `
     UPDATE reservas 
-    SET apartamento_id = ?, description = ?, end_data = ?, start_date = ?, Observacoes = ?, cod_reserva = ?, link_reserva = ?, limpeza_realizada = ?, credencial_made = ?, informed = ?, check_in = ?, check_out = ?, faxina_userId = ?, telefone_principal = ?, placa_carro = ?
+    SET apartamento_id = ?, description = ?, end_data = ?, start_date = ?, Observacoes = ?, cod_reserva = ?, link_reserva = ?, limpeza_realizada = ?, credencial_made = ?, informed = ?, check_in = ?, check_out = ?, faxina_userId = ?, telefone_principal = ?, placa_carro = ?, early_checkin = ?, late_checkout = ?
     WHERE id = ?
   `;
 
@@ -191,6 +198,8 @@ const updateReserva = async (reserva) => {
     faxina_userId,
     telefone_principal,
     placa_carro,
+    Number(early_checkin ? 1 : 0),
+    Number(late_checkout ? 1 : 0),
     id, // O ID deve ser o último valor, pois corresponde ao WHERE id = ?
   ];
 
