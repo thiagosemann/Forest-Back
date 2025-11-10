@@ -154,7 +154,6 @@ const getReservasByApartamentoId = async (apartamentoId, empresaId) => {
 
 // Função para atualizar reserva (atualizada com faxina_userId)
 const updateReserva = async (reserva) => {
-  console.log(reserva)
   const {
     id,
     apartamento_id,
