@@ -51,8 +51,6 @@ const createReembolso = async (data, arquivos = []) => {
     data_realizado, // nova coluna
     pagamento_confirmado,
     data_pagamento,
-    created_at, // nova coluna
-    updated_at, // nova coluna
     auth, // nova coluna
     link_pagamento // nova coluna
   } = data;
@@ -71,11 +69,9 @@ const createReembolso = async (data, arquivos = []) => {
       data_realizado,
       pagamento_confirmado,
       data_pagamento,
-      created_at,
-      updated_at,
       auth,
       link_pagamento
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
   const ticketValues = [
@@ -91,8 +87,6 @@ const createReembolso = async (data, arquivos = []) => {
     data_realizado || null,
     pagamento_confirmado || 0,
     data_pagamento || null,
-    created_at || new Date(),
-    updated_at || new Date(),
     auth || null,
     link_pagamento || null
   ];
@@ -138,6 +132,7 @@ const updateReembolso = async (id, data, arquivos) => {
   const fields = [];
   const values = [];
   for (const [key, val] of Object.entries(data)) {
+    if (key === 'created_at') continue; // não permitir atualização de created_at vinda do cliente
     fields.push(`\`${key}\` = ?`);
     values.push(val);
   }
