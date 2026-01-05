@@ -256,6 +256,34 @@ async function getReservasPorPeriodo(startDate, endDate, empresaId) {
         WHERE c2.reserva_id = r.id
       ) AS horarioPrevistoChegada,
       (
+        SELECT rprev.end_data
+        FROM reservas rprev
+        WHERE rprev.apartamento_id = r.apartamento_id
+          AND rprev.id <> r.id
+          AND rprev.end_data < r.start_date
+        ORDER BY rprev.end_data DESC
+        LIMIT 1
+      ) AS previous_end_data,
+      (
+        SELECT rprev.faxina_userId
+        FROM reservas rprev
+        WHERE rprev.apartamento_id = r.apartamento_id
+          AND rprev.id <> r.id
+          AND rprev.end_data < r.start_date
+        ORDER BY rprev.end_data DESC
+        LIMIT 1
+      ) AS previous_faxina_userId,
+      (
+        SELECT u.first_name
+        FROM reservas rprev
+        LEFT JOIN users u ON u.id = rprev.faxina_userId
+        WHERE rprev.apartamento_id = r.apartamento_id
+          AND rprev.id <> r.id
+          AND rprev.end_data < r.start_date
+        ORDER BY rprev.end_data DESC
+        LIMIT 1
+      ) AS previous_faxina_first_name,
+      (
         SELECT JSON_ARRAYAGG(
           JSON_OBJECT(
             'id', p.id,
