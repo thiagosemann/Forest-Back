@@ -47,6 +47,7 @@ const mensagemCadastroViaLinkController = require('./src/controllers/Airbnb/mens
 const credenciaisReservaController = require('./src/controllers/Airbnb/credenciaisReservaController');
 const scripts = require('./src/Scripts/sincronizacaoReservas');
 const npsLimpezasController = require('./src/controllers/Airbnb/npsLimpezasController');
+const demandasController = require('./src/controllers/Airbnb/demandasController');
 
 // Funções WebSocket
 const { ligarNodeMcu } = require('./src/WebSocket/webSocketFunctions');
@@ -356,6 +357,18 @@ router.get('/ticket-reembolso/auth/:auth', ticketReembolsoController.getTicketBy
 router.post('/ticket-reembolso/arquivo', verifyToken, empresaMiddleware, ticketReembolsoController.createArquivoReembolso);
 router.put('/ticket-reembolso/arquivo/:id', verifyToken, empresaMiddleware, ticketReembolsoController.updateArquivoReembolso);
 router.delete('/ticket-reembolso/arquivo/:id', verifyToken, empresaMiddleware, ticketReembolsoController.deleteArquivoReembolso);
+
+// Rotas para Demandas
+router.get('/demandas', verifyToken, empresaMiddleware, demandasController.getAllDemandas);
+router.get('/demandas/:id', verifyToken, empresaMiddleware, demandasController.getDemandaById);
+router.post('/demandas', verifyToken, empresaMiddleware, demandasController.createDemanda);
+router.put('/demandas/:id', verifyToken, empresaMiddleware, demandasController.updateDemanda);
+router.delete('/demandas/:id', verifyToken, empresaMiddleware, demandasController.deleteDemanda);
+// Filtros
+router.get('/demandas/responsavel/:user_id', verifyToken, empresaMiddleware, demandasController.getDemandasByResponsavel);
+router.get('/demandas/criador/:user_id', verifyToken, empresaMiddleware, demandasController.getDemandasByUserCreated);
+router.get('/demandas/prazo/:prazo', verifyToken, empresaMiddleware, demandasController.getDemandasByPrazo);
+router.get('/demandas/status/:status', verifyToken, empresaMiddleware, demandasController.getDemandasByStatus);
 
 // Rotas para vínculo proprietário-apartamento (Airbnb)
 router.post('/apartamentos-proprietario', verifyToken, empresaMiddleware, apartamentosProprietarioController.addProprietarioToApartamento); // Adiciona vínculo
