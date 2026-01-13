@@ -25,7 +25,6 @@ const getDemandaById = async (id) => {
 
 // Create new demanda
 const createDemanda = async (data) => {
-    console.log(data)
   const {
     apartamento_id,
     user_id_responsavel,
@@ -53,7 +52,7 @@ const createDemanda = async (data) => {
   `;
 
   const values = [
-    apartamento_id,
+    apartamento_id || null,
     user_id_responsavel,
     reserva_id || null,
     user_id_created,
