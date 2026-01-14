@@ -1,5 +1,40 @@
 const connection = require('../connection2');
 
+// Normalize ISO/string date to YYYY-MM-DD for DATE columns
+const normalizeDate = (value) => {
+  if (!value) return value;
+  if (value instanceof Date) return value.toISOString().slice(0, 10);
+  if (typeof value === 'string') {
+    // Accept already-normalized date
+    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+    const parsed = new Date(value);
+    if (!isNaN(parsed.getTime())) return parsed.toISOString().slice(0, 10);
+  }
+  return value;
+};
+
+// Normalize enums to DB-safe values
+const normalizePeriodo = (periodo) => {
+  if (!periodo) return periodo;
+  const map = { manha: 'manha', 'manhã': 'manha', tarde: 'tarde', noite: 'noite', madrugada: 'madrugada' };
+  return map[periodo] || periodo;
+};
+
+const normalizeType = (type) => {
+  if (!type) return type;
+  const val = type.toLowerCase();
+  if (val === 'rua' || val === 'escritorio') return val;
+  return type; // mantém para validação posterior
+};
+
+const ensureAllowedValue = (value, allowed, fieldName) => {
+  if (value === undefined || value === null) return value;
+  if (!allowed.includes(value)) {
+    throw new Error(`${fieldName} inválido. Use: ${allowed.join(', ')}`);
+  }
+  return value;
+};
+
 // Fetch all demandas with apartment name
 const getAllDemandas = async () => {
   const [rows] = await connection.execute(
@@ -52,16 +87,21 @@ const createDemanda = async (data) => {
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
+  const normPeriodo = normalizePeriodo(periodo);
+  const normType = normalizeType(type);
+  ensureAllowedValue(normPeriodo, ['manha', 'tarde', 'noite', 'madrugada'], 'periodo');
+  ensureAllowedValue(normType, ['rua', 'escritorio'], 'type');
+
   const values = [
     apartamento_id || null,
     user_id_responsavel,
     reserva_id || null,
     user_id_created,
     demanda,
-    prazo,
-    periodo,
+    normalizeDate(prazo),
+    normPeriodo,
     status || 'Pendente',
-    type
+    normType
   ];
 
   const [result] = await connection.execute(insertQuery, values);
@@ -73,6 +113,23 @@ const updateDemanda = async (id, data) => {
   console.log('Updating demanda id:', id, 'with data:', data);
   // Always refresh updated_at in DB
   data.updated_at = new Date();
+
+  // Prevent accidental id override
+  if ('id' in data) delete data.id;
+
+  // Normalize date/enums when present
+  if (data.prazo !== undefined && data.prazo !== null) data.prazo = normalizeDate(data.prazo);
+  if (data.periodo !== undefined && data.periodo !== null) {
+    data.periodo = normalizePeriodo(data.periodo);
+    ensureAllowedValue(data.periodo, ['manha', 'tarde', 'noite', 'madrugada'], 'periodo');
+  }
+  if (data.type !== undefined && data.type !== null) {
+    data.type = normalizeType(data.type);
+    ensureAllowedValue(data.type, ['rua', 'escritorio'], 'type');
+  }
+
+  // Avoid setting apartamento_id to null when not provided
+  if (data.apartamento_id === null || data.apartamento_id === undefined) delete data.apartamento_id;
 
   const fields = [];
   const values = [];
