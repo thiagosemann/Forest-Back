@@ -25,6 +25,7 @@ const getDemandaById = async (id) => {
 
 // Create new demanda
 const createDemanda = async (data) => {
+  console.log('Creating demanda with data:', data);
   const {
     apartamento_id,
     user_id_responsavel,
@@ -69,6 +70,7 @@ const createDemanda = async (data) => {
 
 // Update demanda by id (partial update)
 const updateDemanda = async (id, data) => {
+  console.log('Updating demanda id:', id, 'with data:', data);
   // Always refresh updated_at in DB
   data.updated_at = new Date();
 
