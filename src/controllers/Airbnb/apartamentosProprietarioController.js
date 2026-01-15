@@ -83,11 +83,27 @@ const removeAllApartamentosFromProprietario = async (req, res) => {
   }
 };
 
+// Lista IDs de apartamentos que não possuem vínculo com proprietários
+const getApartamentosSemVinculo = async (req, res) => {
+  try {
+    const { empresaId } = req;
+    if (empresaId == null) {
+      return res.status(400).json({ error: 'empresaId é obrigatório.' });
+    }
+
+    const apartamentos = await apartamentosProprietarioModel.getApartamentosSemVinculo(empresaId);
+    res.json(apartamentos);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 module.exports = {
   addProprietarioToApartamento,
   removeProprietarioFromApartamento,
   getProprietariosByApartamento,
   getApartamentosByProprietario,
   removeAllProprietariosFromApartamento,
-  removeAllApartamentosFromProprietario
+  removeAllApartamentosFromProprietario,
+  getApartamentosSemVinculo
 };

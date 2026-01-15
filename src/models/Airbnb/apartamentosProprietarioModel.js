@@ -48,11 +48,31 @@ const removeAllApartamentosFromProprietario = async (user_id) => {
   await connection.execute(query, [user_id]);
 };
 
+// Busca apartamentos sem qualquer vínculo com proprietário (id e nome)
+const getApartamentosSemVinculo = async (empresaId) => {
+  if (empresaId == null) {
+    return [];
+  }
+
+  let query = `
+    SELECT a.id, a.nome
+    FROM apartamentos a
+    LEFT JOIN apartamento_proprietario ap ON a.id = ap.apartamento_id
+    WHERE ap.apartamento_id IS NULL
+      AND a.empresa_id = ?
+  `;
+  const params = [empresaId];
+
+  const [rows] = await connection.execute(query, params);
+  return rows;
+};
+
 module.exports = {
   addProprietarioToApartamento,
   removeProprietarioFromApartamento,
   getProprietariosByApartamento,
   getApartamentosByProprietario,
   removeAllProprietariosFromApartamento,
-  removeAllApartamentosFromProprietario
+  removeAllApartamentosFromProprietario,
+  getApartamentosSemVinculo
 };

@@ -379,6 +379,7 @@ router.get('/apartamentos-proprietario/proprietarios/:apartamento_id', verifyTok
 router.get('/apartamentos-proprietario/apartamentos/:user_id', verifyToken, empresaMiddleware, apartamentosProprietarioController.getApartamentosByProprietario); // Lista apartamentos de um proprietário
 router.delete('/apartamentos-proprietario/apartamento', verifyToken, empresaMiddleware, apartamentosProprietarioController.removeAllProprietariosFromApartamento); // Remove todos os vínculos de um apartamento
 router.delete('/apartamentos-proprietario/proprietario', verifyToken, empresaMiddleware, apartamentosProprietarioController.removeAllApartamentosFromProprietario); // Remove todos os vínculos de um proprietário
+router.get('/apartamentos-proprietario/sem-vinculo', verifyToken, empresaMiddleware, apartamentosProprietarioController.getApartamentosSemVinculo); // Lista apartamentos sem vínculo
 
 // Rotas para NodeMCU-Prédio
 router.get('/nodemcu-predios', verifyToken, empresaMiddleware, nodemcuPrediosController.getAllNodemcuPredios);
