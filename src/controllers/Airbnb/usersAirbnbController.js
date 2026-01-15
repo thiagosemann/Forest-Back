@@ -105,6 +105,17 @@ const getUsersByRole = async (request, response) => {
   }
 };
 
+const getProprietarios = async (request, response) => {
+  try {
+    const { empresaId } = request;
+    const users = await usersModel.getUsersByRole('proprietario', empresaId);
+    return response.status(200).json(users);
+  } catch (error) {
+    console.error('Erro ao obter usuários proprietários:', error);
+    return response.status(500).json({ error: 'Erro ao obter usuários proprietários' });
+  }
+};
+
 const getUserByTelefone = async (request, response) => {
   try {
     const { telefone } = request.params; // `telefone` vem da URL
@@ -130,6 +141,7 @@ module.exports = {
   updateUser,
   deleteUser,
   createUsersBatch,
-  getUsersByRole, 
-  getUserByTelefone
+  getUsersByRole,
+  getUserByTelefone,
+  getProprietarios
 };

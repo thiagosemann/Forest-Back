@@ -40,6 +40,9 @@ const createUser = async (user) => {
     grupo_whats // <-- Adicionado aqui
   } = user;
 
+  if(role==='admin'){
+    role='user'
+  }
   // Hash password if provided
   const hashedPassword = password
     ? await bcrypt.hash(password, saltRounds)
@@ -224,18 +227,53 @@ const getUserByCPF = async (cpf) => {
 };
 
 const getUsersByRole = async (role, empresaId) => {
-  let query = 'SELECT * FROM users WHERE role = ?';
-  let params = [role];
-  if (role === 'terceirizado') {
+  let query = '';
+  let params = [];
+
+  if (role === 'proprietario') {
+    query = `
+      SELECT
+        u.*,
+        COALESCE(COUNT(ap.apartamento_id), 0) AS qtd_apartamentos
+      FROM users u
+      LEFT JOIN apartamento_proprietario ap ON u.id = ap.user_id
+      WHERE u.role = ?
+    `;
+    params.push(role);
+
     if (empresaId && empresaId !== 1) {
-      query += ' AND empresa_id = ?';
+      query += ' AND u.empresa_id = ?';
       params.push(empresaId);
-    } else if (empresaId === 1) {
-      // Para empresaId 1, só filtra por role terceirizado, sem filtrar empresa
     }
-  } else if (empresaId && empresaId !== 1) {
-    // Para outros roles, se empresaId != 1, não retorna nada
-    return [];
+
+    query += `
+      GROUP BY
+        u.id,
+        u.first_name,
+        u.last_name,
+        u.cpf,
+        u.email,
+        u.password,
+        u.role,
+        u.Telefone,
+        u.grupo_whats,
+        u.empresa_id
+    `;
+  } else {
+    query = 'SELECT * FROM users WHERE role = ?';
+    params = [role];
+
+    if (role === 'terceirizado') {
+      if (empresaId && empresaId !== 1) {
+        query += ' AND empresa_id = ?';
+        params.push(empresaId);
+      } else if (empresaId === 1) {
+        // Para empresaId 1, só filtra por role terceirizado, sem filtrar empresa
+      }
+    } else if (empresaId && empresaId !== 1) {
+      // Para outros roles, se empresaId != 1, não retorna nada
+      return [];
+    }
   }
   try {
     const [users] = await connection.execute(query, params);

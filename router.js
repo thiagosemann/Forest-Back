@@ -279,9 +279,11 @@ router.delete('/limpeza-extra/:id',verifyToken, empresaMiddleware, limpezaExtraC
 
 
 // User routes
+router.get('/users-airbnb/proprietarios', verifyToken, empresaMiddleware, usersAirbnbController.getProprietarios);
 router.get('/users-airbnb', verifyToken, empresaMiddleware, usersAirbnbController.getAllUsers);
 router.put('/users-airbnb/:id', verifyToken, empresaMiddleware, usersAirbnbController.updateUser);
 router.get('/users-airbnb/:id', verifyToken, empresaMiddleware, usersAirbnbController.getUser);
+
 router.get('/users-airbnb/role/:role', verifyToken, empresaMiddleware, usersAirbnbController.getUsersByRole);
 router.get('/users-airbnb/telefone/:telefone', usersAirbnbController.getUserByTelefone); // <-- Adicione esta linha
 router.post('/users-airbnb/batch', verifyToken, empresaMiddleware, usersAirbnbController.createUsersBatch);
