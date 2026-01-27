@@ -39,14 +39,14 @@ const createReserva = async (reserva) => {
     placa_carro = null, // NOVO: valor padrão null
     early_checkin = 0, // NOVO: aceita boolean/number; padrão 0
     late_checkout = 0, // NOVO: aceita boolean/number; padrão 0
-    marcaCarro = null,
-    modeloCarro = null,
-    corCarro = null
+    marca_carro = null,
+    modelo_carro = null,
+    cor_carro = null
   } = reserva;
 
   const insertReservaQuery = `
     INSERT INTO reservas 
-    (apartamento_id, description, end_data, start_date, Observacoes, cod_reserva, link_reserva, limpeza_realizada, credencial_made, informed, check_in, check_out, faxina_userId, telefone_principal, placa_carro, early_checkin, late_checkout, marcaCarro, modeloCarro, corCarro) 
+    (apartamento_id, description, end_data, start_date, Observacoes, cod_reserva, link_reserva, limpeza_realizada, credencial_made, informed, check_in, check_out, faxina_userId, telefone_principal, placa_carro, early_checkin, late_checkout, marca_carro, modelo_carro, cor_carro) 
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
   const values = [
@@ -67,9 +67,9 @@ const createReserva = async (reserva) => {
     placa_carro,
     Number(early_checkin ? 1 : 0),
     Number(late_checkout ? 1 : 0),
-    marcaCarro,
-    modeloCarro,
-    corCarro
+    marca_carro,
+    modelo_carro,
+    cor_carro
   ];
 
   try {
@@ -233,14 +233,14 @@ const updateReserva = async (reserva) => {
     placa_carro = null, // NOVO
     early_checkin = 0,
     late_checkout = 0,
-    marcaCarro = null,
-    modeloCarro = null,
-    corCarro = null
+    marca_carro = null,
+    modelo_carro = null,
+    cor_carro = null
   } = reserva;
 
   const updateReservaQuery = `
     UPDATE reservas 
-    SET apartamento_id = ?, description = ?, end_data = ?, start_date = ?, Observacoes = ?, cod_reserva = ?, link_reserva = ?, limpeza_realizada = ?, credencial_made = ?, informed = ?, check_in = ?, check_out = ?, faxina_userId = ?, telefone_principal = ?, placa_carro = ?, early_checkin = ?, late_checkout = ?, marcaCarro = ?, modeloCarro = ?, corCarro = ?
+    SET apartamento_id = ?, description = ?, end_data = ?, start_date = ?, Observacoes = ?, cod_reserva = ?, link_reserva = ?, limpeza_realizada = ?, credencial_made = ?, informed = ?, check_in = ?, check_out = ?, faxina_userId = ?, telefone_principal = ?, placa_carro = ?, early_checkin = ?, late_checkout = ?, marca_carro = ?, modelo_carro = ?, cor_carro = ?
     WHERE id = ?
   `;
 
@@ -262,9 +262,9 @@ const updateReserva = async (reserva) => {
     placa_carro,
     Number(early_checkin ? 1 : 0),
     Number(late_checkout ? 1 : 0),
-    marcaCarro,
-    modeloCarro,
-    corCarro,
+    marca_carro,
+    modelo_carro,
+    cor_carro,
     id, // O ID deve ser o último valor, pois corresponde ao WHERE id = ?
   ];
 
@@ -278,10 +278,10 @@ const updateReserva = async (reserva) => {
 };
 
 // Atualiza apenas a placa do carro e detalhes por cod_reserva
-const updatePlacaCarroByCodReserva = async (cod_reserva, placa_carro = null, marcaCarro = null, modeloCarro = null, corCarro = null) => {
-  const query = `UPDATE reservas SET placa_carro = ?, marcaCarro = ?, modeloCarro = ?, corCarro = ? WHERE cod_reserva = ?`;
+const updatePlacaCarroByCodReserva = async (cod_reserva, placa_carro = null, marca_carro = null, modelo_carro = null, cor_carro = null) => {
+  const query = `UPDATE reservas SET placa_carro = ?, marca_carro = ?, modelo_carro = ?, cor_carro = ? WHERE cod_reserva = ?`;
   try {
-    const [result] = await connection.execute(query, [placa_carro, marcaCarro, modeloCarro, corCarro, cod_reserva]);
+    const [result] = await connection.execute(query, [placa_carro, marca_carro, modelo_carro, cor_carro, cod_reserva]);
     return result.affectedRows > 0;
   } catch (error) {
     console.error('Erro ao atualizar dados do carro pela reserva:', error);

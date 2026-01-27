@@ -17,7 +17,7 @@ const getAllCheckins = async (request, response) => {
 const createCheckin = async (request, response) => {
   try {
     const createdCheckin = await checkinModel.createCheckin(request.body);
-    await reservasModel.updatePlacaCarroByCodReserva(request.body.cod_reserva, request.body.placa_carro, request.body.marcaCarro, request.body.modeloCarro, request.body.corCarro);
+    await reservasModel.updatePlacaCarroByCodReserva(request.body.cod_reserva, request.body.placa_carro, request.body.marca_carro, request.body.modelo_carro, request.body.cor_carro);
     let objeto = {
       cod_reserva: request.body.cod_reserva,
       telefone_hospede: request.body.Telefone
