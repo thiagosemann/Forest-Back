@@ -23,6 +23,16 @@ const createReserva = async (request, response) => {
   }
 };
 
+const createReservaManual = async (request, response) => {
+  try {
+    const createdReserva = await reservaModel.createReservaManual(request.body);
+    return response.status(201).json(createdReserva);
+  } catch (error) {
+    console.error('Erro ao criar reserva manual:', error);
+    return response.status(409).json({ error: error.message });
+  }
+};
+
 const getReservaById = async (request, response) => {
   try {
     const { id } = request.params;
@@ -240,6 +250,7 @@ const getReservasByCodReserva = async (request, response) => {
 module.exports = {
   getAllReservas,
   createReserva,
+  createReservaManual,
   getReservaById,
   getReservasByApartamentoId,
   updateReserva,

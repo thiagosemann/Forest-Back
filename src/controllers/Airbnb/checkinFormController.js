@@ -1,7 +1,7 @@
 const checkinModel = require('../../models/Airbnb/checkinFormModel');
 const reservasModel = require('../../models/Airbnb/reservasAirbnbModel');
 const apartamentoModel = require('../../models/Airbnb/apartamentosAirbnbModel');
-const whatsControle   = require('../../WhatsApp/whats_Controle');
+const whatsControle = require('../../WhatsApp/whats_Controle');
 
 
 const getAllCheckins = async (request, response) => {
@@ -17,12 +17,12 @@ const getAllCheckins = async (request, response) => {
 const createCheckin = async (request, response) => {
   try {
     const createdCheckin = await checkinModel.createCheckin(request.body);
-    await reservasModel.updatePlacaCarroByCodReserva(request.body.cod_reserva, request.body.placa_carro);
-    let objeto={
-      cod_reserva:request.body.cod_reserva,
+    await reservasModel.updatePlacaCarroByCodReserva(request.body.cod_reserva, request.body.placa_carro, request.body.marcaCarro, request.body.modeloCarro, request.body.corCarro);
+    let objeto = {
+      cod_reserva: request.body.cod_reserva,
       telefone_hospede: request.body.Telefone
     }
-     whatsControle.envioCadastroConcluido(objeto);
+    whatsControle.envioCadastroConcluido(objeto);
 
     return response.status(201).json(createdCheckin);
   } catch (error) {
@@ -63,15 +63,15 @@ const updateCheckin = async (request, response) => {
     const { id } = request.params;
     const checkin = { ...request.body, id };
     const wasUpdated = await checkinModel.updateCheckin(checkin);
-    let objeto={
-      cod_reserva:request.body.cod_reserva,
+    let objeto = {
+      cod_reserva: request.body.cod_reserva,
       telefone_hospede: request.body.Telefone
     }
-     whatsControle.envioCadastroConcluido(objeto);
+    whatsControle.envioCadastroConcluido(objeto);
     if (wasUpdated) {
       // Chamar função do whats
       return response.status(200).json({ message: 'Check-in atualizado com sucesso' });
-      
+
     } else {
       return response.status(404).json({ message: 'Check-in não encontrado' });
     }
@@ -99,34 +99,34 @@ const deleteCheckin = async (request, response) => {
 };
 
 const getCheckinByReservaIdOrCodReserva = async (req, res) => {
-    const { reservaId, codReserva } = req.params;
-  
-    try {
-      const checkin = await checkinModel.getCheckinByReservaIdOrCodReserva(reservaId, codReserva);
-  
-      if (checkin) {
-        res.status(200).json(checkin);
-      } else {
-        res.status(404).json({ message: 'Check-in não encontrado.' });
-      }
-    } catch (error) {
-      console.error('Erro ao buscar check-in:', error);
-      res.status(500).json({ message: 'Erro interno do servidor.' });
+  const { reservaId, codReserva } = req.params;
+
+  try {
+    const checkin = await checkinModel.getCheckinByReservaIdOrCodReserva(reservaId, codReserva);
+
+    if (checkin) {
+      res.status(200).json(checkin);
+    } else {
+      res.status(404).json({ message: 'Check-in não encontrado.' });
     }
-  };
+  } catch (error) {
+    console.error('Erro ao buscar check-in:', error);
+    res.status(500).json({ message: 'Erro interno do servidor.' });
+  }
+};
 
 
-  const getCheckinsByUserId = async (request, response) => {
-    try {
-      const { userId } = request.params;
-      const checkins = await checkinModel.getCheckinsByUserId(userId);
-      return response.status(200).json(checkins);
-    } catch (error) {
-      console.error('Erro ao obter check-ins por usuário:', error);
-      return response.status(500).json({ error: 'Erro ao obter check-ins por usuário' });
-    }
-  };
-  
+const getCheckinsByUserId = async (request, response) => {
+  try {
+    const { userId } = request.params;
+    const checkins = await checkinModel.getCheckinsByUserId(userId);
+    return response.status(200).json(checkins);
+  } catch (error) {
+    console.error('Erro ao obter check-ins por usuário:', error);
+    return response.status(500).json({ error: 'Erro ao obter check-ins por usuário' });
+  }
+};
+
 const envioPorCheckins = async (request, response) => {
   try {
     const { checkinIds } = request.body;
@@ -145,17 +145,17 @@ const envioPorCheckins = async (request, response) => {
         console.warn(`Check-in ${checkinId} não encontrado`);
         continue;
       }
-      let objeto={
-        dataEntrada:reserva.start_date,
-        dataSaida:   reserva.end_data,  // ou reserva.end_date, conforme o nome correto
+      let objeto = {
+        dataEntrada: reserva.start_date,
+        dataSaida: reserva.end_data,  // ou reserva.end_date, conforme o nome correto
         apartamento_name: apartamento.nome,
-        name:            checkin.first_name,
-        cpf:             checkin.CPF,
-        telefone_hospede:        checkin.Telefone,
-        imagemBase64:        checkin.imagemBase64,
-      }    
+        name: checkin.first_name,
+        cpf: checkin.CPF,
+        telefone_hospede: checkin.Telefone,
+        imagemBase64: checkin.imagemBase64,
+      }
 
-       await whatsControle.envioForest(objeto);
+      await whatsControle.envioForest(objeto);
     }
 
     return response

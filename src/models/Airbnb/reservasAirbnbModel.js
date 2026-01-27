@@ -21,49 +21,55 @@ const getAllReservas = async (empresaId) => {
 };
 // Função para criar reserva (atualizada com cod_reserva e faxina_userId)
 const createReserva = async (reserva) => {
-  const { 
-    apartamento_id, 
-    description, 
-    end_data, 
-    start_date, 
-    Observacoes, 
-    cod_reserva, 
-    link_reserva, 
-    limpeza_realizada, 
-    credencial_made, 
-    informed, 
-    check_in, 
+  const {
+    apartamento_id,
+    description,
+    end_data,
+    start_date,
+    Observacoes,
+    cod_reserva,
+    link_reserva,
+    limpeza_realizada,
+    credencial_made,
+    informed,
+    check_in,
     check_out,
     faxina_userId,
     telefone_principal = null, // valor padrão null
     placa_carro = null, // NOVO: valor padrão null
     early_checkin = 0, // NOVO: aceita boolean/number; padrão 0
-    late_checkout = 0 // NOVO: aceita boolean/number; padrão 0
+    late_checkout = 0, // NOVO: aceita boolean/number; padrão 0
+    marcaCarro = null,
+    modeloCarro = null,
+    corCarro = null
   } = reserva;
 
   const insertReservaQuery = `
     INSERT INTO reservas 
-    (apartamento_id, description, end_data, start_date, Observacoes, cod_reserva, link_reserva, limpeza_realizada, credencial_made, informed, check_in, check_out, faxina_userId, telefone_principal, placa_carro, early_checkin, late_checkout) 
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    (apartamento_id, description, end_data, start_date, Observacoes, cod_reserva, link_reserva, limpeza_realizada, credencial_made, informed, check_in, check_out, faxina_userId, telefone_principal, placa_carro, early_checkin, late_checkout, marcaCarro, modeloCarro, corCarro) 
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
   const values = [
-    apartamento_id, 
-    description, 
-    end_data, 
-    start_date, 
-    Observacoes, 
-    cod_reserva, 
-    link_reserva, 
-    limpeza_realizada, 
-    credencial_made, 
-    informed, 
-    check_in, 
+    apartamento_id,
+    description,
+    end_data,
+    start_date,
+    Observacoes,
+    cod_reserva,
+    link_reserva,
+    limpeza_realizada,
+    credencial_made,
+    informed,
+    check_in,
     check_out,
     faxina_userId,
     telefone_principal,
     placa_carro,
     Number(early_checkin ? 1 : 0),
-    Number(late_checkout ? 1 : 0)
+    Number(late_checkout ? 1 : 0),
+    marcaCarro,
+    modeloCarro,
+    corCarro
   ];
 
   try {
@@ -83,6 +89,60 @@ const createReserva = async (reserva) => {
     return { insertId: newReservaId };
   } catch (error) {
     console.error('Erro ao inserir reserva ou vincular checkin:', error);
+    throw error;
+  }
+};
+
+// Função para criar reserva manual (bloqueio)
+const createReservaManual = async (reserva) => {
+  const {
+    apartamento_id,
+    start_date,
+    end_data,
+    description,
+    Observacoes,
+    limpeza_realizada,
+    credencial_made,
+    informed
+  } = reserva;
+
+  // Gera o cod_reserva: BloqueadoForest-apartamento_id-start_date (sem caracteres especiais)
+  const startDateFormatted = start_date.replace(/[^0-9]/g, ''); // Remove caracteres especiais
+  const cod_reserva = `BloqueadoForest-${apartamento_id}-${startDateFormatted}`;
+
+  const insertReservaQuery = `
+    INSERT INTO reservas 
+    (apartamento_id, description, end_data, start_date, Observacoes, cod_reserva, link_reserva, limpeza_realizada, credencial_made, informed, check_in, check_out, faxina_userId, telefone_principal, placa_carro, early_checkin, late_checkout) 
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `;
+
+  const values = [
+    apartamento_id,
+    description || 'reserved',
+    end_data,
+    start_date,
+    Observacoes || '',
+    cod_reserva,
+    "https://www.apartamentosforest.com.br", // link_reserva
+    limpeza_realizada || 0,
+    credencial_made || 0,
+    informed || 0,
+    "15:00", // check_in
+    "11:00", // check_out
+    null, // faxina_userId
+    null, // telefone_principal
+    null, // placa_carro
+    0, // early_checkin
+    0 // late_checkout
+  ];
+
+  try {
+    const [result] = await connection.execute(insertReservaQuery, values);
+    const newReservaId = result.insertId;
+
+    return { insertId: newReservaId, cod_reserva };
+  } catch (error) {
+    console.error('Erro ao inserir reserva manual:', error);
     throw error;
   }
 };
@@ -172,12 +232,15 @@ const updateReserva = async (reserva) => {
     telefone_principal,
     placa_carro = null, // NOVO
     early_checkin = 0,
-    late_checkout = 0
+    late_checkout = 0,
+    marcaCarro = null,
+    modeloCarro = null,
+    corCarro = null
   } = reserva;
 
   const updateReservaQuery = `
     UPDATE reservas 
-    SET apartamento_id = ?, description = ?, end_data = ?, start_date = ?, Observacoes = ?, cod_reserva = ?, link_reserva = ?, limpeza_realizada = ?, credencial_made = ?, informed = ?, check_in = ?, check_out = ?, faxina_userId = ?, telefone_principal = ?, placa_carro = ?, early_checkin = ?, late_checkout = ?
+    SET apartamento_id = ?, description = ?, end_data = ?, start_date = ?, Observacoes = ?, cod_reserva = ?, link_reserva = ?, limpeza_realizada = ?, credencial_made = ?, informed = ?, check_in = ?, check_out = ?, faxina_userId = ?, telefone_principal = ?, placa_carro = ?, early_checkin = ?, late_checkout = ?, marcaCarro = ?, modeloCarro = ?, corCarro = ?
     WHERE id = ?
   `;
 
@@ -199,6 +262,9 @@ const updateReserva = async (reserva) => {
     placa_carro,
     Number(early_checkin ? 1 : 0),
     Number(late_checkout ? 1 : 0),
+    marcaCarro,
+    modeloCarro,
+    corCarro,
     id, // O ID deve ser o último valor, pois corresponde ao WHERE id = ?
   ];
 
@@ -211,14 +277,14 @@ const updateReserva = async (reserva) => {
   }
 };
 
-// Atualiza apenas a placa do carro por cod_reserva
-const updatePlacaCarroByCodReserva = async (cod_reserva, placa_carro = null) => {
-  const query = `UPDATE reservas SET placa_carro = ? WHERE cod_reserva = ?`;
+// Atualiza apenas a placa do carro e detalhes por cod_reserva
+const updatePlacaCarroByCodReserva = async (cod_reserva, placa_carro = null, marcaCarro = null, modeloCarro = null, corCarro = null) => {
+  const query = `UPDATE reservas SET placa_carro = ?, marcaCarro = ?, modeloCarro = ?, corCarro = ? WHERE cod_reserva = ?`;
   try {
-    const [result] = await connection.execute(query, [placa_carro, cod_reserva]);
+    const [result] = await connection.execute(query, [placa_carro, marcaCarro, modeloCarro, corCarro, cod_reserva]);
     return result.affectedRows > 0;
   } catch (error) {
-    console.error('Erro ao atualizar placa do carro pela reserva:', error);
+    console.error('Erro ao atualizar dados do carro pela reserva:', error);
     throw error;
   }
 };
@@ -480,7 +546,7 @@ async function getReservasPorPeriodoCalendario(startDate, endDate, empresaId) {
 
   return rows.map(row => {
     // parse de JSON_ARRAYAGG caso venha string
-    ['horarioPrevistoChegada','pagamentos'].forEach(col => {
+    ['horarioPrevistoChegada', 'pagamentos'].forEach(col => {
       if (row[col] && typeof row[col] === 'string') {
         try { row[col] = JSON.parse(row[col]); }
         catch { row[col] = []; }
@@ -624,6 +690,7 @@ async function cancelarReservasAusentes(aptoId, ativos, hoje) {
 module.exports = {
   getAllReservas,
   createReserva,
+  createReservaManual,
   getReservaById,
   getReservaByCod,
   getReservasByCodReserva,
