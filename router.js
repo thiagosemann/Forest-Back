@@ -35,7 +35,7 @@ const checkinFormController = require('./src/controllers/Airbnb/checkinFormContr
 const vistoriaController = require('./src/controllers/Airbnb/vistoriaController'); // Import do vistoriaController
 const portariasController = require('./src/controllers/Airbnb/portariasAirbnbController'); // Import do vistoriaController
 const predioPortariaController = require('./src/controllers/Airbnb/predioPortariaController');
-const mensagemAutomatica    = require('./src/mensagemAutomatica')
+const mensagemAutomatica = require('./src/mensagemAutomatica')
 const limpezaExtraController = require('./src/controllers/Airbnb/limpezaExtraAirbnbController');
 const pagamentosController = require('./src/controllers/Airbnb/pagamento_por_reservaController');
 const mercadoPagoApi = require('./src/controllers/Airbnb/mercadoPagoController');
@@ -46,6 +46,7 @@ const aberturaNodeMcuController = require('./src/controllers/Airbnb/aberturaNode
 const mensagemCadastroViaLinkController = require('./src/controllers/Airbnb/mensagemCadastroViaLinkController');
 const credenciaisReservaController = require('./src/controllers/Airbnb/credenciaisReservaController');
 const scripts = require('./src/Scripts/sincronizacaoReservas');
+const geradorIcal = require('./src/Scripts/geradorIcal');
 const npsLimpezasController = require('./src/controllers/Airbnb/npsLimpezasController');
 const demandasController = require('./src/controllers/Airbnb/demandasController');
 
@@ -140,13 +141,13 @@ router.get('/fundos/predios/:predioId', verifyToken, fundosController.getFundosB
 router.get('/calculateRateio/predios/:predio_id/month/:month/year/:year', verifyToken, calculateRateioController.getRateioByBuildingMonthAndYear);
 
 // Rotas para saldo de fundos
-router.get('/saldofundos', verifyToken, saldoFundosController.getAllSaldoFundos); 
+router.get('/saldofundos', verifyToken, saldoFundosController.getAllSaldoFundos);
 router.get('/saldofundos/predios/:predioId', verifyToken, saldoFundosController.getSaldoFundosByBuildingId);
 
-router.get('/saldofundos/:id', verifyToken, saldoFundosController.getSaldoFundoById); 
-router.post('/saldofundos', verifyToken, saldoFundosController.createSaldoFundo); 
-router.put('/saldofundos/:id', verifyToken, saldoFundosController.updateSaldoFundo); 
-router.delete('/saldofundos/:id', verifyToken, saldoFundosController.deleteSaldoFundo); 
+router.get('/saldofundos/:id', verifyToken, saldoFundosController.getSaldoFundoById);
+router.post('/saldofundos', verifyToken, saldoFundosController.createSaldoFundo);
+router.put('/saldofundos/:id', verifyToken, saldoFundosController.updateSaldoFundo);
+router.delete('/saldofundos/:id', verifyToken, saldoFundosController.deleteSaldoFundo);
 
 // Definir a rota para o status do servidor
 router.get('/status', statusController.getServerStatus);
@@ -197,11 +198,11 @@ router.get('/notasGastoComuns/common-expense/:commonExpenseId', verifyToken, not
 router.get('/notasGastoComuns/building/:predio_id/month/:month/year/:year', verifyToken, notasGastoComunsController.getNotasGastosComunsByBuildingAndMonth);
 
 // Exemplo com Express Router
-router.get('/extratos-pdf',verifyToken, extratoPdfController.getAllExtratosPdf);
-router.post('/extratos-pdf',verifyToken, extratoPdfController.createExtratoPdf);
+router.get('/extratos-pdf', verifyToken, extratoPdfController.getAllExtratosPdf);
+router.post('/extratos-pdf', verifyToken, extratoPdfController.createExtratoPdf);
 router.delete('/extratos-pdf/:id', verifyToken, extratoPdfController.deleteExtratoPdf);
 router.get('/extratos-pdf/:id', verifyToken, extratoPdfController.getExtratoPdfById);
-router.get('/extratos-pdf/predio/:predio_id/month/:month/year/:year', verifyToken,extratoPdfController.getExtratosPdfByBuildingMonthYear);
+router.get('/extratos-pdf/predio/:predio_id/month/:month/year/:year', verifyToken, extratoPdfController.getExtratosPdfByBuildingMonthYear);
 
 
 // Cria uma relação entre usuário e apartamento
@@ -214,9 +215,9 @@ router.delete('/users-apartamentos/:user_id/:apartamento_id', verifyToken, users
 // Rotas para Rateio Boleto Email
 router.get('/rateioBoletoEmails', verifyToken, rateioBoletoEmailController.getAllRateioBoletoEmails);
 router.post('/rateioBoletoEmails', verifyToken, rateioBoletoEmailController.createRateioBoletoEmail);
-router.get('/rateioBoletoEmails/:id', verifyToken, rateioBoletoEmailController.getRateioBoletoEmailById); 
-router.put('/rateioBoletoEmails/:id', verifyToken, rateioBoletoEmailController.updateRateioBoletoEmail);   
-router.delete('/rateioBoletoEmails/:id',verifyToken,rateioBoletoEmailController.deleteRateioBoletoEmail);
+router.get('/rateioBoletoEmails/:id', verifyToken, rateioBoletoEmailController.getRateioBoletoEmailById);
+router.put('/rateioBoletoEmails/:id', verifyToken, rateioBoletoEmailController.updateRateioBoletoEmail);
+router.delete('/rateioBoletoEmails/:id', verifyToken, rateioBoletoEmailController.deleteRateioBoletoEmail);
 
 // Rotas para boletos de prestação de cobrança
 router.get('/prestacaoCobrancaBoletos', verifyToken, prestacaoCobrancaBoletosController.getAllPrestacaoCobrancaBoletos);
@@ -235,10 +236,12 @@ router.get('/apartamentos-airbnb/codigo-proprietario/:cod', apartamentosAirbnbCo
 router.post('/checkins', checkinFormController.createCheckin); // Criar um novo check-in
 // MercadoPago routes
 router.post('/mercadoPago/processar-webhook', mercadoPagoApi.processarWebhookMercadoPago);
-router.post('/mercadopago/preference',  verifyToken, mercadoPagoApi.criarPreferencia);
+router.post('/mercadopago/preference', verifyToken, mercadoPagoApi.criarPreferencia);
 router.get('/reservas-airbnb/reservas/por-periodo-calendario/:apartamentoId', reservasAirbnbController.getReservasPorPeriodoCalendarioPorApartamento);
 router.get('/reservas-airbnb/reservas/cod/:cod_reserva', reservasAirbnbController.getReservasByCodReserva);
 router.get('/apartamentos-airbnb/selfie-garagem', apartamentosAirbnbController.getVagaSelfieTemGaragem);
+// Rota pública para ICS do apartamento (format=airbnb|booking)
+router.get('/apartamento-ical/:id', geradorIcal.icalRoute);
 
 // Rota para acionar NodeMCU via WebSocket (POST, recebe nodeId e cod_reserva no body)
 router.post('/nodemcu-predios/ligar', require('./src/WebSocket/webSocketFunctions').ligarNodeMcu);
@@ -254,9 +257,10 @@ router.delete('/credenciais-reserva/:id', verifyToken, empresaMiddleware, creden
 router.delete('/credenciais-reserva/reserva/:reservaId', verifyToken, empresaMiddleware, credenciaisReservaController.deleteCredenciaisByReserva);
 
 // ReservasAirbnb routes
-router.get('/reservas-airbnb',verifyToken, empresaMiddleware, reservasAirbnbController.getAllReservas);
+router.get('/reservas-airbnb', verifyToken, empresaMiddleware, reservasAirbnbController.getAllReservas);
 router.get('/reservas-airbnb/:id', verifyToken, empresaMiddleware, reservasAirbnbController.getReservaById);
 router.post('/reservas-airbnb', verifyToken, empresaMiddleware, reservasAirbnbController.createReserva);
+router.post('/reservas-airbnb/manual', verifyToken, empresaMiddleware, reservasAirbnbController.createReservaManual);
 router.get('/reservas-airbnb/cancelados/hoje', verifyToken, empresaMiddleware, reservasAirbnbController.getReservasCanceladasHoje);
 router.get('/reservas-airbnb/cancelados/por-periodo', verifyToken, empresaMiddleware, reservasAirbnbController.getReservasCanceladasPorPeriodo);
 router.get('/reservas-airbnb/apartamentos/:apartamentoId', verifyToken, empresaMiddleware, reservasAirbnbController.getReservasByApartamentoId);
@@ -270,12 +274,12 @@ router.get('/reservas-airbnb/reservas/por-periodo-calendario', verifyToken, empr
 router.get('/limpeza-extra/', verifyToken, empresaMiddleware, limpezaExtraController.getAllLimpezasExtras);
 router.get('/limpeza-extra/hoje', verifyToken, empresaMiddleware, limpezaExtraController.getLimpezasExtrasHoje);
 router.get('/limpeza-extra/semana', verifyToken, empresaMiddleware, limpezaExtraController.getLimpezasExtrasSemana);
-router.get('/limpeza-extra/semana-que-vem',verifyToken, empresaMiddleware, limpezaExtraController.getLimpezasExtrasSemanaQueVem);
-router.get('/limpeza-extra/por-periodo',verifyToken, empresaMiddleware, limpezaExtraController.getLimpezasExtrasPorPeriodo);
-router.get('/limpeza-extra/:id',verifyToken, empresaMiddleware, limpezaExtraController.getLimpezaExtraById);
-router.post('/limpeza-extra/',verifyToken, empresaMiddleware, limpezaExtraController.createLimpezaExtra);
-router.put('/limpeza-extra/:id',verifyToken, empresaMiddleware, limpezaExtraController.updateLimpezaExtra);
-router.delete('/limpeza-extra/:id',verifyToken, empresaMiddleware, limpezaExtraController.deleteLimpezaExtra);
+router.get('/limpeza-extra/semana-que-vem', verifyToken, empresaMiddleware, limpezaExtraController.getLimpezasExtrasSemanaQueVem);
+router.get('/limpeza-extra/por-periodo', verifyToken, empresaMiddleware, limpezaExtraController.getLimpezasExtrasPorPeriodo);
+router.get('/limpeza-extra/:id', verifyToken, empresaMiddleware, limpezaExtraController.getLimpezaExtraById);
+router.post('/limpeza-extra/', verifyToken, empresaMiddleware, limpezaExtraController.createLimpezaExtra);
+router.put('/limpeza-extra/:id', verifyToken, empresaMiddleware, limpezaExtraController.updateLimpezaExtra);
+router.delete('/limpeza-extra/:id', verifyToken, empresaMiddleware, limpezaExtraController.deleteLimpezaExtra);
 
 
 // User routes
@@ -297,7 +301,8 @@ router.put('/predios-airbnb/:id', verifyToken, empresaMiddleware, predioAirbnbCo
 router.delete('/predios-airbnb/:id', verifyToken, empresaMiddleware, predioAirbnbController.deletePredio);
 
 // ApartamentosAirbnb routes
-router.get('/apartamentos-airbnb',verifyToken, empresaMiddleware, apartamentosAirbnbController.getAllApartamentos);
+router.get('/apartamentos-airbnb', verifyToken, empresaMiddleware, apartamentosAirbnbController.getAllApartamentos);
+router.get('/apartamentos-airbnb/reservaChatBox/:cod_reserva', apartamentosAirbnbController.getApartamentoByReserva);
 router.get('/apartamentos-airbnb/:id', verifyToken, empresaMiddleware, apartamentosAirbnbController.getApartamentoById);
 router.post('/apartamentos-airbnb', verifyToken, empresaMiddleware, apartamentosAirbnbController.createApartamento);
 router.get('/apartamentos-airbnb/predios/:predioId', verifyToken, empresaMiddleware, apartamentosAirbnbController.getApartamentosByPredioId);
@@ -312,15 +317,15 @@ router.get('/checkins/reserva/:reservaId', verifyToken, empresaMiddleware, check
 router.get('/checkins/search/:reservaId/:codReserva', verifyToken, empresaMiddleware, checkinFormController.getCheckinByReservaIdOrCodReserva); // Obter check-in por reservaId ou codReserva
 router.put('/checkins/:id', verifyToken, empresaMiddleware, checkinFormController.updateCheckin); // Atualizar um check-in por ID
 router.delete('/checkins/:id', verifyToken, empresaMiddleware, checkinFormController.deleteCheckin); // Deletar um check-in por ID
-router.get('/checkins/user/:userId',verifyToken, empresaMiddleware,checkinFormController.getCheckinsByUserId);
-router.post( '/checkins/envio', verifyToken, empresaMiddleware, checkinFormController.envioPorCheckins);
+router.get('/checkins/user/:userId', verifyToken, empresaMiddleware, checkinFormController.getCheckinsByUserId);
+router.post('/checkins/envio', verifyToken, empresaMiddleware, checkinFormController.envioPorCheckins);
 
 // Rotas de Vistorias
 router.get('/vistorias', verifyToken, empresaMiddleware, vistoriaController.getAllVistorias);
-router.get('/vistorias/:id',verifyToken, empresaMiddleware, vistoriaController.getVistoriaById);
+router.get('/vistorias/:id', verifyToken, empresaMiddleware, vistoriaController.getVistoriaById);
 router.post('/vistorias', verifyToken, empresaMiddleware, vistoriaController.createVistoria);
-router.put('/vistorias/:id',  verifyToken, empresaMiddleware, vistoriaController.updateVistoria);
-router.delete('/vistorias/:id',  verifyToken, empresaMiddleware, vistoriaController.deleteVistoria);
+router.put('/vistorias/:id', verifyToken, empresaMiddleware, vistoriaController.updateVistoria);
+router.delete('/vistorias/:id', verifyToken, empresaMiddleware, vistoriaController.deleteVistoria);
 
 // Rotas de Portarias
 router.get('/portarias', verifyToken, empresaMiddleware, portariasController.getAllPortarias);

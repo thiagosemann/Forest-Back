@@ -144,6 +144,37 @@ const getVagaSelfieTemGaragem = async (request, response) => {
   }
 };
 
+const getApartamentoByReserva = async (request, response) => {
+  try {
+    const { cod_reserva } = request.params;
+
+    // 1. Buscar a reserva pelo código
+    const reserva = await reservasModel.getReservaByCod(cod_reserva);
+
+    if (!reserva) {
+      return response.status(404).json({ message: 'Reserva não encontrada' });
+    }
+
+    const { apartamento_id } = reserva;
+
+    if (!apartamento_id) {
+      return response.status(404).json({ message: 'Reserva não possui apartamento vinculado' });
+    }
+
+    // 2. Buscar o apartamento pelo ID
+    const apartamento = await apartamentoModel.getApartamentoById(apartamento_id);
+
+    if (apartamento) {
+      return response.status(200).json(apartamento);
+    } else {
+      return response.status(404).json({ message: 'Apartamento não encontrado' });
+    }
+  } catch (error) {
+    console.error('Erro ao obter apartamento por reserva:', error);
+    return response.status(500).json({ error: 'Erro ao obter apartamento por reserva' });
+  }
+};
+
 module.exports = {
   getAllApartamentos,
   createApartamento,
@@ -153,5 +184,6 @@ module.exports = {
   updateApartamento,
   deleteApartamento,
   getVagaSelfieTemGaragem,
+  getApartamentoByReserva,
   getApartamentosInativosByEmpresa
 };
