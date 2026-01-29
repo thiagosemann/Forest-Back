@@ -1,6 +1,6 @@
 const reservaModel = require('../../models/Airbnb/reservasAirbnbModel');
 const usersModel = require('../../models/Airbnb/usersAirbnbModel');
-const whatsControle   = require('../../WhatsApp/whats_Controle');
+const whatsControle = require('../../WhatsApp/whats_Controle');
 const apartamentoModel = require('../../models/Airbnb/apartamentosAirbnbModel');
 const getAllReservas = async (request, response) => {
   try {
@@ -124,18 +124,18 @@ const getReservasPorPeriodo = async (request, response) => {
     const { start, end } = request.query;
     const { empresaId } = request;
     if (!start || !end) {
-      return response.status(400).json({ 
-        error: 'Datas inicial e final são obrigatórias' 
+      return response.status(400).json({
+        error: 'Datas inicial e final são obrigatórias'
       });
     }
 
     const reservas = await reservaModel.getReservasPorPeriodo(start, end, empresaId);
     return response.status(200).json(reservas);
-    
+
   } catch (error) {
     console.error('Erro ao buscar reservas por período:', error);
-    return response.status(500).json({ 
-      error: 'Erro ao buscar reservas por período' 
+    return response.status(500).json({
+      error: 'Erro ao buscar reservas por período'
     });
   }
 };
@@ -146,19 +146,19 @@ const getFaxinasPorPeriodo = async (request, response) => {
     const { start, end } = request.query;
     const { empresaId } = request;
     if (!start || !end) {
-      return response.status(400).json({ 
-        error: 'Datas inicial e final são obrigatórias' 
+      return response.status(400).json({
+        error: 'Datas inicial e final são obrigatórias'
       });
     }
 
     const faxinas = await reservaModel.getFaxinasPorPeriodo(start, end, empresaId);
 
     return response.status(200).json(faxinas);
-    
+
   } catch (error) {
     console.error('Erro ao buscar reservas por período:', error);
-    return response.status(500).json({ 
-      error: 'Erro ao buscar reservas por período' 
+    return response.status(500).json({
+      error: 'Erro ao buscar reservas por período'
     });
   }
 };
@@ -247,6 +247,23 @@ const getReservasByCodReserva = async (request, response) => {
     return response.status(500).json({ error: 'Erro ao obter reservas por cod_reserva' });
   }
 };
+
+// Deletar reservas por origem
+const deleteReservasByOrigem = async (request, response) => {
+  try {
+    const { origem } = request.params;
+    if (!origem) {
+      return response.status(400).json({ error: 'Origem é obrigatória' });
+    }
+    const result = await reservaModel.deleteReservasByOrigem(origem);
+    return response.status(200).json(result);
+  } catch (error) {
+    console.error('Erro ao deletar reservas por origem:', error);
+    return response.status(500).json({ error: 'Erro ao deletar reservas por origem' });
+  }
+};
+
+
 module.exports = {
   getAllReservas,
   createReserva,
@@ -261,5 +278,7 @@ module.exports = {
   getReservasCanceladasHoje,
   getReservasCanceladasPorPeriodo,
   getReservasPorPeriodoCalendarioPorApartamento,
-  getReservasByCodReserva
+  getReservasByCodReserva,
+  deleteReservasByOrigem
 };
+

@@ -111,7 +111,7 @@ const createReservaManual = async (reserva) => {
 
   // Gera o cod_reserva: BloqueadoForest-apartamento_id-start_date (sem caracteres especiais)
   const startDateFormatted = start_date.replace(/[^0-9]/g, ''); // Remove caracteres especiais
-  const cod_reserva = `BloqueadoForest-${apartamento_id}-${startDateFormatted}`;
+  const cod_reserva = `Forest-${apartamento_id}-${startDateFormatted}`;
 
   const insertReservaQuery = `
     INSERT INTO reservas 
@@ -137,7 +137,7 @@ const createReservaManual = async (reserva) => {
     null, // placa_carro
     0, // early_checkin
     0, // late_checkout
-    origem // origem
+    'FOREST' // origem
   ];
 
   try {
@@ -693,6 +693,22 @@ async function cancelarReservasAusentes(aptoId, ativos, hoje) {
     );
   }
 }
+
+// Função para deletar todas as reservas por origem
+async function deleteReservasByOrigem(origem) {
+  try {
+    const [result] = await connection.execute(
+      'DELETE FROM reservas WHERE origem = ?',
+      [origem]
+    );
+    console.log(`[deleteReservasByOrigem] ${result.affectedRows} reservas com origem "${origem}" deletadas.`);
+    return { success: true, deletadas: result.affectedRows };
+  } catch (error) {
+    console.error('Erro ao deletar reservas por origem:', error);
+    throw error;
+  }
+}
+
 module.exports = {
   getAllReservas,
   createReserva,
@@ -711,6 +727,8 @@ module.exports = {
   getReservasPorPeriodoCalendarioPorApartamento,
   getReservasPorPeriodoByApartamentoID,
   cancelarReservasAusentes,
-  updatePlacaCarroByCodReserva
+  updatePlacaCarroByCodReserva,
+  deleteReservasByOrigem
 };
+
 
