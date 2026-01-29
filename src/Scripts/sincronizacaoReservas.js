@@ -14,7 +14,7 @@ async function getApartamentosComLink() {
 }
 
 function getDatasReferencia() {
-  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
   const dataLimite = new Date(); dataLimite.setMonth(dataLimite.getMonth() + 3);
   return { hoje, dataLimite };
 }
@@ -68,7 +68,7 @@ function parseEventoBooking(vevent, apartamento) {
   const start = toDate(vevent.getFirstPropertyValue('dtstart'));
   const end = toDate(vevent.getFirstPropertyValue('dtend'));
   const summary = 'Reserved';
-  const fmt = d => `${String(d.getDate()).padStart(2,'0')}${String(d.getMonth()+1).padStart(2,'0')}${d.getFullYear()}`;
+  const fmt = d => `${String(d.getDate()).padStart(2, '0')}${String(d.getMonth() + 1).padStart(2, '0')}${d.getFullYear()}`;
   const cod_reserva = `B-${apartamento.nome}${fmt(start)}`;
   const link_reserva = apartamento.link_booking_calendario || '';
   return { start, end, summary, cod_reserva, link_reserva };
@@ -87,9 +87,9 @@ function parseEventoStays(vevent, apartamento) {
     cod_reserva = `STAYS-${match[1]}`;
   }
   if (!cod_reserva) {
-    cod_reserva = `STAYS-${Buffer.from(desc).toString('base64').slice(0,12)}`;
+    cod_reserva = `STAYS-${Buffer.from(desc).toString('base64').slice(0, 12)}`;
   }
-  if(!cod_reserva.includes("IDEX")){
+  if (!cod_reserva.includes("IDEX")) {
     summary = 'Reserved';
   }
   let link_reserva = apartamento.link_stays_calendario || '';
@@ -107,13 +107,13 @@ function parseEventoAyrton(vevent, apartamento) {
   const end = toDate(vevent.getFirstPropertyValue('dtend'));
   const summary = 'Reserved';
   // Gera código no mesmo padrão do Booking: <prefixo>-<nome><DDMMYYYY>
-  const fmt = d => `${String(d.getDate()).padStart(2,'0')}${String(d.getMonth()+1).padStart(2,'0')}${d.getFullYear()}`;
+  const fmt = d => `${String(d.getDate()).padStart(2, '0')}${String(d.getMonth() + 1).padStart(2, '0')}${d.getFullYear()}`;
   const cod_reserva = `AYRTON-${apartamento.nome}${fmt(start)}`;
   const link_reserva = apartamento.link_ayrton_calendario || '';
   return { start, end, summary, cod_reserva, link_reserva };
 }
 
-async function processarEventos(vevents, apartamento, hoje, dataLimite, parserFn) {
+async function processarEventos(vevents, apartamento, hoje, dataLimite, parserFn, origem) {
   const ativos = new Set();
   let criadas = 0;
   for (const vevent of vevents) {
@@ -127,14 +127,14 @@ async function processarEventos(vevents, apartamento, hoje, dataLimite, parserFn
       'SELECT id, start_date, end_data, description FROM reservas WHERE cod_reserva = ?', [cod_reserva]
     );
     if (existing.length === 0) {
-      await reservasModel.createReserva({ apartamento_id: apartamento.id, description: summary, start_date: start, end_data: end, Observacoes: '', cod_reserva, link_reserva, limpeza_realizada: false, credencial_made: false, informed: false, check_in: '15:00', check_out: '11:00', faxina_userId: null });
+      await reservasModel.createReserva({ apartamento_id: apartamento.id, description: summary, start_date: start, end_data: end, Observacoes: '', cod_reserva, link_reserva, limpeza_realizada: false, credencial_made: false, informed: false, check_in: '15:00', check_out: '11:00', faxina_userId: null, origem });
       criadas++;
-      if(start=== hoje){
+      if (start === hoje) {
         const limpezasHoje = await reservasModel.getFaxinasPorPeriodo(obj.start, obj.start);
         if (limpezasHoje.length > 0) {
-          for(const limpeza in limpezasHoje) {
+          for (const limpeza in limpezasHoje) {
             const limpezaObj = limpezasHoje[limpeza];
-            if(limpezaObj.apartamento_id === obj.apartamento_id) {
+            if (limpezaObj.apartamento_id === obj.apartamento_id) {
               const apartamento = await apartamentosModel.getApartamentoById(obj.apartamento_id);
               const user = await usersModel.getUser(limpezaObj.faxina_userId);
               whatsControle.criarMensagemTercerizadaLimpezaReservaAtribuidaNoDia({
@@ -175,7 +175,7 @@ async function processarApartamento(apt, hoje, dataLimite) {
       const { eventos: evS, erro, msg, status } = await fetchVevents(apt.link_stays_calendario);
       if (erro) { icsErro = true; erroMsg = msg; erroStatus = status; }
       else if (evS.length === 0) icsVazio = true;
-      const { ativos: codS, criadas: criadasS } = await processarEventos(evS, apt, hoje, dataLimite, parseEventoStays);
+      const { ativos: codS, criadas: criadasS } = await processarEventos(evS, apt, hoje, dataLimite, parseEventoStays, 'STAYS');
       codS.forEach(c => ativos.add(c));
       criadas += criadasS;
     } else if (apt.link_ayrton_calendario) {
@@ -183,7 +183,7 @@ async function processarApartamento(apt, hoje, dataLimite) {
       if (erro) { icsErro = true; erroMsg = msg; erroStatus = status; }
       else if (evAy.length === 0) icsVazio = true;
 
-      const { ativos: codAy, criadas: criadasAy } = await processarEventos(evAy, apt, hoje, dataLimite, parseEventoAyrton);
+      const { ativos: codAy, criadas: criadasAy } = await processarEventos(evAy, apt, hoje, dataLimite, parseEventoAyrton, 'AYRTON');
       codAy.forEach(c => ativos.add(c));
       criadas += criadasAy;
     } else {
@@ -191,7 +191,7 @@ async function processarApartamento(apt, hoje, dataLimite) {
         const { eventos: evA, erro, msg, status } = await fetchVevents(apt.link_airbnb_calendario);
         if (erro) { icsErro = true; erroMsg = msg; erroStatus = status; }
         else if (evA.length === 0) icsVazio = true;
-        const { ativos: codA, criadas: criadasA } = await processarEventos(evA, apt, hoje, dataLimite, parseEventoAirbnb);
+        const { ativos: codA, criadas: criadasA } = await processarEventos(evA, apt, hoje, dataLimite, parseEventoAirbnb, 'AIRBNB');
         codA.forEach(c => ativos.add(c));
         criadas += criadasA;
       }
@@ -199,7 +199,7 @@ async function processarApartamento(apt, hoje, dataLimite) {
         const { eventos: evB, erro, msg, status } = await fetchVevents(apt.link_booking_calendario);
         if (erro) { icsErro = true; erroMsg = msg; erroStatus = status; }
         else if (evB.length === 0) icsVazio = true;
-        const { ativos: codB, criadas: criadasB } = await processarEventos(evB, apt, hoje, dataLimite, parseEventoBooking);
+        const { ativos: codB, criadas: criadasB } = await processarEventos(evB, apt, hoje, dataLimite, parseEventoBooking, 'BOOKING');
         codB.forEach(c => ativos.add(c));
         criadas += criadasB;
       }

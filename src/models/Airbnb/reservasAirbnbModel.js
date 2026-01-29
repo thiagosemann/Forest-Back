@@ -41,13 +41,14 @@ const createReserva = async (reserva) => {
     late_checkout = 0, // NOVO: aceita boolean/number; padrão 0
     marca_carro = null,
     modelo_carro = null,
-    cor_carro = null
+    cor_carro = null,
+    origem = null // NOVO: origem da reserva (AIRBNB, BOOKING, STAYS, AYRTON, MANUAL)
   } = reserva;
 
   const insertReservaQuery = `
     INSERT INTO reservas 
-    (apartamento_id, description, end_data, start_date, Observacoes, cod_reserva, link_reserva, limpeza_realizada, credencial_made, informed, check_in, check_out, faxina_userId, telefone_principal, placa_carro, early_checkin, late_checkout, marca_carro, modelo_carro, cor_carro) 
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    (apartamento_id, description, end_data, start_date, Observacoes, cod_reserva, link_reserva, limpeza_realizada, credencial_made, informed, check_in, check_out, faxina_userId, telefone_principal, placa_carro, early_checkin, late_checkout, marca_carro, modelo_carro, cor_carro, origem) 
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
   const values = [
     apartamento_id,
@@ -69,7 +70,8 @@ const createReserva = async (reserva) => {
     Number(late_checkout ? 1 : 0),
     marca_carro,
     modelo_carro,
-    cor_carro
+    cor_carro,
+    origem
   ];
 
   try {
@@ -103,7 +105,8 @@ const createReservaManual = async (reserva) => {
     Observacoes,
     limpeza_realizada,
     credencial_made,
-    informed
+    informed,
+    origem
   } = reserva;
 
   // Gera o cod_reserva: BloqueadoForest-apartamento_id-start_date (sem caracteres especiais)
@@ -112,8 +115,8 @@ const createReservaManual = async (reserva) => {
 
   const insertReservaQuery = `
     INSERT INTO reservas 
-    (apartamento_id, description, end_data, start_date, Observacoes, cod_reserva, link_reserva, limpeza_realizada, credencial_made, informed, check_in, check_out, faxina_userId, telefone_principal, placa_carro, early_checkin, late_checkout) 
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    (apartamento_id, description, end_data, start_date, Observacoes, cod_reserva, link_reserva, limpeza_realizada, credencial_made, informed, check_in, check_out, faxina_userId, telefone_principal, placa_carro, early_checkin, late_checkout, origem) 
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
   const values = [
@@ -133,7 +136,8 @@ const createReservaManual = async (reserva) => {
     null, // telefone_principal
     null, // placa_carro
     0, // early_checkin
-    0 // late_checkout
+    0, // late_checkout
+    origem // origem
   ];
 
   try {
@@ -235,12 +239,13 @@ const updateReserva = async (reserva) => {
     late_checkout = 0,
     marca_carro = null,
     modelo_carro = null,
-    cor_carro = null
+    cor_carro = null,
+    origem = null // NOVO: origem da reserva
   } = reserva;
 
   const updateReservaQuery = `
     UPDATE reservas 
-    SET apartamento_id = ?, description = ?, end_data = ?, start_date = ?, Observacoes = ?, cod_reserva = ?, link_reserva = ?, limpeza_realizada = ?, credencial_made = ?, informed = ?, check_in = ?, check_out = ?, faxina_userId = ?, telefone_principal = ?, placa_carro = ?, early_checkin = ?, late_checkout = ?, marca_carro = ?, modelo_carro = ?, cor_carro = ?
+    SET apartamento_id = ?, description = ?, end_data = ?, start_date = ?, Observacoes = ?, cod_reserva = ?, link_reserva = ?, limpeza_realizada = ?, credencial_made = ?, informed = ?, check_in = ?, check_out = ?, faxina_userId = ?, telefone_principal = ?, placa_carro = ?, early_checkin = ?, late_checkout = ?, marca_carro = ?, modelo_carro = ?, cor_carro = ?, origem = ?
     WHERE id = ?
   `;
 
@@ -265,6 +270,7 @@ const updateReserva = async (reserva) => {
     marca_carro,
     modelo_carro,
     cor_carro,
+    origem,
     id, // O ID deve ser o último valor, pois corresponde ao WHERE id = ?
   ];
 
