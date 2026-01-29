@@ -679,7 +679,8 @@ async function cancelarReservasAusentes(aptoId, ativos, hoje) {
       WHERE apartamento_id = ? 
         AND cod_reserva NOT IN (${ph}) 
         AND end_data > ? 
-        AND description != 'CANCELADA-VERIFICADA'`,
+        AND description != 'CANCELADA-VERIFICADA'
+        AND (origem IS NULL OR origem != 'FOREST')`,
       [aptoId, ...Array.from(ativos), hoje]
     );
   } else {
@@ -688,7 +689,8 @@ async function cancelarReservasAusentes(aptoId, ativos, hoje) {
       SET description = 'CANCELADA' 
       WHERE apartamento_id = ? 
         AND end_data > ? 
-        AND description != 'CANCELADA-VERIFICADA'`,
+        AND description != 'CANCELADA-VERIFICADA'
+        AND (origem IS NULL OR origem != 'FOREST')`,
       [aptoId, hoje]
     );
   }
