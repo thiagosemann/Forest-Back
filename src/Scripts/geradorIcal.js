@@ -32,6 +32,8 @@ const reservasModel = require('../models/Airbnb/reservasAirbnbModel');
 const apartamentosModel = require('../models/Airbnb/apartamentosAirbnbModel');
 const moment = require('moment-timezone');
 
+const TIMEZONE = 'America/Sao_Paulo';
+
 function escapeText(s) {
   if (!s && s !== 0) return '';
   return String(s).replace(/\n/g, '\\n').replace(/\r/g, '').replace(/,/g, '\\,').replace(/;/g, '\\;');
@@ -56,7 +58,7 @@ async function gerarIcalTexto(apartamentoId, options = {}) {
   lines.push('CALSCALE:GREGORIAN');
   lines.push('METHOD:PUBLISH');
   lines.push(`X-WR-CALNAME:${escapeText(calName)}`);
-  lines.push('X-WR-TIMEZONE:America/Sao_Paulo');
+  lines.push(`X-WR-TIMEZONE:${TIMEZONE}`);
 
   for (const r of reservas) {
     try {
@@ -77,8 +79,8 @@ async function gerarIcalTexto(apartamentoId, options = {}) {
         lines.push(`DTEND;VALUE=DATE:${end.format('YYYYMMDD')}`);
       } else {
         // Airbnb uses date-time with timezone
-        lines.push(`DTSTART;TZID=America/Sao_Paulo:${start.tz('America/Sao_Paulo').format('YYYYMMDDTHHmmss')}`);
-        lines.push(`DTEND;TZID=America/Sao_Paulo:${end.tz('America/Sao_Paulo').format('YYYYMMDDTHHmmss')}`);
+        lines.push(`DTSTART;TZID=${TIMEZONE}:${start.tz(TIMEZONE).format('YYYYMMDDTHHmmss')}`);
+        lines.push(`DTEND;TZID=${TIMEZONE}:${end.tz(TIMEZONE).format('YYYYMMDDTHHmmss')}`);
       }
       const summary = r.description || 'Reserved';
       lines.push(`SUMMARY:${escapeText(summary)}`);
