@@ -60,8 +60,8 @@ async function gerarIcalTexto(apartamentoId, options = {}) {
 
   for (const r of reservas) {
     try {
-      // Se reserva.cod_reserva não conter (forestReserva), vamos ignorar
-      if(r.cod_reserva && !r.cod_reserva.includes('(forestReserva)')) {
+      // Filtrar apenas reservas com origem FOREST
+      if (r.origem !== 'FOREST') {
         continue;
       }
       const uid = `${r.cod_reserva || r.id}@admforest.com.br`;
