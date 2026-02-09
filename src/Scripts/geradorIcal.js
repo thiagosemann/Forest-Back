@@ -66,7 +66,6 @@ async function gerarIcalTexto(apartamentoId, options = {}) {
       if (r.origem !== 'FOREST') {
         continue;
       }
-
       const uid = `${r.cod_reserva || r.id}@admforest.com.br`;
       // Use timezone aware moments
       const start = moment(r.start_date);
@@ -85,25 +84,20 @@ async function gerarIcalTexto(apartamentoId, options = {}) {
       }
       const summary = r.description || 'Reserved';
       lines.push(`SUMMARY:${escapeText(summary)}`);
-
       let desc = 'ORIGEM:ADMFOREST';
       if (r.cod_reserva) desc += ` \\nCOD_RESERVA: ${r.cod_reserva}`;
       if (r.link_reserva) desc += ` \\nLINK: ${r.link_reserva}`;
       if (r.Observacoes) desc += ` \\nOBS: ${r.Observacoes}`;
       lines.push(`DESCRIPTION:${escapeText(desc)}`);
-
       // Provide a URL if available
       if (r.link_reserva) lines.push(`URL:${escapeText(r.link_reserva)}`);
-
-      // Send STATUS:CANCELLED if description is CANCELADA
-      if (r.description === 'CANCELADA') {
+      if (r.description === 'EXCLUIDA') {
         lines.push('STATUS:CANCELLED');
-        lines.push('TRANSP:TRANSPARENT'); // Does not block time
+        lines.push('TRANSP:TRANSPARENT');
       } else {
         lines.push('STATUS:CONFIRMED');
-        lines.push('TRANSP:OPAQUE'); // Blocks time
+        lines.push('TRANSP:OPAQUE');
       }
-
       lines.push('END:VEVENT');
     } catch (e) {
       // skip problematic reservation

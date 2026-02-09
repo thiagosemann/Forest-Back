@@ -699,14 +699,23 @@ async function cancelarReservasAusentes(aptoId, ativos, hoje) {
 // Função para deletar todas as reservas por origem
 async function deleteReservasByOrigem(origem) {
   try {
-    const [result] = await connection.execute(
-      'DELETE FROM reservas WHERE origem = ?',
-      [origem]
-    );
-    console.log(`[deleteReservasByOrigem] ${result.affectedRows} reservas com origem "${origem}" deletadas.`);
+    let result;
+    if (origem === 'FOREST') {
+      [result] = await connection.execute(
+        `UPDATE reservas SET description = 'EXCLUIDA' WHERE origem = ?`,
+        [origem]
+      );
+      console.log(`[deleteReservasByOrigem] ${result.affectedRows} reservas com origem "${origem}" marcadas como EXCLUIDA.`);
+    } else {
+      [result] = await connection.execute(
+        'DELETE FROM reservas WHERE origem = ?',
+        [origem]
+      );
+      console.log(`[deleteReservasByOrigem] ${result.affectedRows} reservas com origem "${origem}" deletadas.`);
+    }
     return { success: true, deletadas: result.affectedRows };
   } catch (error) {
-    console.error('Erro ao deletar reservas por origem:', error);
+    console.error('Erro ao deletar/atualizar reservas por origem:', error);
     throw error;
   }
 }
