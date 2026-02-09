@@ -295,15 +295,15 @@ const updatePlacaCarroByCodReserva = async (cod_reserva, placa_carro = null, mar
   }
 };
 
-// Função para deletar uma reserva pelo ID
+// Função para marcar uma reserva como EXCLUIDA pelo ID (soft delete)
 const deleteReserva = async (id) => {
-  const deleteReservaQuery = 'DELETE FROM reservas WHERE id = ?';
+  const updateReservaQuery = "UPDATE reservas SET description = 'EXCLUIDA' WHERE id = ?";
 
   try {
-    const [result] = await connection.execute(deleteReservaQuery, [id]);
-    return result.affectedRows > 0; // Retorna true se a reserva foi deletada com sucesso
+    const [result] = await connection.execute(updateReservaQuery, [id]);
+    return result.affectedRows > 0; // Retorna true se a reserva foi atualizada com sucesso
   } catch (error) {
-    console.error('Erro ao deletar reserva:', error);
+    console.error('Erro ao marcar reserva como EXCLUIDA:', error);
     throw error;
   }
 };
@@ -697,16 +697,16 @@ async function cancelarReservasAusentes(aptoId, ativos, hoje) {
 }
 
 // Função para deletar todas as reservas por origem
-// Função para deletar todas as reservas por origem (agora sempre marca como EXCLUIDA)
 async function deleteReservasByOrigem(origem) {
   try {
     const [result] = await connection.execute(
-      `UPDATE reservas SET description = 'EXCLUIDA' WHERE origem = ?`,
+      'DELETE FROM reservas WHERE origem = ?',
       [origem]
     );
+    console.log(`[deleteReservasByOrigem] ${result.affectedRows} reservas com origem "${origem}" deletadas.`);
     return { success: true, deletadas: result.affectedRows };
   } catch (error) {
-    console.error('Erro ao atualizar reservas por origem:', error);
+    console.error('Erro ao deletar reservas por origem:', error);
     throw error;
   }
 }
