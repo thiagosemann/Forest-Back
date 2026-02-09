@@ -269,7 +269,6 @@ router.delete('/reservas-airbnb/:id', verifyToken, empresaMiddleware, reservasAi
 router.get('/reservas-airbnb/reservas/por-periodo', verifyToken, empresaMiddleware, reservasAirbnbController.getReservasPorPeriodo);
 router.get('/reservas-airbnb/faxinas/por-periodo', verifyToken, empresaMiddleware, reservasAirbnbController.getFaxinasPorPeriodo);
 router.get('/reservas-airbnb/reservas/por-periodo-calendario', verifyToken, empresaMiddleware, reservasAirbnbController.getReservasPorPeriodoCalendario);
-router.delete('/reservas-airbnb/origem/:origem', verifyToken, empresaMiddleware, reservasAirbnbController.deleteReservasByOrigem);
 
 // Rotas de Limpezas extras
 router.get('/limpeza-extra/', verifyToken, empresaMiddleware, limpezaExtraController.getAllLimpezasExtras);

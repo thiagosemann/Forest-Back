@@ -248,20 +248,7 @@ const getReservasByCodReserva = async (request, response) => {
   }
 };
 
-// Deletar reservas por origem
-const deleteReservasByOrigem = async (request, response) => {
-  try {
-    const { origem } = request.params;
-    if (!origem) {
-      return response.status(400).json({ error: 'Origem é obrigatória' });
-    }
-    const result = await reservaModel.deleteReservasByOrigem(origem);
-    return response.status(200).json(result);
-  } catch (error) {
-    console.error('Erro ao deletar reservas por origem:', error);
-    return response.status(500).json({ error: 'Erro ao deletar reservas por origem' });
-  }
-};
+
 
 
 module.exports = {
@@ -279,6 +266,5 @@ module.exports = {
   getReservasCanceladasPorPeriodo,
   getReservasPorPeriodoCalendarioPorApartamento,
   getReservasByCodReserva,
-  deleteReservasByOrigem
 };
 

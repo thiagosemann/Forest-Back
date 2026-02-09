@@ -91,13 +91,10 @@ async function gerarIcalTexto(apartamentoId, options = {}) {
       lines.push(`DESCRIPTION:${escapeText(desc)}`);
       // Provide a URL if available
       if (r.link_reserva) lines.push(`URL:${escapeText(r.link_reserva)}`);
-      if (r.description === 'EXCLUIDA') {
-        lines.push('STATUS:CANCELLED');
-        lines.push('TRANSP:TRANSPARENT');
-      } else {
-        lines.push('STATUS:CONFIRMED');
-        lines.push('TRANSP:OPAQUE');
-      }
+
+      lines.push('STATUS:CONFIRMED');
+      lines.push('TRANSP:OPAQUE');
+
       lines.push('END:VEVENT');
     } catch (e) {
       // skip problematic reservation
