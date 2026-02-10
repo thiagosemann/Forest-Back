@@ -93,7 +93,7 @@ async function gerarIcalTexto(apartamentoId, options = {}) {
       if (r.link_reserva) lines.push(`URL:${escapeText(r.link_reserva)}`);
 
       if (r.description === 'EXCLUIDA') {
-        lines.push('STATUS:CANCELLED');
+        lines.push('STATUS:CONFIRMED');
         lines.push('TRANSP:TRANSPARENT');
         lines.push('SEQUENCE:1');
       } else {
