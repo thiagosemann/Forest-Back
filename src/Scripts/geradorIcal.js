@@ -78,9 +78,9 @@ async function gerarIcalTexto(apartamentoId, options = {}) {
         lines.push(`DTSTART;VALUE=DATE:${start.format('YYYYMMDD')}`);
         lines.push(`DTEND;VALUE=DATE:${end.format('YYYYMMDD')}`);
       } else {
-        // Airbnb uses date-time with timezone
-        lines.push(`DTSTART;TZID=${TIMEZONE}:${start.tz(TIMEZONE).format('YYYYMMDDTHHmmss')}`);
-        lines.push(`DTEND;TZID=${TIMEZONE}:${end.tz(TIMEZONE).format('YYYYMMDDTHHmmss')}`);
+        // Airbnb uses date-time. Using UTC (Z) is safer and more compatible than TZID without VTIMEZONE.
+        lines.push(`DTSTART:${start.utc().format('YYYYMMDDTHHmmss')}Z`);
+        lines.push(`DTEND:${end.utc().format('YYYYMMDDTHHmmss')}Z`);
       }
       const summary = r.description || 'Reserved';
       lines.push(`SUMMARY:${escapeText(summary)}`);
