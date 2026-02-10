@@ -92,8 +92,15 @@ async function gerarIcalTexto(apartamentoId, options = {}) {
       // Provide a URL if available
       if (r.link_reserva) lines.push(`URL:${escapeText(r.link_reserva)}`);
 
-      lines.push('STATUS:CONFIRMED');
-      lines.push('TRANSP:OPAQUE');
+      if (r.description === 'EXCLUIDA') {
+        lines.push('STATUS:CANCELLED');
+        lines.push('TRANSP:TRANSPARENT');
+        lines.push('SEQUENCE:1');
+      } else {
+        lines.push('STATUS:CONFIRMED');
+        lines.push('TRANSP:OPAQUE');
+        lines.push('SEQUENCE:0');
+      }
 
       lines.push('END:VEVENT');
     } catch (e) {

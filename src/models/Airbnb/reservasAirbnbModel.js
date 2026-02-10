@@ -296,7 +296,8 @@ const updatePlacaCarroByCodReserva = async (cod_reserva, placa_carro = null, mar
 };
 
 const deleteReserva = async (id) => {
-  const deleteReservaQuery = 'DELETE FROM reservas WHERE id = ?';
+  // Soft delete
+  const deleteReservaQuery = 'UPDATE reservas SET description = "EXCLUIDA" WHERE id = ?';
 
   try {
     const [result] = await connection.execute(deleteReservaQuery, [id]);
