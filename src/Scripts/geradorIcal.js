@@ -73,23 +73,23 @@ async function gerarIcalTexto(apartamentoId, options = {}) {
       lines.push('BEGIN:VEVENT');
       lines.push(`UID:${escapeText(uid)}`);
       lines.push(`DTSTAMP:${dtStamp}`);
-      if (format === 'booking') {
-        // Booking expects all-day DATE values (VALUE=DATE), end is exclusive in iCal
-        lines.push(`DTSTART;VALUE=DATE:${start.format('YYYYMMDD')}`);
-        lines.push(`DTEND;VALUE=DATE:${end.format('YYYYMMDD')}`);
-      } else {
-        // Airbnb uses date-time. Using UTC (Z) is safer and more compatible than TZID without VTIMEZONE.
-        lines.push(`DTSTART:${start.utc().format('YYYYMMDDTHHmmss')}Z`);
-        lines.push(`DTEND:${end.utc().format('YYYYMMDDTHHmmss')}Z`);
-      }
+      // Booking-style standard (Works best for Airbnb syncing too)
+      // Use VALUE=DATE (All day) to avoid timezone/hour mismatches causing manual blocks
+      lines.push(`DTSTART;VALUE=DATE:${start.format('YYYYMMDD')}`);
+      lines.push(`DTEND;VALUE=DATE:${end.format('YYYYMMDD')}`);
+
       const summary = r.description || 'Reserved';
-      lines.push(`SUMMARY:${escapeText(summary)}`);
+      lines.push(`SUMMARY:${escapeText(summary)}`); // Keep clean summary if possible
+
       let desc = 'ORIGEM:ADMFOREST';
       if (r.cod_reserva) desc += ` \\nCOD_RESERVA: ${r.cod_reserva}`;
       if (r.link_reserva) desc += ` \\nLINK: ${r.link_reserva}`;
       if (r.Observacoes) desc += ` \\nOBS: ${r.Observacoes}`;
       lines.push(`DESCRIPTION:${escapeText(desc)}`);
-      // Provide a URL if available
+
+      // Essential for Airbnb to trust the event status
+      lines.push('CLASS:PUBLIC');
+
       if (r.link_reserva) lines.push(`URL:${escapeText(r.link_reserva)}`);
 
       if (r.description === 'EXCLUIDA') {
