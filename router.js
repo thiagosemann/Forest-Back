@@ -239,6 +239,8 @@ router.post('/mercadoPago/processar-webhook', mercadoPagoApi.processarWebhookMer
 router.post('/mercadopago/preference', verifyToken, mercadoPagoApi.criarPreferencia);
 router.get('/reservas-airbnb/reservas/por-periodo-calendario/:apartamentoId', reservasAirbnbController.getReservasPorPeriodoCalendarioPorApartamento);
 router.get('/reservas-airbnb/reservas/cod/:cod_reserva', reservasAirbnbController.getReservasByCodReserva);
+router.get('/reservas-airbnb/reservas/cod-por-apartamento/:apartamentoNome', reservasAirbnbController.getCodReservaByApartamentoAndDates);
+
 router.get('/apartamentos-airbnb/selfie-garagem', apartamentosAirbnbController.getVagaSelfieTemGaragem);
 // Rota pública para ICS do apartamento (format=airbnb|booking)
 router.get('/apartamento-ical/:id', geradorIcal.icalRoute);
@@ -269,6 +271,7 @@ router.delete('/reservas-airbnb/:id', verifyToken, empresaMiddleware, reservasAi
 router.get('/reservas-airbnb/reservas/por-periodo', verifyToken, empresaMiddleware, reservasAirbnbController.getReservasPorPeriodo);
 router.get('/reservas-airbnb/faxinas/por-periodo', verifyToken, empresaMiddleware, reservasAirbnbController.getFaxinasPorPeriodo);
 router.get('/reservas-airbnb/reservas/por-periodo-calendario', verifyToken, empresaMiddleware, reservasAirbnbController.getReservasPorPeriodoCalendario);
+router.get('/reservas-airbnb/reservas/cod-por-apartamento/:apartamentoId', verifyToken, empresaMiddleware, reservasAirbnbController.getCodReservaByApartamentoAndDates);
 
 // Rotas de Limpezas extras
 router.get('/limpeza-extra/', verifyToken, empresaMiddleware, limpezaExtraController.getAllLimpezasExtras);

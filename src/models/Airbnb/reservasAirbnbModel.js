@@ -697,6 +697,22 @@ async function cancelarReservasAusentes(aptoId, ativos, hoje) {
 }
 
 
+// Busca cod_reserva por nome do apartamento e datas de início/fim
+const getCodReservaByApartamentoAndDates = async (apartamentoNome, startDate, endDate) => {
+  const query = `
+    SELECT r.cod_reserva
+    FROM reservas r
+    LEFT JOIN apartamentos a ON a.id = r.apartamento_id
+    WHERE a.nome = ?
+      AND DATE(r.start_date) = ?
+      AND DATE(r.end_data) = ?
+      AND a.is_active = 1
+    LIMIT 1
+  `;
+  const [rows] = await connection.execute(query, [apartamentoNome, startDate, endDate]);
+  return rows[0] || null;
+};
+
 module.exports = {
   getAllReservas,
   createReserva,
@@ -716,6 +732,7 @@ module.exports = {
   getReservasPorPeriodoByApartamentoID,
   cancelarReservasAusentes,
   updatePlacaCarroByCodReserva,
+  getCodReservaByApartamentoAndDates,
 };
 
 

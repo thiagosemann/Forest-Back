@@ -251,6 +251,32 @@ const getReservasByCodReserva = async (request, response) => {
 
 
 
+const getCodReservaByApartamentoAndDates = async (request, response) => {
+  try {
+    const { apartamentoNome } = request.params;
+    const { start, end } = request.query;
+
+    if (!apartamentoNome) {
+      return response.status(400).json({ error: 'apartamentoNome é obrigatório' });
+    }
+    if (!start || !end) {
+      return response.status(400).json({ error: 'Datas inicial (start) e final (end) são obrigatórias' });
+    }
+
+    const result = await reservaModel.getCodReservaByApartamentoAndDates(apartamentoNome, start, end);
+
+    if (result) {
+      return response.status(200).json({ cod_reserva: result.cod_reserva });
+    } else {
+      return response.status(404).json({ message: 'Nenhuma reserva encontrada para este apartamento e período' });
+    }
+
+  } catch (error) {
+    console.error('Erro ao buscar código de reserva:', error);
+    return response.status(500).json({ error: 'Erro ao buscar código de reserva' });
+  }
+};
+
 module.exports = {
   getAllReservas,
   createReserva,
@@ -266,5 +292,6 @@ module.exports = {
   getReservasCanceladasPorPeriodo,
   getReservasPorPeriodoCalendarioPorApartamento,
   getReservasByCodReserva,
+  getCodReservaByApartamentoAndDates,
 };
 
