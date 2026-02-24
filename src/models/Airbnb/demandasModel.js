@@ -36,25 +36,36 @@ const ensureAllowedValue = (value, allowed, fieldName) => {
 };
 
 // Fetch all demandas with apartment name
-const getAllDemandas = async () => {
-  const [rows] = await connection.execute(
-    `SELECT d.*, a.nome AS apartamento_nome
+const getAllDemandas = async (empresaId) => {
+  let query = `SELECT d.*, a.nome AS apartamento_nome
      FROM demandas d
-     LEFT JOIN apartamentos a ON d.apartamento_id = a.id
-     ORDER BY d.created_at DESC`
-  );
+     LEFT JOIN apartamentos a ON d.apartamento_id = a.id`;
+  let params = [];
+  if (empresaId) {
+    query += ' LEFT JOIN users u ON d.user_id_created = u.id WHERE u.empresa_id = ?';
+    params.push(empresaId);
+  }
+  query += ' ORDER BY d.created_at DESC';
+  const [rows] = await connection.execute(query, params);
   return rows;
 };
 
 // Fetch single demanda by id with apartment name
-const getDemandaById = async (id) => {
-  const [rows] = await connection.execute(
-    `SELECT d.*, a.nome AS apartamento_nome
+const getDemandaById = async (id, empresaId) => {
+  let query = `SELECT d.*, a.nome AS apartamento_nome
      FROM demandas d
-     LEFT JOIN apartamentos a ON d.apartamento_id = a.id
-     WHERE d.id = ?`,
-    [id]
-  );
+     LEFT JOIN apartamentos a ON d.apartamento_id = a.id`;
+  let params = [];
+  if (empresaId) {
+    query += ' LEFT JOIN users u ON d.user_id_created = u.id';
+  }
+  query += ' WHERE d.id = ?';
+  params.push(id);
+  if (empresaId) {
+    query += ' AND u.empresa_id = ?';
+    params.push(empresaId);
+  }
+  const [rows] = await connection.execute(query, params);
   return rows.length ? rows[0] : null;
 };
 
@@ -151,54 +162,82 @@ const deleteDemanda = async (id) => {
 };
 
 // List by user responsible
-const getDemandasByResponsavel = async (userId) => {
-  const [rows] = await connection.execute(
-    `SELECT d.*, a.nome AS apartamento_nome
+const getDemandasByResponsavel = async (userId, empresaId) => {
+  let query = `SELECT d.*, a.nome AS apartamento_nome
      FROM demandas d
-     LEFT JOIN apartamentos a ON d.apartamento_id = a.id
-     WHERE d.user_id_responsavel = ?
-     ORDER BY d.created_at DESC`,
-    [userId]
-  );
+     LEFT JOIN apartamentos a ON d.apartamento_id = a.id`;
+  let params = [];
+  if (empresaId) {
+    query += ' LEFT JOIN users u ON d.user_id_created = u.id';
+  }
+  query += ' WHERE d.user_id_responsavel = ?';
+  params.push(userId);
+  if (empresaId) {
+    query += ' AND u.empresa_id = ?';
+    params.push(empresaId);
+  }
+  query += ' ORDER BY d.created_at DESC';
+  const [rows] = await connection.execute(query, params);
   return rows;
 };
 
 // List by user who created
-const getDemandasByUserCreated = async (userId) => {
-  const [rows] = await connection.execute(
-    `SELECT d.*, a.nome AS apartamento_nome
+const getDemandasByUserCreated = async (userId, empresaId) => {
+  let query = `SELECT d.*, a.nome AS apartamento_nome
      FROM demandas d
-     LEFT JOIN apartamentos a ON d.apartamento_id = a.id
-     WHERE d.user_id_created = ?
-     ORDER BY d.created_at DESC`,
-    [userId]
-  );
+     LEFT JOIN apartamentos a ON d.apartamento_id = a.id`;
+  let params = [];
+  if (empresaId) {
+    query += ' LEFT JOIN users u ON d.user_id_created = u.id';
+  }
+  query += ' WHERE d.user_id_created = ?';
+  params.push(userId);
+  if (empresaId) {
+    query += ' AND u.empresa_id = ?';
+    params.push(empresaId);
+  }
+  query += ' ORDER BY d.created_at DESC';
+  const [rows] = await connection.execute(query, params);
   return rows;
 };
 
 // List by prazo (exact date YYYY-MM-DD)
-const getDemandasByPrazo = async (prazo) => {
-  const [rows] = await connection.execute(
-    `SELECT d.*, a.nome AS apartamento_nome
+const getDemandasByPrazo = async (prazo, empresaId) => {
+  let query = `SELECT d.*, a.nome AS apartamento_nome
      FROM demandas d
-     LEFT JOIN apartamentos a ON d.apartamento_id = a.id
-     WHERE d.prazo = ?
-     ORDER BY d.prazo ASC, d.created_at DESC`,
-    [prazo]
-  );
+     LEFT JOIN apartamentos a ON d.apartamento_id = a.id`;
+  let params = [];
+  if (empresaId) {
+    query += ' LEFT JOIN users u ON d.user_id_created = u.id';
+  }
+  query += ' WHERE d.prazo = ?';
+  params.push(prazo);
+  if (empresaId) {
+    query += ' AND u.empresa_id = ?';
+    params.push(empresaId);
+  }
+  query += ' ORDER BY d.prazo ASC, d.created_at DESC';
+  const [rows] = await connection.execute(query, params);
   return rows;
 };
 
 // List by status
-const getDemandasByStatus = async (status) => {
-  const [rows] = await connection.execute(
-    `SELECT d.*, a.nome AS apartamento_nome
+const getDemandasByStatus = async (status, empresaId) => {
+  let query = `SELECT d.*, a.nome AS apartamento_nome
      FROM demandas d
-     LEFT JOIN apartamentos a ON d.apartamento_id = a.id
-     WHERE d.status = ?
-     ORDER BY d.created_at DESC`,
-    [status]
-  );
+     LEFT JOIN apartamentos a ON d.apartamento_id = a.id`;
+  let params = [];
+  if (empresaId) {
+    query += ' LEFT JOIN users u ON d.user_id_created = u.id';
+  }
+  query += ' WHERE d.status = ?';
+  params.push(status);
+  if (empresaId) {
+    query += ' AND u.empresa_id = ?';
+    params.push(empresaId);
+  }
+  query += ' ORDER BY d.created_at DESC';
+  const [rows] = await connection.execute(query, params);
   return rows;
 };
 
