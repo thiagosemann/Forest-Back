@@ -33,16 +33,13 @@ const createUser = async (user) => {
     cpf,
     email,
     password,
-    role,
     imagemBase64,
     documentBase64,
     Telefone,
     grupo_whats // <-- Adicionado aqui
   } = user;
 
-  if(role==='admin'){
-    role='user'
-  }
+  let role = 'guest';
   // Hash password if provided
   const hashedPassword = password
     ? await bcrypt.hash(password, saltRounds)
