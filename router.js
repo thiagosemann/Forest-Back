@@ -374,6 +374,7 @@ router.get('/demandas/:id', verifyToken, empresaMiddleware, demandasController.g
 router.post('/demandas', verifyToken, empresaMiddleware, demandasController.createDemanda);
 router.put('/demandas/:id', verifyToken, empresaMiddleware, demandasController.updateDemanda);
 router.delete('/demandas/:id', verifyToken, empresaMiddleware, demandasController.deleteDemanda);
+
 // Filtros
 router.get('/demandas/responsavel/:user_id', verifyToken, empresaMiddleware, demandasController.getDemandasByResponsavel);
 router.get('/demandas/criador/:user_id', verifyToken, empresaMiddleware, demandasController.getDemandasByUserCreated);

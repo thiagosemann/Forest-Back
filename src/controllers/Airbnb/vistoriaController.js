@@ -5,7 +5,7 @@ const vistoriaModel = require('../../models/Airbnb/vistoriaModel');
 // 1) Listar todas as vistorias
 const getAllVistorias = async (req, res) => {
   try {
-    const vistorias = await vistoriaModel.getAllVistorias();
+    const vistorias = await vistoriaModel.getAllVistorias(req.empresaId);
     return res.status(200).json(vistorias);
   } catch (error) {
     console.error('Erro ao obter vistorias:', error);
@@ -17,7 +17,7 @@ const getAllVistorias = async (req, res) => {
 const getVistoriaById = async (req, res) => {
   try {
     const { id } = req.params;
-    const vistoria = await vistoriaModel.getVistoriaById(id);
+    const vistoria = await vistoriaModel.getVistoriaById(id, req.empresaId);
 
     if (!vistoria) {
       return res.status(404).json({ message: 'Vistoria não encontrada' });

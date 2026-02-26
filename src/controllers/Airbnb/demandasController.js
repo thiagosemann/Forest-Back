@@ -2,9 +2,9 @@
 const demandasModel = require('../../models/Airbnb/demandasModel');
 
 // Buscar todas as demandas
-const getAllDemandas = async (_req, res) => {
+const getAllDemandas = async (req, res) => {
 	try {
-		const demandas = await demandasModel.getAllDemandas();
+		const demandas = await demandasModel.getAllDemandas(req.empresaId);
 		return res.status(200).json(demandas);
 	} catch (error) {
 		console.error('Erro ao obter demandas:', error);
@@ -16,7 +16,7 @@ const getAllDemandas = async (_req, res) => {
 const getDemandaById = async (req, res) => {
 	try {
 		const { id } = req.params;
-		const demanda = await demandasModel.getDemandaById(id);
+		const demanda = await demandasModel.getDemandaById(id, req.empresaId);
 		if (!demanda) {
 			return res.status(404).json({ message: 'Demanda não encontrada' });
 		}
@@ -68,52 +68,60 @@ const deleteDemanda = async (req, res) => {
 	}
 };
 
+// extra filtered handlers
+const getDemandasByResponsavel = async (req, res) => {
+	try {
+		const { user_id } = req.params;
+		const demandas = await demandasModel.getDemandasByResponsavel(user_id, req.empresaId);
+		return res.status(200).json(demandas);
+	} catch (error) {
+		console.error('Erro ao obter demandas por responsável:', error);
+		return res.status(500).json({ error: 'Erro ao obter demandas por responsável' });
+	}
+};
+
+const getDemandasByUserCreated = async (req, res) => {
+	try {
+		const { user_id } = req.params;
+		const demandas = await demandasModel.getDemandasByUserCreated(user_id, req.empresaId);
+		return res.status(200).json(demandas);
+	} catch (error) {
+		console.error('Erro ao obter demandas por criador:', error);
+		return res.status(500).json({ error: 'Erro ao obter demandas por criador' });
+	}
+};
+
+const getDemandasByPrazo = async (req, res) => {
+	try {
+		const { prazo } = req.params; // esperado formato YYYY-MM-DD
+		const demandas = await demandasModel.getDemandasByPrazo(prazo, req.empresaId);
+		return res.status(200).json(demandas);
+	} catch (error) {
+		console.error('Erro ao obter demandas por prazo:', error);
+		return res.status(500).json({ error: 'Erro ao obter demandas por prazo' });
+	}
+};
+
+const getDemandasByStatus = async (req, res) => {
+	try {
+		const { status } = req.params;
+		const demandas = await demandasModel.getDemandasByStatus(status, req.empresaId);
+		return res.status(200).json(demandas);
+	} catch (error) {
+		console.error('Erro ao obter demandas por status:', error);
+		return res.status(500).json({ error: 'Erro ao obter demandas por status' });
+	}
+};
+
 module.exports = {
 	getAllDemandas,
 	getDemandaById,
 	createDemanda,
 	updateDemanda,
 	deleteDemanda,
-	// extra filtered handlers
-	getDemandasByResponsavel: async (req, res) => {
-		try {
-			const { user_id } = req.params;
-			const demandas = await demandasModel.getDemandasByResponsavel(user_id);
-			return res.status(200).json(demandas);
-		} catch (error) {
-			console.error('Erro ao obter demandas por responsável:', error);
-			return res.status(500).json({ error: 'Erro ao obter demandas por responsável' });
-		}
-	},
-	getDemandasByUserCreated: async (req, res) => {
-		try {
-			const { user_id } = req.params;
-			const demandas = await demandasModel.getDemandasByUserCreated(user_id);
-			return res.status(200).json(demandas);
-		} catch (error) {
-			console.error('Erro ao obter demandas por criador:', error);
-			return res.status(500).json({ error: 'Erro ao obter demandas por criador' });
-		}
-	},
-	getDemandasByPrazo: async (req, res) => {
-		try {
-			const { prazo } = req.params; // esperado formato YYYY-MM-DD
-			const demandas = await demandasModel.getDemandasByPrazo(prazo);
-			return res.status(200).json(demandas);
-		} catch (error) {
-			console.error('Erro ao obter demandas por prazo:', error);
-			return res.status(500).json({ error: 'Erro ao obter demandas por prazo' });
-		}
-	},
-	getDemandasByStatus: async (req, res) => {
-		try {
-			const { status } = req.params;
-			const demandas = await demandasModel.getDemandasByStatus(status);
-			return res.status(200).json(demandas);
-		} catch (error) {
-			console.error('Erro ao obter demandas por status:', error);
-			return res.status(500).json({ error: 'Erro ao obter demandas por status' });
-		}
-	},
+	getDemandasByResponsavel,
+	getDemandasByUserCreated,
+	getDemandasByPrazo,
+	getDemandasByStatus,
 };
 

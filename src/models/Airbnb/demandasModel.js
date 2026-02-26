@@ -37,6 +37,7 @@ const ensureAllowedValue = (value, allowed, fieldName) => {
 
 // Fetch all demandas with apartment name
 const getAllDemandas = async (empresaId) => {
+  console.log(empresaId)
   let query = `SELECT d.*, a.nome AS apartamento_nome
      FROM demandas d
      LEFT JOIN apartamentos a ON d.apartamento_id = a.id`;

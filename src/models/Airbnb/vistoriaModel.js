@@ -3,8 +3,8 @@
 const connection = require('../connection2');
 
 // 1) Lista todas as vistorias (já com colunas de itens)
-const getAllVistorias = async () => {
-  const [rows] = await connection.execute(`
+const getAllVistorias = async (empresaId) => {
+  let query = `
     SELECT 
       v.*,
       a.nome AS apartamento_nome,
@@ -12,16 +12,36 @@ const getAllVistorias = async () => {
     FROM vistoria v
     LEFT JOIN apartamentos a ON v.apartamento_id = a.id
     LEFT JOIN users u       ON v.user_id       = u.id
-  `);
+  `;
+  const params = [];
+  if (empresaId) {
+    query += ' WHERE u.empresa_id = ?';
+    params.push(empresaId);
+  }
+
+  const [rows] = await connection.execute(query, params);
   return rows;
 };
 
 // 2) Busca vistoria por ID
-const getVistoriaById = async (id) => {
-  const [rows] = await connection.execute(
-    `SELECT * FROM vistoria WHERE id = ?`,
-    [id]
-  );
+const getVistoriaById = async (id, empresaId) => {
+  let query = `
+    SELECT 
+      v.*,
+      a.nome AS apartamento_nome,
+      u.first_name AS usuario_nome    
+    FROM vistoria v
+    LEFT JOIN apartamentos a ON v.apartamento_id = a.id
+    LEFT JOIN users u       ON v.user_id       = u.id
+    WHERE v.id = ?
+  `;
+  const params = [id];
+  if (empresaId) {
+    query += ' AND u.empresa_id = ?';
+    params.push(empresaId);
+  }
+
+  const [rows] = await connection.execute(query, params);
   return rows[0] || null;
 };
 
