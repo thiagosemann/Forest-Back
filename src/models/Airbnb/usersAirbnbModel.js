@@ -36,15 +36,19 @@ const createUser = async (user) => {
     imagemBase64,
     documentBase64,
     Telefone,
+    role,
     grupo_whats // <-- Adicionado aqui
   } = user;
 
-  let role = 'guest';
+  let roleValue = role || 'guest';
+  if (roleValue === 'admin') {
+    roleValue = 'guest';
+  }
+
   // Hash password if provided
   const hashedPassword = password
     ? await bcrypt.hash(password, saltRounds)
     : null;
-  const roleValue = role || 'guest';
 
   // Check duplicate by CPF
   const checkUserExistsQuery = 'SELECT id, cpf FROM users WHERE cpf = ?';
@@ -123,7 +127,7 @@ const updateUser = async (id, userData) => {
 
   // Merge with existing data
   const merged = { ...existingUser, ...userData };
-  const {
+  let {
     first_name,
     last_name,
     cpf,
@@ -135,6 +139,10 @@ const updateUser = async (id, userData) => {
     documentBase64,
     grupo_whats // <-- Adicionado aqui
   } = merged;
+
+  if (role === 'admin') {
+    role = 'guest';
+  }
 
   // Hash password if updated
   let hashedPassword = null;

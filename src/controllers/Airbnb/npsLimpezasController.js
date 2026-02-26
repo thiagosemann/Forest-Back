@@ -1,5 +1,4 @@
-const npsModel = require('../../models/Airbnb/npsLimpezasModel');
-
+const npsModel = require('../../models/Airbnb/npsModel');
 const getAllNps = async (request, response) => {
   try {
     const { empresaId } = request;
@@ -59,7 +58,8 @@ const getNpsByUserId = async (request, response) => {
 
 const createNps = async (request, response) => {
   try {
-    const created = await npsModel.createNps(request.body);
+    const data = { ...request.body, empresa_id: request.empresaId };
+    const created = await npsModel.createNps(data);
     return response.status(201).json(created);
   } catch (error) {
     console.error('Erro ao criar NPS:', error);
@@ -70,7 +70,8 @@ const createNps = async (request, response) => {
 const updateNps = async (request, response) => {
   try {
     const { id } = request.params;
-    const wasUpdated = await npsModel.updateNps(id, request.body);
+    const data = { ...request.body, empresa_id: request.empresaId };
+    const wasUpdated = await npsModel.updateNps(id, data);
     if (wasUpdated) {
       return response.status(200).json({ message: 'NPS atualizado com sucesso' });
     } else {
