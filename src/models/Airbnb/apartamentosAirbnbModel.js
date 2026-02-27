@@ -94,6 +94,7 @@ const createApartamento = async (apartamento) => {
     categoria = null, // NOVO
     tipo_anuncio_repasse = null,
     pedir_selfie = null,
+    instrucoes_entrada = null,
     is_active = 1,
   } = apartamento;
 
@@ -164,6 +165,7 @@ const createApartamento = async (apartamento) => {
     categoria = ?,
     tipo_anuncio_repasse = ?,
     pedir_selfie = ?,
+    instrucoes_entrada = ?,
     is_active = ?,
     enxoval_sobre_lencol_casal = ?,
     enxoval_fronha = ?,
@@ -239,6 +241,7 @@ const createApartamento = async (apartamento) => {
     categoria ?? null,
     tipo_anuncio_repasse ?? null,
     pedir_selfie ?? null,
+    instrucoes_entrada ?? null,
     is_active ?? 1,
     enxoval_sobre_lencol_casal ?? null,
     enxoval_fronha ?? null,
@@ -333,7 +336,8 @@ const updateApartamento = async (apartamento) => {
     link_anuncio_booking = null, // Garante null se não vier
     categoria = null, // NOVO
     tipo_anuncio_repasse = null,
-    pedir_selfie = null
+    pedir_selfie = null,
+    instrucoes_entrada = null
   } = apartamento;
 
   const updateApartamentoQuery = `
@@ -402,6 +406,7 @@ const updateApartamento = async (apartamento) => {
       categoria = ?,
       tipo_anuncio_repasse = ?,
       pedir_selfie = ?,
+      instrucoes_entrada = ?,
       enxoval_sobre_lencol_casal = ?,
       enxoval_fronha = ?,
       enxoval_sobre_lencol_solteiro = ?,
@@ -476,6 +481,7 @@ const updateApartamento = async (apartamento) => {
     categoria ?? null,
     tipo_anuncio_repasse ?? null,
     pedir_selfie,
+    instrucoes_entrada,
     enxoval_sobre_lencol_casal,
     enxoval_fronha,
     enxoval_sobre_lencol_solteiro,
