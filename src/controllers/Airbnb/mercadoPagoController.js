@@ -18,6 +18,7 @@ const preference = new Preference(client);
 async function criarPreferencia(req, res) {
   try {
     const { user_id, apartamento_id, cod_reserva, valorReais, tipo } = req.body;
+    const user_id_created = req.userId;
 
     // Busca dados do usuário e do apartamento
     const user = await usersModel.getUser(user_id);
@@ -54,7 +55,7 @@ async function criarPreferencia(req, res) {
         ]
       },
       marketplace: 'NONE',
-      metadata: { user_id, email_comprador: emailComprador, apartamento_id, cod_reserva, valor_real: valorReais, tipo },
+      metadata: { user_id, email_comprador: emailComprador, apartamento_id, cod_reserva, valor_real: valorReais, tipo, user_id_created },
       operation_type: 'regular_payment',
       site_id: 'MLB'
     };
@@ -113,7 +114,8 @@ async function processarWebhookMercadoPago(req, res) {
         tipo: md.tipo,
         reserva_id: reserva.id,
         apartamento_id: md.apartamento_id,
-        cod_reserva: md.cod_reserva
+        cod_reserva: md.cod_reserva,
+        user_id_created: md.user_id_created
       };
 
       await pagamentoModel.criarPagamentoPorReservaExtra(payment);

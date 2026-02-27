@@ -10,7 +10,8 @@ async function criarPagamentoPorReservaExtra(pagamento) {
     date_criado,
     reserva_id,
     apartamento_id,
-    cod_reserva
+    cod_reserva,
+    user_id_created
   } = pagamento;
 
   // 1) Verifica duplicidade por reserva_id e tipo
@@ -31,8 +32,8 @@ async function criarPagamentoPorReservaExtra(pagamento) {
   const insertQuery = `
     INSERT INTO pagamento_por_reserva_extra
       (user_id, valor_total, tipo_pagamento, tipo, email_comprador, date_criado,
-       reserva_id, apartamento_id, cod_reserva)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+       reserva_id, apartamento_id, cod_reserva, user_id_created)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
   const params = [
     user_id,
@@ -43,7 +44,8 @@ async function criarPagamentoPorReservaExtra(pagamento) {
     date_criado || null,
     reserva_id || null,
     apartamento_id || null,
-    cod_reserva || null
+    cod_reserva || null,
+    user_id_created || null
   ];
   const [result] = await connection.execute(insertQuery, params);
   return { insertId: result.insertId };
