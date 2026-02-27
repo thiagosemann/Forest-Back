@@ -2,7 +2,8 @@ const portariaModel = require('../../models/Airbnb/portariasAirbnbModel');
 
 const getAllPortarias = async (req, res) => {
   try {
-    const portarias = await portariaModel.getAllPortarias();
+    const { empresaId } = req;
+    const portarias = await portariaModel.getAllPortarias(empresaId);
     return res.status(200).json(portarias);
   } catch (error) {
     console.error('Erro ao obter portarias:', error);
@@ -23,7 +24,8 @@ const createPortaria = async (req, res) => {
 const getPortariaById = async (req, res) => {
   try {
     const { id } = req.params;
-    const portaria = await portariaModel.getPortariaById(id);
+    const { empresaId } = req;
+    const portaria = await portariaModel.getPortariaById(id, empresaId);
 
     if (portaria) {
       return res.status(200).json(portaria);
@@ -39,6 +41,14 @@ const getPortariaById = async (req, res) => {
 const updatePortaria = async (req, res) => {
   try {
     const { id } = req.params;
+    const { empresaId } = req;
+
+    // Verificar se a portaria existe e se a empresa tem acesso
+    const portariaExistente = await portariaModel.getPortariaById(id, empresaId);
+    if (!portariaExistente) {
+      return res.status(404).json({ message: 'Portaria não encontrada ou acesso negado' });
+    }
+
     const portariaData = { ...req.body, id };
 
     const wasUpdated = await portariaModel.updatePortaria(portariaData);
@@ -57,6 +67,14 @@ const updatePortaria = async (req, res) => {
 const deletePortaria = async (req, res) => {
   try {
     const { id } = req.params;
+    const { empresaId } = req;
+
+    // Verificar se a portaria existe e se a empresa tem acesso
+    const portariaExistente = await portariaModel.getPortariaById(id, empresaId);
+    if (!portariaExistente) {
+      return res.status(404).json({ message: 'Portaria não encontrada ou acesso negado' });
+    }
+
     const wasDeleted = await portariaModel.deletePortaria(id);
 
     if (wasDeleted) {

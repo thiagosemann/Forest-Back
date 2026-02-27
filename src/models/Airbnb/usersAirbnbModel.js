@@ -27,7 +27,7 @@ const getAllUsers = async (empresaId) => {
 };
 
 const createUser = async (user) => {
-  const {
+  let {
     first_name,
     last_name,
     cpf,
@@ -40,9 +40,8 @@ const createUser = async (user) => {
     grupo_whats // <-- Adicionado aqui
   } = user;
 
-  let roleValue = role || 'guest';
-  if (roleValue === 'admin') {
-    roleValue = 'guest';
+  if (role === 'admin') {
+    role = 'guest';
   }
 
   // Hash password if provided
@@ -70,7 +69,7 @@ const createUser = async (user) => {
     cpf,
     email || '',
     hashedPassword,
-    roleValue,
+    role,
     Telefone || null,
     grupo_whats || null // <-- Adicionado aqui
   ];

@@ -1,8 +1,22 @@
 const connection = require('../connection2');
 
 // Buscar todas as portarias
-const getAllPortarias = async () => {
-  const [portarias] = await connection.execute('SELECT * FROM portarias');
+const getAllPortarias = async (empresaId) => {
+  let query = 'SELECT p.* FROM portarias p';
+  let params = [];
+
+  if (empresaId && empresaId !== 1) {
+    query = `
+      SELECT DISTINCT p.* 
+      FROM portarias p
+      INNER JOIN predio_portaria pp ON p.id = pp.portaria_id
+      INNER JOIN predios pr ON pp.predio_id = pr.id
+      WHERE pr.empresa_id = ?
+    `;
+    params.push(empresaId);
+  }
+
+  const [portarias] = await connection.execute(query, params);
   return portarias;
 };
 
@@ -62,9 +76,22 @@ const createPortaria = async (portaria) => {
 };
 
 // Buscar uma portaria pelo ID
-const getPortariaById = async (id) => {
-  const query = 'SELECT * FROM portarias WHERE id = ?';
-  const [rows] = await connection.execute(query, [id]);
+const getPortariaById = async (id, empresaId) => {
+  let query = 'SELECT * FROM portarias WHERE id = ?';
+  let params = [id];
+
+  if (empresaId && empresaId !== 1) {
+    query = `
+      SELECT DISTINCT p.* 
+      FROM portarias p
+      INNER JOIN predio_portaria pp ON p.id = pp.portaria_id
+      INNER JOIN predios pr ON pp.predio_id = pr.id
+      WHERE p.id = ? AND pr.empresa_id = ?
+    `;
+    params.push(empresaId);
+  }
+
+  const [rows] = await connection.execute(query, params);
   return rows.length > 0 ? rows[0] : null;
 };
 
