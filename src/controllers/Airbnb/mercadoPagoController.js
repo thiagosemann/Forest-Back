@@ -64,7 +64,7 @@ async function criarPreferencia(req, res) {
     // Responde imediatamente ao front
     res.json({ redirectUrl });
 
-    // Envia link de pagamento via WhatsApp (background)
+    /*// Envia link de pagamento via WhatsApp (background)
     whatsControle.envioPagamentoEarly({
       //telefone_hospede: telefoneHospede,
       telefone_hospede: telefoneHospede,
@@ -74,7 +74,7 @@ async function criarPreferencia(req, res) {
       valor: valorReais,
       linkPagamento: redirectUrl
     }).catch(err => console.error('[ERRO] envioPagamentoEarly:', err));
-
+    */
   } catch (error) {
     console.error('Erro ao criar preferência MP:', error);
     res.status(500).json({ error: 'Não foi possível criar preferência.' });
@@ -96,37 +96,37 @@ async function processarWebhookMercadoPago(req, res) {
 
     const md = paymentInfo.metadata || {};
     // Busca reserva usando código
-    if(md.tipo === 'early_checkin'){
+    if (md.tipo === 'early_checkin') {
       const reserva = await reservasModel.getReservaByCod(md.cod_reserva);
 
-        const dateCriado = paymentInfo.date_created
-          ? paymentInfo.date_created.slice(0, 19).replace('T', ' ')
-          : new Date().toISOString().slice(0, 19).replace('T', ' ');
+      const dateCriado = paymentInfo.date_created
+        ? paymentInfo.date_created.slice(0, 19).replace('T', ' ')
+        : new Date().toISOString().slice(0, 19).replace('T', ' ');
 
-        const payment = {
-          user_id:        md.user_id,
-          email_comprador: md.email_comprador,
-          valor_total:    paymentInfo.transaction_amount,
-          tipo_pagamento: paymentInfo.payment_type_id,
-          date_criado:    dateCriado,
-          valor_real:     md.valor_real,
-          tipo:           md.tipo,
-          reserva_id:     reserva.id,
-          apartamento_id: md.apartamento_id,
-          cod_reserva:    md.cod_reserva
-        };
+      const payment = {
+        user_id: md.user_id,
+        email_comprador: md.email_comprador,
+        valor_total: paymentInfo.transaction_amount,
+        tipo_pagamento: paymentInfo.payment_type_id,
+        date_criado: dateCriado,
+        valor_real: md.valor_real,
+        tipo: md.tipo,
+        reserva_id: reserva.id,
+        apartamento_id: md.apartamento_id,
+        cod_reserva: md.cod_reserva
+      };
 
-        await pagamentoModel.criarPagamentoPorReservaExtra(payment);
-        const apartamento = await apartamentosModel.getApartamentoById(md.apartamento_id);
-        whatsControle.envioEarlyPago({
-          apartamento_name:apartamento.nome
-        }).catch(err => console.error('[ERRO] envioPagamentoEarly:', err));
-        
-        return res.status(200).send('Webhook MP processado com sucesso.');
-    }else if(md.tipo === 'reembolso'){
+      await pagamentoModel.criarPagamentoPorReservaExtra(payment);
+      const apartamento = await apartamentosModel.getApartamentoById(md.apartamento_id);
+      whatsControle.envioEarlyPago({
+        apartamento_name: apartamento.nome
+      }).catch(err => console.error('[ERRO] envioPagamentoEarly:', err));
+
+      return res.status(200).send('Webhook MP processado com sucesso.');
+    } else if (md.tipo === 'reembolso') {
       // Atualiza ticket de reembolso com link de pagamento
       const ticket = await ticketModel.getTicketByAuth(md.auth);
-      if(ticket){
+      if (ticket) {
         await ticketModel.updateReembolso(ticket.id, {
           status: "PAGO",
           data_pagamento: paymentInfo.date_approved ? paymentInfo.date_approved.slice(0, 19).replace('T', ' ') : new Date().toISOString().slice(0, 19).replace('T', ' ')
@@ -134,7 +134,7 @@ async function processarWebhookMercadoPago(req, res) {
       }
       return res.status(200).send('Webhook MP processado com sucesso.');
     }
-    
+
   }
   catch (err) {
     console.error('Erro no webhook MP:', err);
