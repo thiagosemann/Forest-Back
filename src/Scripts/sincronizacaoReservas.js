@@ -204,12 +204,16 @@ async function processarApartamento(apt, hoje, dataLimite) {
         criadas += criadasB;
       }
     }
-    // Canceladas
-    if (typeof reservasModel.cancelarReservasAusentes === 'function') {
-      const canceladasCount = await reservasModel.cancelarReservasAusentes(apt.id, ativos, hoje);
-      if (typeof canceladasCount === 'number') canceladas = canceladasCount;
-    } else {
-      await reservasModel.cancelarReservasAusentes(apt.id, ativos, hoje);
+    // Canceladas — só cancela se NÃO houve erro ao buscar o ICS
+    // Quando o ICS retorna erro (ex: 500), não temos dados confiáveis para determinar
+    // quais reservas foram canceladas, então preservamos o estado atual.
+    if (!icsErro) {
+      if (typeof reservasModel.cancelarReservasAusentes === 'function') {
+        const canceladasCount = await reservasModel.cancelarReservasAusentes(apt.id, ativos, hoje);
+        if (typeof canceladasCount === 'number') canceladas = canceladasCount;
+      } else {
+        await reservasModel.cancelarReservasAusentes(apt.id, ativos, hoje);
+      }
     }
     if (icsErro) {
       return { id: apt.id, nome: apt.nome, empresa_id: apt.empresa_id, status: 'erro', error: erroMsg, errorCode: erroStatus, criadas, canceladas };
