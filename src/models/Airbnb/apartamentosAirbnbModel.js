@@ -570,12 +570,15 @@ const getApartamentosByPredioIdAndEmpresa = async (predioId, empresaId) => {
   return apartamentos;
 };
 
-// Nova função: retorna vaga_garagem, pedir_selfie e tem_garagem por apartamento_id
+// Nova função: retorna vaga_garagem, pedir_selfie, tem_garagem e telefone da empresa por apartamento_id
 const getVagaSelfieTemGaragem = async (apartamento_id) => {
-  const [rows] = await connection.execute(
-    'SELECT vaga_garagem, pedir_selfie, tem_garagem FROM apartamentos WHERE id = ? AND is_active = 1',
-    [apartamento_id]
-  );
+  const query = `
+    SELECT a.vaga_garagem, a.pedir_selfie, a.tem_garagem, e.telefone 
+    FROM apartamentos a 
+    LEFT JOIN empresas e ON a.empresa_id = e.id 
+    WHERE a.id = ? AND a.is_active = 1
+  `;
+  const [rows] = await connection.execute(query, [apartamento_id]);
   return rows[0] || null;
 };
 
