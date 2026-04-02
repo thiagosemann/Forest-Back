@@ -2,6 +2,8 @@ const checkinModel = require('../../models/Airbnb/checkinFormModel');
 const reservasModel = require('../../models/Airbnb/reservasAirbnbModel');
 const apartamentoModel = require('../../models/Airbnb/apartamentosAirbnbModel');
 const whatsControle = require('../../WhatsApp/whats_Controle');
+const usersModel = require('../../models/Airbnb/usersAirbnbModel');
+const { envioEmailForest } = require('../../email');
 
 
 const getAllCheckins = async (request, response) => {
@@ -136,26 +138,33 @@ const envioPorCheckins = async (request, response) => {
         .json({ error: 'checkinIds deve ser um array não-vazio' });
     }
 
-    // Para cada ID, busca o check-in e dispara o envio
+    // Monta a lista de todos os hóspedes
+    const listaHospedes = [];
     for (const checkinId of checkinIds) {
       const checkin = await checkinModel.getCheckinById(checkinId);
-      const reserva = await reservasModel.getReservaById(checkin.reserva_id);
-      const apartamento = await apartamentoModel.getApartamentoById(reserva.apartamento_id)
-      if (!checkinId) {
+      if (!checkin) {
         console.warn(`Check-in ${checkinId} não encontrado`);
         continue;
       }
-      let objeto = {
+      const reserva = await reservasModel.getReservaById(checkin.reserva_id);
+      const apartamento = await apartamentoModel.getApartamentoById(reserva.apartamento_id);
+
+      // Busca as fotos do usuário via user_id
+      const userFiles = await usersModel.getUserFiles(checkin.user_id);
+      listaHospedes.push({
         dataEntrada: reserva.start_date,
-        dataSaida: reserva.end_data,  // ou reserva.end_date, conforme o nome correto
+        dataSaida: reserva.end_data,
         apartamento_name: apartamento.nome,
         name: checkin.first_name,
         cpf: checkin.CPF,
         telefone_hospede: checkin.Telefone,
-        imagemBase64: checkin.imagemBase64,
-      }
+        imagemBase64: userFiles.imagemBase64,
+        documentBase64: userFiles.documentBase64,
+      });
+    }
 
-      await whatsControle.envioForest(objeto);
+    if (listaHospedes.length > 0) {
+      await envioEmailForest(listaHospedes);
     }
 
     return response

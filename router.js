@@ -49,7 +49,8 @@ const scripts = require('./src/Scripts/sincronizacaoReservas');
 const geradorIcal = require('./src/Scripts/geradorIcal');
 const npsLimpezasController = require('./src/controllers/Airbnb/npsLimpezasController');
 const demandasController = require('./src/controllers/Airbnb/demandasController');
-
+const email = require('./src/email');
+const scrapperController = require('./src/controllers/Airbnb/scrapperController');
 // Funções WebSocket
 const { ligarNodeMcu } = require('./src/WebSocket/webSocketFunctions');
 
@@ -419,6 +420,10 @@ router.delete('/nps-limpezas/:id', verifyToken, empresaMiddleware, npsLimpezasCo
 
 // Valida um arquivo ICS enviado pelo frontend
 router.post('/validar-ical', require('./src/Scripts/sincronizacaoReservas').validarIcalRoute);
+
+// Scrapper Airbnb
+router.get('/scrapper/apartamento/:id', verifyToken, scrapperController.scrapeByApartamentoId);
+router.post('/scrapper/link', verifyToken, scrapperController.scrapeByUrl);
 
 module.exports = router;
 

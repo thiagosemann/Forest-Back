@@ -38,7 +38,7 @@ const ensureAllowedValue = (value, allowed, fieldName) => {
 // Fetch all demandas with apartment name
 const getAllDemandas = async (empresaId) => {
   console.log(empresaId)
-  let query = `SELECT d.*, a.nome AS apartamento_nome
+  let query = `SELECT d.*, a.nome AS apartamento_nome, a.endereco AS apartamento_endereco, a.senha_porta AS apartamento_senha_porta
      FROM demandas d
      LEFT JOIN apartamentos a ON d.apartamento_id = a.id`;
   let params = [];
@@ -53,7 +53,7 @@ const getAllDemandas = async (empresaId) => {
 
 // Fetch single demanda by id with apartment name
 const getDemandaById = async (id, empresaId) => {
-  let query = `SELECT d.*, a.nome AS apartamento_nome
+  let query = `SELECT d.*, a.nome AS apartamento_nome, a.endereco AS apartamento_endereco, a.senha_porta AS apartamento_senha_porta
      FROM demandas d
      LEFT JOIN apartamentos a ON d.apartamento_id = a.id`;
   let params = [];
@@ -164,7 +164,7 @@ const deleteDemanda = async (id) => {
 
 // List by user responsible
 const getDemandasByResponsavel = async (userId, empresaId) => {
-  let query = `SELECT d.*, a.nome AS apartamento_nome
+  let query = `SELECT d.*, a.nome AS apartamento_nome, a.endereco AS apartamento_endereco, a.senha_porta AS apartamento_senha_porta
      FROM demandas d
      LEFT JOIN apartamentos a ON d.apartamento_id = a.id`;
   let params = [];
@@ -184,7 +184,7 @@ const getDemandasByResponsavel = async (userId, empresaId) => {
 
 // List by user who created
 const getDemandasByUserCreated = async (userId, empresaId) => {
-  let query = `SELECT d.*, a.nome AS apartamento_nome
+  let query = `SELECT d.*, a.nome AS apartamento_nome, a.endereco AS apartamento_endereco, a.senha_porta AS apartamento_senha_porta
      FROM demandas d
      LEFT JOIN apartamentos a ON d.apartamento_id = a.id`;
   let params = [];
@@ -204,7 +204,7 @@ const getDemandasByUserCreated = async (userId, empresaId) => {
 
 // List by prazo (exact date YYYY-MM-DD)
 const getDemandasByPrazo = async (prazo, empresaId) => {
-  let query = `SELECT d.*, a.nome AS apartamento_nome
+  let query = `SELECT d.*, a.nome AS apartamento_nome, a.endereco AS apartamento_endereco, a.senha_porta AS apartamento_senha_porta
      FROM demandas d
      LEFT JOIN apartamentos a ON d.apartamento_id = a.id`;
   let params = [];
@@ -224,7 +224,7 @@ const getDemandasByPrazo = async (prazo, empresaId) => {
 
 // List by status
 const getDemandasByStatus = async (status, empresaId) => {
-  let query = `SELECT d.*, a.nome AS apartamento_nome
+  let query = `SELECT d.*, a.nome AS apartamento_nome, a.endereco AS apartamento_endereco, a.senha_porta AS apartamento_senha_porta
      FROM demandas d
      LEFT JOIN apartamentos a ON d.apartamento_id = a.id`;
   let params = [];

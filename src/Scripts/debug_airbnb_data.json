@@ -1,0 +1,34 @@
+{
+  "@context": "https://schema.org",
+  "@type": "VacationRental",
+  "identifier": "RGVtYW5kU3RheUxpc3Rpbmc6ODk4NjY0NDAxNjk4OTkxNTI2",
+  "name": "CPR22 - Alto da Gloria /Juvevê - 2 Quartos e Vaga",
+  "description": "Lindo apartamento na melhor localização do Juvevê,  finamente decorado, perto de tudo que você precisa, restaurantes, mercados, shopping, comércio, Museu do Olho e hospitais.\n\n2 quartos, camas box linha hotelaria e sofá-cama na sala, ótima sala de dois ambientes, cozinha integrada, bwc com amplo box e garagem grátis\n\nEletros inox, aquecimento à gás, taças de cristal bohemia.\n\nInternet, TV sala e quarto de casal, amplos armários, fechadura eletrônica. \n\nEdifício com lavanderia comum (custo extra)",
+  "image": [
+    "https://a0.muscache.com/im/pictures/hosting/Hosting-898664401698991526/original/4372f00c-e650-40b0-8c49-0fc9a396a94a.jpeg",
+    "https://a0.muscache.com/im/pictures/hosting/Hosting-898664401698991526/original/f98ea2ec-bed9-4ea4-8eab-f40b35417b17.jpeg",
+    "https://a0.muscache.com/im/pictures/hosting/Hosting-898664401698991526/original/8928da2b-e2c7-40d3-8e8c-bab86ec05d61.jpeg",
+    "https://a0.muscache.com/im/pictures/hosting/Hosting-898664401698991526/original/5066c0e8-432a-4c51-af69-5c4402d1a8cc.jpeg",
+    "https://a0.muscache.com/im/pictures/miso/Hosting-898664401698991526/original/40dfda01-9dc7-4af5-ab25-1fa5ca47b350.jpeg",
+    "https://a0.muscache.com/im/pictures/hosting/Hosting-898664401698991526/original/45f31c95-d1d9-403e-854a-3490545688a2.jpeg",
+    "https://a0.muscache.com/im/pictures/hosting/Hosting-898664401698991526/original/7d357661-a3a0-4d30-87d8-0cfd50567c75.jpeg",
+    "https://a0.muscache.com/im/pictures/hosting/Hosting-898664401698991526/original/8d4c4756-8b52-49ab-8d63-59601e04c4fa.jpeg"
+  ],
+  "containsPlace": {
+    "@type": "Accommodation",
+    "occupancy": {
+      "@type": "QuantitativeValue",
+      "value": 4
+    }
+  },
+  "latitude": -25.4148,
+  "longitude": -49.2587,
+  "address": {
+    "addressLocality": "Curitiba"
+  },
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": 4.81,
+    "ratingCount": "47"
+  }
+}
