@@ -32,6 +32,7 @@ const predioAirbnbController = require('./src/controllers/Airbnb/predioAirbnbCon
 const apartamentosAirbnbController = require('./src/controllers/Airbnb/apartamentosAirbnbController');
 const reservasAirbnbController = require('./src/controllers/Airbnb/reservasAirbnbController');
 const checkinFormController = require('./src/controllers/Airbnb/checkinFormController'); // Import do checkinController
+const informacoesReservaController = require('./src/controllers/Airbnb/informacoesReservaController');
 const vistoriaController = require('./src/controllers/Airbnb/vistoriaController'); // Import do vistoriaController
 const portariasController = require('./src/controllers/Airbnb/portariasAirbnbController'); // Import do vistoriaController
 const predioPortariaController = require('./src/controllers/Airbnb/predioPortariaController');
@@ -51,6 +52,7 @@ const npsLimpezasController = require('./src/controllers/Airbnb/npsLimpezasContr
 const demandasController = require('./src/controllers/Airbnb/demandasController');
 const email = require('./src/email');
 const scrapperController = require('./src/controllers/Airbnb/scrapperController');
+
 // Funções WebSocket
 const { ligarNodeMcu } = require('./src/WebSocket/webSocketFunctions');
 
@@ -323,6 +325,7 @@ router.put('/checkins/:id', verifyToken, empresaMiddleware, checkinFormControlle
 router.delete('/checkins/:id', verifyToken, empresaMiddleware, checkinFormController.deleteCheckin); // Deletar um check-in por ID
 router.get('/checkins/user/:userId', verifyToken, empresaMiddleware, checkinFormController.getCheckinsByUserId);
 router.post('/checkins/envio', verifyToken, empresaMiddleware, checkinFormController.envioPorCheckins);
+router.get('/informacoes-reserva/:CPF/:cod_reserva', informacoesReservaController.getInformacoesReserva);
 
 // Rotas de Vistorias
 router.get('/vistorias', verifyToken, empresaMiddleware, vistoriaController.getAllVistorias);
