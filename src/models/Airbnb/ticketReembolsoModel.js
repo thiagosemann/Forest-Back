@@ -47,6 +47,7 @@ const getReembolsoById = async (id, empresaId) => {
 const createReembolso = async (data, arquivos = []) => {
   const {
     apartamento_id,
+    user_id,
     item_problema,
     descricao_problema,
     solucao,
@@ -55,16 +56,17 @@ const createReembolso = async (data, arquivos = []) => {
     data_notificacao,
     valor_material,
     valor_mao_obra,
-    data_realizado, // nova coluna
+    data_realizado,
     pagamento_confirmado,
     data_pagamento,
-    auth, // nova coluna
-    link_pagamento // nova coluna
+    auth,
+    link_pagamento
   } = data;
 
   const insertTicketQuery = `
     INSERT INTO ticket_reembolso (
       apartamento_id,
+      user_id,
       item_problema,
       descricao_problema,
       solucao,
@@ -78,11 +80,12 @@ const createReembolso = async (data, arquivos = []) => {
       data_pagamento,
       auth,
       link_pagamento
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
   const ticketValues = [
     apartamento_id,
+    user_id || null,
     item_problema,
     descricao_problema,
     solucao,
