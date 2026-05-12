@@ -31,7 +31,7 @@ const getProprietariosByApartamento = async (apartamento_id) => {
 
 // Busca todos os apartamentos de um proprietário
 const getApartamentosByProprietario = async (user_id) => {
-  const query = `SELECT a.* FROM apartamentos a INNER JOIN apartamento_proprietario ap ON a.id = ap.apartamento_id WHERE ap.user_id = ?`;
+  const query = `SELECT a.* FROM apartamentos a INNER JOIN apartamento_proprietario ap ON a.id = ap.apartamento_id WHERE ap.user_id = ? AND a.is_active = 1`;
   const [rows] = await connection.execute(query, [user_id]);
   return rows;
 };
@@ -60,6 +60,7 @@ const getApartamentosSemVinculo = async (empresaId) => {
     LEFT JOIN apartamento_proprietario ap ON a.id = ap.apartamento_id
     WHERE ap.apartamento_id IS NULL
       AND a.empresa_id = ?
+      AND a.is_active = 1
   `;
   const params = [empresaId];
 
