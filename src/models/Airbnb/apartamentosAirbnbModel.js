@@ -10,7 +10,7 @@ const getCurrentDateTimeString = () => {
 const getAllApartamentos = async () => {
   const query = `
     SELECT a.*, p.nome AS predio_name,
-      (SELECT u.id FROM users u INNER JOIN apartamento_proprietario ap ON u.id = ap.user_id WHERE ap.apartamento_id = a.id LIMIT 1) AS user_proprietario_id,
+      (SELECT u.id FROM users u INNER JOIN apartamento_proprietario ap ON u.id = ap.user_id WHERE ap.apartamento_id = a.id LIMIT 1) AS proprietario_id,
       (SELECT u.first_name FROM users u INNER JOIN apartamento_proprietario ap ON u.id = ap.user_id WHERE ap.apartamento_id = a.id LIMIT 1) AS user_proprietario_nome
     FROM apartamentos a
     LEFT JOIN predios p ON a.predio_id = p.id
@@ -554,7 +554,7 @@ const updateApartamento = async (apartamento) => {
 const getApartamentoById = async (id) => {
   const query = `
     SELECT a.*,
-      (SELECT u.id FROM users u INNER JOIN apartamento_proprietario ap ON u.id = ap.user_id WHERE ap.apartamento_id = a.id LIMIT 1) AS user_proprietario_id,
+      (SELECT u.id FROM users u INNER JOIN apartamento_proprietario ap ON u.id = ap.user_id WHERE ap.apartamento_id = a.id LIMIT 1) AS proprietario_id,
       (SELECT u.first_name FROM users u INNER JOIN apartamento_proprietario ap ON u.id = ap.user_id WHERE ap.apartamento_id = a.id LIMIT 1) AS user_proprietario_nome
     FROM apartamentos a
     WHERE a.id = ? AND a.is_active = 1
@@ -567,7 +567,7 @@ const getApartamentoById = async (id) => {
 const getApartamentoByCodProprietario = async (cod_link_proprietario) => {
   const query = `
     SELECT a.*,
-      (SELECT u.id FROM users u INNER JOIN apartamento_proprietario ap ON u.id = ap.user_id WHERE ap.apartamento_id = a.id LIMIT 1) AS user_proprietario_id,
+      (SELECT u.id FROM users u INNER JOIN apartamento_proprietario ap ON u.id = ap.user_id WHERE ap.apartamento_id = a.id LIMIT 1) AS proprietario_id,
       (SELECT u.first_name FROM users u INNER JOIN apartamento_proprietario ap ON u.id = ap.user_id WHERE ap.apartamento_id = a.id LIMIT 1) AS user_proprietario_nome
     FROM apartamentos a
     WHERE a.cod_link_proprietario = ? AND a.is_active = 1
@@ -581,7 +581,7 @@ const getApartamentoByCodProprietario = async (cod_link_proprietario) => {
 const getApartamentosByPredioId = async (predioId) => {
   const query = `
     SELECT a.*,
-      (SELECT u.id FROM users u INNER JOIN apartamento_proprietario ap ON u.id = ap.user_id WHERE ap.apartamento_id = a.id LIMIT 1) AS user_proprietario_id,
+      (SELECT u.id FROM users u INNER JOIN apartamento_proprietario ap ON u.id = ap.user_id WHERE ap.apartamento_id = a.id LIMIT 1) AS proprietario_id,
       (SELECT u.first_name FROM users u INNER JOIN apartamento_proprietario ap ON u.id = ap.user_id WHERE ap.apartamento_id = a.id LIMIT 1) AS user_proprietario_nome
     FROM apartamentos a
     WHERE a.predio_id = ? AND a.is_active = 1
@@ -603,7 +603,7 @@ const deleteApartamento = async (id) => {
 const getAllApartamentosByEmpresa = async (empresaId) => {
   const query = `
     SELECT a.*, p.nome AS predio_name, u.first_name AS modificado_user_nome,
-      (SELECT up.id FROM users up INNER JOIN apartamento_proprietario ap ON up.id = ap.user_id WHERE ap.apartamento_id = a.id LIMIT 1) AS user_proprietario_id,
+      (SELECT up.id FROM users up INNER JOIN apartamento_proprietario ap ON up.id = ap.user_id WHERE ap.apartamento_id = a.id LIMIT 1) AS proprietario_id,
       (SELECT up.first_name FROM users up INNER JOIN apartamento_proprietario ap ON up.id = ap.user_id WHERE ap.apartamento_id = a.id LIMIT 1) AS user_proprietario_nome
     FROM apartamentos a
     LEFT JOIN predios p ON a.predio_id = p.id
@@ -618,7 +618,7 @@ const getAllApartamentosByEmpresa = async (empresaId) => {
 const getApartamentosInativosByEmpresa = async (empresaId) => {
   const query = `
     SELECT a.*, p.nome AS predio_name, u.first_name AS modificado_user_nome,
-      (SELECT up.id FROM users up INNER JOIN apartamento_proprietario ap ON up.id = ap.user_id WHERE ap.apartamento_id = a.id LIMIT 1) AS user_proprietario_id,
+      (SELECT up.id FROM users up INNER JOIN apartamento_proprietario ap ON up.id = ap.user_id WHERE ap.apartamento_id = a.id LIMIT 1) AS proprietario_id,
       (SELECT up.first_name FROM users up INNER JOIN apartamento_proprietario ap ON up.id = ap.user_id WHERE ap.apartamento_id = a.id LIMIT 1) AS user_proprietario_nome
     FROM apartamentos a
     LEFT JOIN predios p ON a.predio_id = p.id
@@ -633,7 +633,7 @@ const getApartamentosInativosByEmpresa = async (empresaId) => {
 const getApartamentoByIdAndEmpresa = async (id, empresaId) => {
   const query = `
     SELECT a.*,
-      (SELECT u.id FROM users u INNER JOIN apartamento_proprietario ap ON u.id = ap.user_id WHERE ap.apartamento_id = a.id LIMIT 1) AS user_proprietario_id,
+      (SELECT u.id FROM users u INNER JOIN apartamento_proprietario ap ON u.id = ap.user_id WHERE ap.apartamento_id = a.id LIMIT 1) AS proprietario_id,
       (SELECT u.first_name FROM users u INNER JOIN apartamento_proprietario ap ON u.id = ap.user_id WHERE ap.apartamento_id = a.id LIMIT 1) AS user_proprietario_nome
     FROM apartamentos a
     WHERE a.id = ? AND a.empresa_id = ? AND a.is_active = 1
@@ -646,7 +646,7 @@ const getApartamentoByIdAndEmpresa = async (id, empresaId) => {
 const getApartamentosByPredioIdAndEmpresa = async (predioId, empresaId) => {
   const query = `
     SELECT a.*,
-      (SELECT u.id FROM users u INNER JOIN apartamento_proprietario ap ON u.id = ap.user_id WHERE ap.apartamento_id = a.id LIMIT 1) AS user_proprietario_id,
+      (SELECT u.id FROM users u INNER JOIN apartamento_proprietario ap ON u.id = ap.user_id WHERE ap.apartamento_id = a.id LIMIT 1) AS proprietario_id,
       (SELECT u.first_name FROM users u INNER JOIN apartamento_proprietario ap ON u.id = ap.user_id WHERE ap.apartamento_id = a.id LIMIT 1) AS user_proprietario_nome
     FROM apartamentos a
     WHERE a.predio_id = ? AND a.empresa_id = ? AND a.is_active = 1
