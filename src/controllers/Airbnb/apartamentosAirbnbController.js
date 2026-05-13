@@ -15,7 +15,7 @@ const getAllApartamentos = async (request, response) => {
 const createApartamento = async (request, response) => {
   try {
     const { empresaId } = request;
-    const createdApartamento = await apartamentoModel.createApartamento({ ...request.body, empresa_id: empresaId });
+    const createdApartamento = await apartamentoModel.createApartamento({ ...request.body, empresa_id: empresaId, modificado_user_id: request.userId });
     return response.status(201).json(createdApartamento);
   } catch (error) {
     console.error('Erro ao criar apartamento:', error);
@@ -82,7 +82,7 @@ const getApartamentosInativosByEmpresa = async (request, response) => {
 const updateApartamento = async (request, response) => {
   try {
     const { id } = request.params;
-    const apartamento = { ...request.body, id };
+    const apartamento = { ...request.body, id, modificado_user_id: request.userId };
 
     const wasUpdated = await apartamentoModel.updateApartamento(apartamento);
 
