@@ -113,6 +113,41 @@ function parseEventoAyrton(vevent, apartamento) {
   return { start, end, summary, cod_reserva, link_reserva };
 }
 
+async function determinarFaxineiro(apartamento, dataLimpeza) {
+  const prioridades = [
+    apartamento.user_prioridade1,
+    apartamento.user_prioridade2,
+    apartamento.user_prioridade3,
+  ];
+
+  if (prioridades.every(p => !p)) return null;
+
+  const diaSemana = dataLimpeza.getDay(); // 0=domingo ... 6=sábado
+
+  for (const userId of prioridades) {
+    if (!userId) continue;
+
+    const [limiteRows] = await connection.execute(
+      'SELECT max_limpezas_dia FROM tercerizado_disponibilidade WHERE user_id = ? AND dia_semana = ? AND empresa_id = ?',
+      [userId, diaSemana, apartamento.empresa_id]
+    );
+
+    // Sem entrada na tabela = sem restrição para esse dia
+    if (limiteRows.length === 0) return userId;
+
+    const limite = limiteRows[0].max_limpezas_dia;
+
+    const [countRows] = await connection.execute(
+      'SELECT COUNT(*) AS total FROM reservas WHERE faxina_userId = ? AND DATE(end_data) = DATE(?)',
+      [userId, dataLimpeza]
+    );
+
+    if (countRows[0].total < limite) return userId;
+  }
+
+  return null;
+}
+
 async function processarEventos(vevents, apartamento, hoje, dataLimite, parserFn, origem) {
   const ativos = new Set();
   let criadas = 0;
@@ -127,7 +162,8 @@ async function processarEventos(vevents, apartamento, hoje, dataLimite, parserFn
       'SELECT id, start_date, end_data, description FROM reservas WHERE cod_reserva = ?', [cod_reserva]
     );
     if (existing.length === 0) {
-      await reservasModel.createReserva({ apartamento_id: apartamento.id, description: summary, start_date: start, end_data: end, Observacoes: '', cod_reserva, link_reserva, limpeza_realizada: false, credencial_made: false, informed: false, check_in: '15:00', check_out: '11:00', faxina_userId: null, origem });
+      const faxina_userId = await determinarFaxineiro(apartamento, end);
+      await reservasModel.createReserva({ apartamento_id: apartamento.id, description: summary, start_date: start, end_data: end, Observacoes: '', cod_reserva, link_reserva, limpeza_realizada: false, credencial_made: false, informed: false, check_in: '15:00', check_out: '11:00', faxina_userId, origem });
       criadas++;
       if (start === hoje) {
         const limpezasHoje = await reservasModel.getFaxinasPorPeriodo(obj.start, obj.start);

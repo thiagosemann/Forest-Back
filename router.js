@@ -49,6 +49,7 @@ const credenciaisReservaController = require('./src/controllers/Airbnb/credencia
 const scripts = require('./src/Scripts/sincronizacaoReservas');
 const geradorIcal = require('./src/Scripts/geradorIcal');
 const npsLimpezasController = require('./src/controllers/Airbnb/npsLimpezasController');
+const tercerizadoControleDiasController = require('./src/controllers/Airbnb/tercerizadoControleDiasController');
 const demandasController = require('./src/controllers/Airbnb/demandasController');
 const email = require('./src/email');
 const scrapperController = require('./src/controllers/Airbnb/scrapperController');
@@ -411,6 +412,14 @@ router.get('/nodemcu-aberturas/reserva/:reserva_id', verifyToken, empresaMiddlew
 router.get('/nodemcu-aberturas/predio/:predio_id', verifyToken, empresaMiddleware, aberturaNodeMcuController.getAberturasByPredioId);
 router.post('/nodemcu-aberturas', verifyToken, empresaMiddleware, aberturaNodeMcuController.createAbertura);
 router.delete('/nodemcu-aberturas/:id', verifyToken, empresaMiddleware, aberturaNodeMcuController.deleteAbertura);
+
+// Rotas Terceirizado Disponibilidade
+router.get('/tercerizado-disponibilidade', verifyToken, empresaMiddleware, tercerizadoControleDiasController.getAllDisponibilidades);
+router.get('/tercerizado-disponibilidade/:id', verifyToken, empresaMiddleware, tercerizadoControleDiasController.getDisponibilidadeById);
+router.get('/tercerizado-disponibilidade/user/:userId', verifyToken, empresaMiddleware, tercerizadoControleDiasController.getDisponibilidadesByUserId);
+router.post('/tercerizado-disponibilidade', verifyToken, empresaMiddleware, tercerizadoControleDiasController.createDisponibilidade);
+router.put('/tercerizado-disponibilidade/:id', verifyToken, empresaMiddleware, tercerizadoControleDiasController.updateDisponibilidade);
+router.delete('/tercerizado-disponibilidade/:id', verifyToken, empresaMiddleware, tercerizadoControleDiasController.deleteDisponibilidade);
 
 // Rotas NPS Limpezas
 router.get('/nps-limpezas', verifyToken, empresaMiddleware, npsLimpezasController.getAllNps);
