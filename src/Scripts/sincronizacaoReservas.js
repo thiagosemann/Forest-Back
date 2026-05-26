@@ -21,7 +21,7 @@ function getDatasReferencia() {
 async function fetchVevents(icsUrl) {
   let res;
   try {
-    res = await axios.get(icsUrl);
+    res = await axios.get(icsUrl, { timeout: 15000 });
     if (!res.data || !res.data.includes('BEGIN:VEVENT')) {
       return { eventos: [], erro: false };
     }
@@ -31,10 +31,10 @@ async function fetchVevents(icsUrl) {
   } catch (e) {
     const status = e.response?.status;
     if (status) {
-      console.warn(` Falha ao buscar ICS (${status}) para ${icsUrl}: ${e.response?.data || e.message}`);
+      console.warn(`Falha ao buscar ICS (${status}) para ${icsUrl}: ${e.response?.data || e.message}`);
       return { eventos: [], erro: true, msg: `Falha ao buscar ICS (${status})`, status };
     }
-    console.error('Erro ao processar ICS:', icsUrl, e, res ? res.data : null);
+    console.warn(`Falha de rede ao buscar ICS para ${icsUrl}: [${e.code || 'ERR'}] ${e.message}`);
     return { eventos: [], erro: true, msg: e.message, status: null };
   }
 }
@@ -128,8 +128,8 @@ async function determinarFaxineiro(apartamento, dataLimpeza) {
     if (!userId) continue;
 
     const [limiteRows] = await connection.execute(
-      'SELECT max_limpezas_dia FROM tercerizado_disponibilidade WHERE user_id = ? AND dia_semana = ? AND empresa_id = ?',
-      [userId, diaSemana, apartamento.empresa_id]
+      'SELECT max_limpezas_dia FROM tercerizado_disponibilidade WHERE user_id = ? AND dia_semana = ?',
+      [userId, diaSemana]
     );
 
     // Sem entrada na tabela = sem restrição para esse dia

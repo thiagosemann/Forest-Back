@@ -2,8 +2,7 @@ const model = require('../../models/Airbnb/tercerizadoControleDiasModel');
 
 const getAllDisponibilidades = async (request, response) => {
   try {
-    const { empresaId } = request;
-    const rows = await model.getAll(empresaId);
+    const rows = await model.getAll();
     return response.status(200).json(rows);
   } catch (error) {
     console.error('Erro ao obter disponibilidades:', error);
@@ -14,8 +13,7 @@ const getAllDisponibilidades = async (request, response) => {
 const getDisponibilidadeById = async (request, response) => {
   try {
     const { id } = request.params;
-    const { empresaId } = request;
-    const row = await model.getById(id, empresaId);
+    const row = await model.getById(id);
     if (!row) return response.status(404).json({ message: 'Disponibilidade não encontrada' });
     return response.status(200).json(row);
   } catch (error) {
@@ -27,8 +25,7 @@ const getDisponibilidadeById = async (request, response) => {
 const getDisponibilidadesByUserId = async (request, response) => {
   try {
     const { userId } = request.params;
-    const { empresaId } = request;
-    const rows = await model.getByUserId(userId, empresaId);
+    const rows = await model.getByUserId(userId);
     return response.status(200).json(rows);
   } catch (error) {
     console.error('Erro ao obter disponibilidades por usuário:', error);
@@ -38,7 +35,7 @@ const getDisponibilidadesByUserId = async (request, response) => {
 
 const createDisponibilidade = async (request, response) => {
   try {
-    const data = { ...request.body, empresa_id: request.empresaId };
+    const data = request.body;
     const created = await model.create(data);
     return response.status(201).json(created);
   } catch (error) {
@@ -50,7 +47,7 @@ const createDisponibilidade = async (request, response) => {
 const updateDisponibilidade = async (request, response) => {
   try {
     const { id } = request.params;
-    const data = { ...request.body, empresa_id: request.empresaId };
+    const data = request.body;
     const wasUpdated = await model.update(id, data);
     if (!wasUpdated) return response.status(404).json({ message: 'Disponibilidade não encontrada' });
     return response.status(200).json({ message: 'Disponibilidade atualizada com sucesso' });
