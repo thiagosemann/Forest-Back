@@ -42,6 +42,7 @@ const pagamentosController = require('./src/controllers/Airbnb/pagamento_por_res
 const mercadoPagoApi = require('./src/controllers/Airbnb/mercadoPagoController');
 const ticketReembolsoController = require('./src/controllers/Airbnb/ticketReembolsoController');
 const apartamentosProprietarioController = require('./src/controllers/Airbnb/apartamentosProprietarioController');
+const apartamentoEmpresaController = require('./src/controllers/Airbnb/apartamentoEmpresaController');
 const nodemcuPrediosController = require('./src/controllers/Airbnb/nodemcuPrediosController');
 const aberturaNodeMcuController = require('./src/controllers/Airbnb/aberturaNodeMcuController');
 const mensagemCadastroViaLinkController = require('./src/controllers/Airbnb/mensagemCadastroViaLinkController');
@@ -394,6 +395,11 @@ router.get('/apartamentos-proprietario/apartamentos/:user_id', verifyToken, empr
 router.delete('/apartamentos-proprietario/apartamento', verifyToken, empresaMiddleware, apartamentosProprietarioController.removeAllProprietariosFromApartamento); // Remove todos os vínculos de um apartamento
 router.delete('/apartamentos-proprietario/proprietario', verifyToken, empresaMiddleware, apartamentosProprietarioController.removeAllApartamentosFromProprietario); // Remove todos os vínculos de um proprietário
 router.get('/apartamentos-proprietario/sem-vinculo', verifyToken, empresaMiddleware, apartamentosProprietarioController.getApartamentosSemVinculo); // Lista apartamentos sem vínculo
+
+// Rotas para vínculo apartamento-empresa (N:N)
+router.post('/apartamentos-empresa', verifyToken, empresaMiddleware, apartamentoEmpresaController.vincularEmpresa); // Vincula apartamento a uma empresa
+router.delete('/apartamentos-empresa', verifyToken, empresaMiddleware, apartamentoEmpresaController.desvincularEmpresa); // Remove vínculo apartamento-empresa
+router.get('/apartamentos-empresa/empresas/:apartamento_id', verifyToken, empresaMiddleware, apartamentoEmpresaController.getEmpresasByApartamento); // Lista empresas de um apartamento
 
 // Rotas para NodeMCU-Prédio
 router.get('/nodemcu-predios', verifyToken, empresaMiddleware, nodemcuPrediosController.getAllNodemcuPredios);

@@ -279,6 +279,15 @@ const createApartamento = async (apartamento) => {
 
   try {
     const [result] = await connection.execute(insertApartamentoQuery, values);
+    // Escrita dupla: registra o vínculo também na junção apartamento_empresa.
+    if (empresa_id != null) {
+      await connection.execute(
+        `INSERT INTO apartamento_empresa (apartamento_id, empresa_id, is_active)
+         VALUES (?, ?, 1)
+         ON DUPLICATE KEY UPDATE is_active = 1`,
+        [result.insertId, empresa_id]
+      );
+    }
     return { insertId: result.insertId };
   } catch (error) {
     console.error("Erro ao inserir apartamento:", error);
@@ -608,7 +617,7 @@ const getAllApartamentosByEmpresa = async (empresaId) => {
     FROM apartamentos a
     LEFT JOIN predios p ON a.predio_id = p.id
     LEFT JOIN users u ON a.modificado_user_id = u.id
-    WHERE a.empresa_id = ? AND a.is_active = 1
+    WHERE EXISTS (SELECT 1 FROM apartamento_empresa ae WHERE ae.apartamento_id = a.id AND ae.empresa_id = ? AND ae.is_active = 1) AND a.is_active = 1
   `;
   const [apartamentos] = await connection.execute(query, [empresaId]);
   return apartamentos;
@@ -623,7 +632,7 @@ const getApartamentosInativosByEmpresa = async (empresaId) => {
     FROM apartamentos a
     LEFT JOIN predios p ON a.predio_id = p.id
     LEFT JOIN users u ON a.modificado_user_id = u.id
-    WHERE a.empresa_id = ? AND a.is_active = 0
+    WHERE EXISTS (SELECT 1 FROM apartamento_empresa ae WHERE ae.apartamento_id = a.id AND ae.empresa_id = ? AND ae.is_active = 1) AND a.is_active = 0
   `;
   const [apartamentos] = await connection.execute(query, [empresaId]);
   return apartamentos;
@@ -636,7 +645,7 @@ const getApartamentoByIdAndEmpresa = async (id, empresaId) => {
       (SELECT u.id FROM users u INNER JOIN apartamento_proprietario ap ON u.id = ap.user_id WHERE ap.apartamento_id = a.id LIMIT 1) AS proprietario_id,
       (SELECT u.first_name FROM users u INNER JOIN apartamento_proprietario ap ON u.id = ap.user_id WHERE ap.apartamento_id = a.id LIMIT 1) AS user_proprietario_nome
     FROM apartamentos a
-    WHERE a.id = ? AND a.empresa_id = ? AND a.is_active = 1
+    WHERE a.id = ? AND EXISTS (SELECT 1 FROM apartamento_empresa ae WHERE ae.apartamento_id = a.id AND ae.empresa_id = ? AND ae.is_active = 1) AND a.is_active = 1
   `;
   const [apartamentos] = await connection.execute(query, [id, empresaId]);
   return apartamentos.length > 0 ? apartamentos[0] : null;
@@ -649,7 +658,7 @@ const getApartamentosByPredioIdAndEmpresa = async (predioId, empresaId) => {
       (SELECT u.id FROM users u INNER JOIN apartamento_proprietario ap ON u.id = ap.user_id WHERE ap.apartamento_id = a.id LIMIT 1) AS proprietario_id,
       (SELECT u.first_name FROM users u INNER JOIN apartamento_proprietario ap ON u.id = ap.user_id WHERE ap.apartamento_id = a.id LIMIT 1) AS user_proprietario_nome
     FROM apartamentos a
-    WHERE a.predio_id = ? AND a.empresa_id = ? AND a.is_active = 1
+    WHERE a.predio_id = ? AND EXISTS (SELECT 1 FROM apartamento_empresa ae WHERE ae.apartamento_id = a.id AND ae.empresa_id = ? AND ae.is_active = 1) AND a.is_active = 1
   `;
   const [apartamentos] = await connection.execute(query, [predioId, empresaId]);
   return apartamentos;

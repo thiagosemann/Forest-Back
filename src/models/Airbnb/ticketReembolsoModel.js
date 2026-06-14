@@ -17,7 +17,7 @@ const getAllReembolsos = async (empresaId) => {
      LEFT JOIN apartamentos a ON tr.apartamento_id = a.id`;
   let params = [];
   if (empresaId) {
-    query += ' WHERE a.empresa_id = ?';
+    query += ' WHERE EXISTS (SELECT 1 FROM apartamento_empresa ae WHERE ae.apartamento_id = a.id AND ae.empresa_id = ? AND ae.is_active = 1)';
     params.push(empresaId);
   }
   query += ' GROUP BY tr.id';
@@ -33,7 +33,7 @@ const getReembolsoById = async (id, empresaId) => {
      WHERE tr.id = ?`;
   let params = [id];
   if (empresaId) {
-    query += ' AND a.empresa_id = ?';
+    query += ' AND EXISTS (SELECT 1 FROM apartamento_empresa ae WHERE ae.apartamento_id = a.id AND ae.empresa_id = ? AND ae.is_active = 1)';
     params.push(empresaId);
   }
   const [tickets] = await connection.execute(query, params);
@@ -195,7 +195,7 @@ const getTicketByAuth = async (auth, empresaId) => {
      WHERE tr.auth = ?`;
   let params = [auth];
   if (empresaId) {
-    query += ' AND a.empresa_id = ?';
+    query += ' AND EXISTS (SELECT 1 FROM apartamento_empresa ae WHERE ae.apartamento_id = a.id AND ae.empresa_id = ? AND ae.is_active = 1)';
     params.push(empresaId);
   }
   const [tickets] = await connection.execute(query, params);

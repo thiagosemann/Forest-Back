@@ -13,7 +13,7 @@ const getAllReservas = async (empresaId) => {
   `;
   let params = [];
   if (empresaId) {
-    query += ' AND a.empresa_id = ?';
+    query += ' AND EXISTS (SELECT 1 FROM apartamento_empresa ae WHERE ae.apartamento_id = a.id AND ae.empresa_id = ? AND ae.is_active = 1)';
     params.push(empresaId);
   }
   const [reservas] = await connection.execute(query, params);
@@ -161,7 +161,7 @@ const getReservaById = async (id, empresaId) => {
     WHERE r.id = ? AND a.is_active = 1`;
   let params = [id];
   if (empresaId) {
-    query += ' AND a.empresa_id = ?';
+    query += ' AND EXISTS (SELECT 1 FROM apartamento_empresa ae WHERE ae.apartamento_id = a.id AND ae.empresa_id = ? AND ae.is_active = 1)';
     params.push(empresaId);
   }
   const [reservas] = await connection.execute(query, params);
@@ -192,7 +192,7 @@ const getReservasByCodReserva = async (cod_reserva, empresaId) => {
     WHERE r.cod_reserva = ? AND a.is_active = 1`;
   const params = [cod_reserva];
   if (empresaId) {
-    query += ' AND a.empresa_id = ?';
+    query += ' AND EXISTS (SELECT 1 FROM apartamento_empresa ae WHERE ae.apartamento_id = a.id AND ae.empresa_id = ? AND ae.is_active = 1)';
     params.push(empresaId);
   }
   const [reservas] = await connection.execute(query, params);
@@ -209,7 +209,7 @@ const getReservasByApartamentoId = async (apartamentoId, empresaId) => {
     WHERE r.apartamento_id = ? AND a.is_active = 1`;
   let params = [apartamentoId];
   if (empresaId) {
-    query += ' AND a.empresa_id = ?';
+    query += ' AND EXISTS (SELECT 1 FROM apartamento_empresa ae WHERE ae.apartamento_id = a.id AND ae.empresa_id = ? AND ae.is_active = 1)';
     params.push(empresaId);
   }
   const [reservas] = await connection.execute(query, params);
@@ -377,7 +377,7 @@ async function getReservasPorPeriodo(startDate, endDate, empresaId) {
     WHERE DATE(r.start_date) BETWEEN ? AND ? AND a.is_active = 1`;
   let params = [startDate, endDate];
   if (empresaId) {
-    query += ' AND a.empresa_id = ?';
+    query += ' AND EXISTS (SELECT 1 FROM apartamento_empresa ae WHERE ae.apartamento_id = a.id AND ae.empresa_id = ? AND ae.is_active = 1)';
     params.push(empresaId);
   }
   query += ' ORDER BY r.start_date ASC';
@@ -493,7 +493,7 @@ const getFaxinasPorPeriodo = async (inicio_end_data, fim_end_date, empresaId) =>
       AND r.end_data BETWEEN ? AND ?`;
   let params = [inicio_end_data, fim_end_date];
   if (empresaId) {
-    query += ' AND a.empresa_id = ?';
+    query += ' AND EXISTS (SELECT 1 FROM apartamento_empresa ae WHERE ae.apartamento_id = a.id AND ae.empresa_id = ? AND ae.is_active = 1)';
     params.push(empresaId);
   }
   query += ' ORDER BY r.end_data ASC';
@@ -544,7 +544,7 @@ async function getReservasPorPeriodoCalendario(startDate, endDate, empresaId) {
       DATE(r.end_data) >= ? AND a.is_active = 1`;
   let params = [endDate, startDate];
   if (empresaId) {
-    query += ' AND a.empresa_id = ?';
+    query += ' AND EXISTS (SELECT 1 FROM apartamento_empresa ae WHERE ae.apartamento_id = a.id AND ae.empresa_id = ? AND ae.is_active = 1)';
     params.push(empresaId);
   }
   query += ' ORDER BY r.start_date ASC';
@@ -588,7 +588,7 @@ async function getReservasCanceladasHoje(empresaId) {
       AND r.description = 'CANCELADA' AND a.is_active = 1`;
   const params = [hoje];
   if (empresaId) {
-    query += ' AND a.empresa_id = ?';
+    query += ' AND EXISTS (SELECT 1 FROM apartamento_empresa ae WHERE ae.apartamento_id = a.id AND ae.empresa_id = ? AND ae.is_active = 1)';
     params.push(empresaId);
   }
   query += ' ORDER BY r.start_date ASC;';
@@ -611,7 +611,7 @@ async function getReservasCanceladasPorPeriodo(startDate, endDate, empresaId) {
       AND a.is_active = 1`;
   const params = [endDate, startDate];
   if (empresaId) {
-    query += ' AND a.empresa_id = ?';
+    query += ' AND EXISTS (SELECT 1 FROM apartamento_empresa ae WHERE ae.apartamento_id = a.id AND ae.empresa_id = ? AND ae.is_active = 1)';
     params.push(empresaId);
   }
   query += ' ORDER BY r.start_date ASC;';
@@ -650,7 +650,7 @@ async function getReservasPorPeriodoCalendarioPorApartamento(startDate, endDate,
     WHERE r.apartamento_id = ? AND DATE(r.start_date) <= ? AND DATE(r.end_data)  >= ? AND a.is_active = 1`;
   let params = [apartamentoId, endDate, startDate];
   if (empresaId) {
-    query += ' AND a.empresa_id = ?';
+    query += ' AND EXISTS (SELECT 1 FROM apartamento_empresa ae WHERE ae.apartamento_id = a.id AND ae.empresa_id = ? AND ae.is_active = 1)';
     params.push(empresaId);
   }
   query += ' ORDER BY r.start_date ASC';

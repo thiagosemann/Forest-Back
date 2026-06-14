@@ -59,7 +59,7 @@ const getApartamentosSemVinculo = async (empresaId) => {
     FROM apartamentos a
     LEFT JOIN apartamento_proprietario ap ON a.id = ap.apartamento_id
     WHERE ap.apartamento_id IS NULL
-      AND a.empresa_id = ?
+      AND EXISTS (SELECT 1 FROM apartamento_empresa ae WHERE ae.apartamento_id = a.id AND ae.empresa_id = ? AND ae.is_active = 1)
       AND a.is_active = 1
   `;
   const params = [empresaId];

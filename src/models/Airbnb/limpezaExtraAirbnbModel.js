@@ -11,7 +11,7 @@ const getAllLimpezasExtras = async (empresaId) => {
   `;
   let params = [];
   if (empresaId) {
-    query += ' WHERE a.empresa_id = ?';
+    query += ' WHERE EXISTS (SELECT 1 FROM apartamento_empresa ae WHERE ae.apartamento_id = a.id AND ae.empresa_id = ? AND ae.is_active = 1)';
     params.push(empresaId);
   }
   query += ' ORDER BY le.end_data DESC';
@@ -30,7 +30,7 @@ const getLimpezaExtraById = async (id, empresaId) => {
     WHERE le.id = ?`;
   let params = [id];
   if (empresaId) {
-    query += ' AND a.empresa_id = ?';
+    query += ' AND EXISTS (SELECT 1 FROM apartamento_empresa ae WHERE ae.apartamento_id = a.id AND ae.empresa_id = ? AND ae.is_active = 1)';
     params.push(empresaId);
   }
   const [rows] = await connection.execute(query, params);
@@ -125,7 +125,7 @@ const getLimpezasExtrasPorPeriodo = async (startDate, endDate, empresaId) => {
     WHERE le.end_data BETWEEN ? AND ?`;
   let params = [startDate, endDate];
   if (empresaId) {
-    query += ' AND a.empresa_id = ?';
+    query += ' AND EXISTS (SELECT 1 FROM apartamento_empresa ae WHERE ae.apartamento_id = a.id AND ae.empresa_id = ? AND ae.is_active = 1)';
     params.push(empresaId);
   }
   query += ' ORDER BY le.end_data ASC';
@@ -144,7 +144,7 @@ const getLimpezasExtrasHoje = async (empresaId) => {
     WHERE DATE(le.end_data) = CURDATE()`;
   let params = [];
   if (empresaId) {
-    query += ' AND a.empresa_id = ?';
+    query += ' AND EXISTS (SELECT 1 FROM apartamento_empresa ae WHERE ae.apartamento_id = a.id AND ae.empresa_id = ? AND ae.is_active = 1)';
     params.push(empresaId);
   }
   query += ' ORDER BY le.end_data ASC';
@@ -163,7 +163,7 @@ const getLimpezasExtrasSemana = async (empresaId) => {
     WHERE YEARWEEK(le.end_data, 1) = YEARWEEK(CURDATE(), 1)`;
   let params = [];
   if (empresaId) {
-    query += ' AND a.empresa_id = ?';
+    query += ' AND EXISTS (SELECT 1 FROM apartamento_empresa ae WHERE ae.apartamento_id = a.id AND ae.empresa_id = ? AND ae.is_active = 1)';
     params.push(empresaId);
   }
   query += ' ORDER BY le.end_data ASC';
@@ -183,7 +183,7 @@ const getLimpezasExtrasSemanaQueVem = async (empresaId) => {
     WHERE YEARWEEK(le.end_data, 1) = YEARWEEK(CURDATE(), 1) + 1`;
   let params = [];
   if (empresaId) {
-    query += ' AND a.empresa_id = ?';
+    query += ' AND EXISTS (SELECT 1 FROM apartamento_empresa ae WHERE ae.apartamento_id = a.id AND ae.empresa_id = ? AND ae.is_active = 1)';
     params.push(empresaId);
   }
   query += ' ORDER BY le.end_data ASC';
