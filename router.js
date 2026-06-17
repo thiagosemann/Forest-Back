@@ -311,13 +311,13 @@ router.delete('/predios-airbnb/:id', verifyToken, empresaMiddleware, predioAirbn
 // ApartamentosAirbnb routes
 router.get('/apartamentos-airbnb', verifyToken, empresaMiddleware, apartamentosAirbnbController.getAllApartamentos);
 router.get('/apartamentos-airbnb/reservaChatBox/:cod_reserva', apartamentosAirbnbController.getApartamentoByReserva);
+router.get('/apartamentos-airbnb/inativos', verifyToken, empresaMiddleware, apartamentosAirbnbController.getApartamentosInativosByEmpresa); // ANTES de /:id para não ser capturada como id
 router.get('/apartamentos-airbnb/:id', verifyToken, empresaMiddleware, apartamentosAirbnbController.getApartamentoById);
 router.post('/apartamentos-airbnb', verifyToken, empresaMiddleware, apartamentosAirbnbController.createApartamento);
 router.get('/apartamentos-airbnb/predios/:predioId', verifyToken, empresaMiddleware, apartamentosAirbnbController.getApartamentosByPredioId);
 router.put('/apartamentos-airbnb/:id', verifyToken, empresaMiddleware, apartamentosAirbnbController.updateApartamento);
 router.delete('/apartamentos-airbnb/:id', verifyToken, empresaMiddleware, apartamentosAirbnbController.deleteApartamento);
 router.patch('/apartamentos-airbnb/:id/status', verifyToken, empresaMiddleware, apartamentosAirbnbController.setApartamentoStatus); // Ativa/inativa apartamento (body: { is_active: 0|1 })
-router.get('/apartamentos-airbnb/inativos', verifyToken, empresaMiddleware, apartamentosAirbnbController.getApartamentosInativosByEmpresa);
 
 // Rotas de Check-in
 router.get('/checkins', verifyToken, empresaMiddleware, checkinFormController.getAllCheckins); // Listar todos os check-ins
