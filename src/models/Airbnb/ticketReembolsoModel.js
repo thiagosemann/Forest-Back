@@ -11,13 +11,13 @@ const getReembolsoFiles = async (reembolsoId) => {
 
 // Fetch all reimbursement tickets with optional join of files count and apartment name
 const getAllReembolsos = async (empresaId) => {
-  let query = `SELECT tr.*, COUNT(f.id) AS file_count, a.nome AS apartamento_nome
+  let query = `SELECT tr.*, COUNT(f.id) AS file_count, a.nome AS apartamento_nome, a.is_active AS apartamento_ativo
      FROM ticket_reembolso tr
      LEFT JOIN ticket_reembolso_arquivos f ON tr.id = f.reembolso_id
      LEFT JOIN apartamentos a ON tr.apartamento_id = a.id`;
   let params = [];
   if (empresaId) {
-    query += ' WHERE EXISTS (SELECT 1 FROM apartamento_empresa ae WHERE ae.apartamento_id = a.id AND ae.empresa_id = ? AND ae.is_active = 1)';
+    query += ' WHERE EXISTS (SELECT 1 FROM apartamento_empresa ae WHERE ae.apartamento_id = a.id AND ae.empresa_id = ?)';
     params.push(empresaId);
   }
   query += ' GROUP BY tr.id';
@@ -27,13 +27,13 @@ const getAllReembolsos = async (empresaId) => {
 
 // Fetch a single reimbursement ticket by id, including files and apartment name
 const getReembolsoById = async (id, empresaId) => {
-  let query = `SELECT tr.*, a.nome AS apartamento_nome
+  let query = `SELECT tr.*, a.nome AS apartamento_nome, a.is_active AS apartamento_ativo
      FROM ticket_reembolso tr
      LEFT JOIN apartamentos a ON tr.apartamento_id = a.id
      WHERE tr.id = ?`;
   let params = [id];
   if (empresaId) {
-    query += ' AND EXISTS (SELECT 1 FROM apartamento_empresa ae WHERE ae.apartamento_id = a.id AND ae.empresa_id = ? AND ae.is_active = 1)';
+    query += ' AND EXISTS (SELECT 1 FROM apartamento_empresa ae WHERE ae.apartamento_id = a.id AND ae.empresa_id = ?)';
     params.push(empresaId);
   }
   const [tickets] = await connection.execute(query, params);
@@ -189,13 +189,13 @@ const deleteReembolso = async (id) => {
 
 // Buscar ticket por auth, incluindo nome do apartamento
 const getTicketByAuth = async (auth, empresaId) => {
-  let query = `SELECT tr.*, a.nome AS apartamento_nome
+  let query = `SELECT tr.*, a.nome AS apartamento_nome, a.is_active AS apartamento_ativo
      FROM ticket_reembolso tr
      LEFT JOIN apartamentos a ON tr.apartamento_id = a.id
      WHERE tr.auth = ?`;
   let params = [auth];
   if (empresaId) {
-    query += ' AND EXISTS (SELECT 1 FROM apartamento_empresa ae WHERE ae.apartamento_id = a.id AND ae.empresa_id = ? AND ae.is_active = 1)';
+    query += ' AND EXISTS (SELECT 1 FROM apartamento_empresa ae WHERE ae.apartamento_id = a.id AND ae.empresa_id = ?)';
     params.push(empresaId);
   }
   const [tickets] = await connection.execute(query, params);

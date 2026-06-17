@@ -238,9 +238,10 @@ const getUsersByRole = async (role, empresaId) => {
     query = `
       SELECT
         u.*,
-        COALESCE(COUNT(ap.apartamento_id), 0) AS qtd_apartamentos
+        COALESCE(COUNT(CASE WHEN a.is_active = 1 THEN ap.apartamento_id END), 0) AS qtd_apartamentos
       FROM users u
       LEFT JOIN apartamento_proprietario ap ON u.id = ap.user_id
+      LEFT JOIN apartamentos a ON a.id = ap.apartamento_id
       WHERE u.role = ?
     `;
     params.push(role);

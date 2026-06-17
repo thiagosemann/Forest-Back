@@ -199,17 +199,19 @@ const getReservasByCodReserva = async (cod_reserva, empresaId) => {
   return reservas;
 };
 
-// Função para buscar reservas pelo ID do apartamento
+// Função para buscar reservas pelo ID do apartamento.
+// Histórico: mostra reservas mesmo de apartamento inativo, marcando com apartamento_ativo.
 const getReservasByApartamentoId = async (apartamentoId, empresaId) => {
   let query = `
-    SELECT r.*, 
-           EXISTS (SELECT 1 FROM checkin c WHERE c.reserva_id = r.id) AS documentosEnviados 
-    FROM reservas r 
+    SELECT r.*,
+           a.is_active AS apartamento_ativo,
+           EXISTS (SELECT 1 FROM checkin c WHERE c.reserva_id = r.id) AS documentosEnviados
+    FROM reservas r
     LEFT JOIN apartamentos a ON r.apartamento_id = a.id
-    WHERE r.apartamento_id = ? AND a.is_active = 1`;
+    WHERE r.apartamento_id = ?`;
   let params = [apartamentoId];
   if (empresaId) {
-    query += ' AND EXISTS (SELECT 1 FROM apartamento_empresa ae WHERE ae.apartamento_id = a.id AND ae.empresa_id = ? AND ae.is_active = 1)';
+    query += ' AND EXISTS (SELECT 1 FROM apartamento_empresa ae WHERE ae.apartamento_id = a.id AND ae.empresa_id = ?)';
     params.push(empresaId);
   }
   const [reservas] = await connection.execute(query, params);
@@ -314,6 +316,7 @@ async function getReservasPorPeriodo(startDate, endDate, empresaId) {
     SELECT
       r.*,
       COALESCE(a.nome, 'Apartamento não encontrado') AS apartamento_nome,
+      a.is_active AS apartamento_ativo,
       EXISTS(
         SELECT 1 FROM checkin c WHERE c.reserva_id = r.id
       ) AS documentosEnviados,
@@ -374,10 +377,10 @@ async function getReservasPorPeriodo(startDate, endDate, empresaId) {
       ) AS pagamentos
     FROM reservas r
     LEFT JOIN apartamentos a ON a.id = r.apartamento_id
-    WHERE DATE(r.start_date) BETWEEN ? AND ? AND a.is_active = 1`;
+    WHERE DATE(r.start_date) BETWEEN ? AND ?`;
   let params = [startDate, endDate];
   if (empresaId) {
-    query += ' AND EXISTS (SELECT 1 FROM apartamento_empresa ae WHERE ae.apartamento_id = a.id AND ae.empresa_id = ? AND ae.is_active = 1)';
+    query += ' AND EXISTS (SELECT 1 FROM apartamento_empresa ae WHERE ae.apartamento_id = a.id AND ae.empresa_id = ?)';
     params.push(empresaId);
   }
   query += ' ORDER BY r.start_date ASC';
@@ -409,6 +412,7 @@ async function getReservasPorPeriodoByApartamentoID(apartamentoId, startDate, en
     SELECT
       r.*,
       COALESCE(a.nome, 'Apartamento não encontrado') AS apartamento_nome,
+      a.is_active AS apartamento_ativo,
       EXISTS(
         SELECT 1 FROM checkin c WHERE c.reserva_id = r.id
       ) AS documentosEnviados,
@@ -441,7 +445,7 @@ async function getReservasPorPeriodoByApartamentoID(apartamentoId, startDate, en
       ) AS pagamentos
     FROM reservas r
     LEFT JOIN apartamentos a ON a.id = r.apartamento_id
-    WHERE r.apartamento_id = ? AND DATE(r.start_date) BETWEEN ? AND ? AND a.is_active = 1
+    WHERE r.apartamento_id = ? AND DATE(r.start_date) BETWEEN ? AND ?
     ORDER BY r.start_date ASC;
   `;
 

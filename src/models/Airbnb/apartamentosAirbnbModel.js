@@ -599,13 +599,56 @@ const getApartamentosByPredioId = async (predioId) => {
   return apartamentos;
 };
 
-// Função para deletar um apartamento pelo ID
+// Função para inativar um apartamento pelo ID (soft delete).
+// O apartamentos.is_active é o master: ao inativar, faz cascade inativando
+// todos os vínculos em apartamento_empresa para manter os dois flags em sincronia.
 const deleteApartamento = async (id) => {
-  const [result] = await connection.execute(
-    'UPDATE apartamentos SET is_active = 0, data_ultima_modificacao = ? WHERE id = ?',
-    [getCurrentDateTimeString(), id]
-  );
-  return result.affectedRows > 0;
+  const conn = await connection.getConnection();
+  try {
+    await conn.beginTransaction();
+    const now = getCurrentDateTimeString();
+    const [result] = await conn.execute(
+      'UPDATE apartamentos SET is_active = 0, data_ultima_modificacao = ? WHERE id = ?',
+      [now, id]
+    );
+    await conn.execute(
+      'UPDATE apartamento_empresa SET is_active = 0 WHERE apartamento_id = ?',
+      [id]
+    );
+    await conn.commit();
+    return result.affectedRows > 0;
+  } catch (error) {
+    await conn.rollback();
+    throw error;
+  } finally {
+    conn.release();
+  }
+};
+
+// Função para reativar um apartamento pelo ID.
+// Cascade simétrico ao deleteApartamento: reativa o apartamento e todos os
+// seus vínculos com empresas.
+const reativarApartamento = async (id) => {
+  const conn = await connection.getConnection();
+  try {
+    await conn.beginTransaction();
+    const now = getCurrentDateTimeString();
+    const [result] = await conn.execute(
+      'UPDATE apartamentos SET is_active = 1, data_ultima_modificacao = ? WHERE id = ?',
+      [now, id]
+    );
+    await conn.execute(
+      'UPDATE apartamento_empresa SET is_active = 1 WHERE apartamento_id = ?',
+      [id]
+    );
+    await conn.commit();
+    return result.affectedRows > 0;
+  } catch (error) {
+    await conn.rollback();
+    throw error;
+  } finally {
+    conn.release();
+  }
 };
 
 // Buscar todos os apartamentos de uma empresa
@@ -684,6 +727,7 @@ module.exports = {
   getApartamentosByPredioId,
   updateApartamento,
   deleteApartamento,
+  reativarApartamento,
   getAllApartamentosByEmpresa,
   getApartamentosInativosByEmpresa,
   getApartamentoByIdAndEmpresa,

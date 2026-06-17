@@ -8,7 +8,8 @@ const getAllVistorias = async (empresaId) => {
     SELECT 
       v.*,
       a.nome AS apartamento_nome,
-      u.first_name AS usuario_nome    
+      a.is_active AS apartamento_ativo,
+      u.first_name AS usuario_nome
     FROM vistoria v
     LEFT JOIN apartamentos a ON v.apartamento_id = a.id
     LEFT JOIN users u       ON v.user_id       = u.id
@@ -29,7 +30,8 @@ const getVistoriaById = async (id, empresaId) => {
     SELECT 
       v.*,
       a.nome AS apartamento_nome,
-      u.first_name AS usuario_nome    
+      a.is_active AS apartamento_ativo,
+      u.first_name AS usuario_nome
     FROM vistoria v
     LEFT JOIN apartamentos a ON v.apartamento_id = a.id
     LEFT JOIN users u       ON v.user_id       = u.id

@@ -15,6 +15,7 @@ const getAllNps = async (empresaId) => {
       n.limpeza_cozinha,
       n.created_at,
       a.nome AS apartamento_nome,
+      a.is_active AS apartamento_ativo,
       CONCAT(COALESCE(u.first_name, ''), ' ', COALESCE(u.last_name, '')) AS terceirizado_nome
     FROM nps_limpezas n
     LEFT JOIN apartamentos a ON a.id = n.apartamento_id
@@ -44,6 +45,7 @@ const getNpsById = async (id, empresaId) => {
       n.limpeza_cozinha,
       n.created_at,
       a.nome AS apartamento_nome,
+      a.is_active AS apartamento_ativo,
       CONCAT(COALESCE(u.first_name, ''), ' ', COALESCE(u.last_name, '')) AS terceirizado_nome
     FROM nps_limpezas n
     LEFT JOIN apartamentos a ON a.id = n.apartamento_id
@@ -82,6 +84,7 @@ const getNpsByApartamentoId = async (apartamentoId, empresaId) => {
       n.limpeza_cozinha,
       n.created_at,
       a.nome AS apartamento_nome,
+      a.is_active AS apartamento_ativo,
       CONCAT(COALESCE(u.first_name, ''), ' ', COALESCE(u.last_name, '')) AS terceirizado_nome
     FROM nps_limpezas n
     LEFT JOIN apartamentos a ON a.id = n.apartamento_id
@@ -112,6 +115,7 @@ const getNpsByUserId = async (userId, empresaId) => {
       n.limpeza_cozinha,
       n.created_at,
       a.nome AS apartamento_nome,
+      a.is_active AS apartamento_ativo,
       CONCAT(COALESCE(u.first_name, ''), ' ', COALESCE(u.last_name, '')) AS terceirizado_nome
     FROM nps_limpezas n
     LEFT JOIN apartamentos a ON a.id = n.apartamento_id

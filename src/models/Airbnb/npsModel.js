@@ -11,6 +11,7 @@ const getAllNps = async (empresaId) => {
     SELECT 
       n.*, 
       a.nome AS apartamento_nome,
+      a.is_active AS apartamento_ativo,
       CONCAT(COALESCE(u.first_name, ''), ' ', COALESCE(u.last_name, '')) AS terceirizado_nome
     FROM ${TABLE} n
     LEFT JOIN apartamentos a ON a.id = n.apartamento_id
@@ -31,6 +32,7 @@ const getNpsById = async (id, empresaId) => {
     SELECT 
       n.*, 
       a.nome AS apartamento_nome,
+      a.is_active AS apartamento_ativo,
       CONCAT(COALESCE(u.first_name, ''), ' ', COALESCE(u.last_name, '')) AS terceirizado_nome
     FROM ${TABLE} n
     LEFT JOIN apartamentos a ON a.id = n.apartamento_id
@@ -57,6 +59,7 @@ const getNpsByApartamentoId = async (apartamentoId, empresaId) => {
     SELECT 
       n.*, 
       a.nome AS apartamento_nome,
+      a.is_active AS apartamento_ativo,
       CONCAT(COALESCE(u.first_name, ''), ' ', COALESCE(u.last_name, '')) AS terceirizado_nome
     FROM ${TABLE} n
     LEFT JOIN apartamentos a ON a.id = n.apartamento_id
@@ -78,6 +81,7 @@ const getNpsByUserId = async (userId, empresaId) => {
     SELECT 
       n.*, 
       a.nome AS apartamento_nome,
+      a.is_active AS apartamento_ativo,
       CONCAT(COALESCE(u.first_name, ''), ' ', COALESCE(u.last_name, '')) AS terceirizado_nome
     FROM ${TABLE} n
     LEFT JOIN apartamentos a ON a.id = n.apartamento_id

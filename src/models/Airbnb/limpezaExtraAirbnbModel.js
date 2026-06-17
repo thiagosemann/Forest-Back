@@ -8,10 +8,11 @@ const getAllLimpezasExtras = async (empresaId) => {
            COALESCE(a.senha_porta, '')            AS apartamento_senha
     FROM limpeza_extra le
     LEFT JOIN apartamentos a ON le.apartamento_id = a.id
+    WHERE a.is_active = 1
   `;
   let params = [];
   if (empresaId) {
-    query += ' WHERE EXISTS (SELECT 1 FROM apartamento_empresa ae WHERE ae.apartamento_id = a.id AND ae.empresa_id = ? AND ae.is_active = 1)';
+    query += ' AND EXISTS (SELECT 1 FROM apartamento_empresa ae WHERE ae.apartamento_id = a.id AND ae.empresa_id = ? AND ae.is_active = 1)';
     params.push(empresaId);
   }
   query += ' ORDER BY le.end_data DESC';
@@ -27,7 +28,7 @@ const getLimpezaExtraById = async (id, empresaId) => {
            COALESCE(a.senha_porta, '')            AS apartamento_senha
     FROM limpeza_extra le
     LEFT JOIN apartamentos a ON le.apartamento_id = a.id
-    WHERE le.id = ?`;
+    WHERE le.id = ? AND a.is_active = 1`;
   let params = [id];
   if (empresaId) {
     query += ' AND EXISTS (SELECT 1 FROM apartamento_empresa ae WHERE ae.apartamento_id = a.id AND ae.empresa_id = ? AND ae.is_active = 1)';
@@ -122,7 +123,7 @@ const getLimpezasExtrasPorPeriodo = async (startDate, endDate, empresaId) => {
 
     FROM limpeza_extra le
     LEFT JOIN apartamentos a ON le.apartamento_id = a.id
-    WHERE le.end_data BETWEEN ? AND ?`;
+    WHERE le.end_data BETWEEN ? AND ? AND a.is_active = 1`;
   let params = [startDate, endDate];
   if (empresaId) {
     query += ' AND EXISTS (SELECT 1 FROM apartamento_empresa ae WHERE ae.apartamento_id = a.id AND ae.empresa_id = ? AND ae.is_active = 1)';
@@ -141,7 +142,7 @@ const getLimpezasExtrasHoje = async (empresaId) => {
            COALESCE(a.senha_porta, '')                     AS apartamento_senha
     FROM limpeza_extra le
     LEFT JOIN apartamentos a ON le.apartamento_id = a.id
-    WHERE DATE(le.end_data) = CURDATE()`;
+    WHERE DATE(le.end_data) = CURDATE() AND a.is_active = 1`;
   let params = [];
   if (empresaId) {
     query += ' AND EXISTS (SELECT 1 FROM apartamento_empresa ae WHERE ae.apartamento_id = a.id AND ae.empresa_id = ? AND ae.is_active = 1)';
@@ -160,7 +161,7 @@ const getLimpezasExtrasSemana = async (empresaId) => {
            COALESCE(a.senha_porta, '')                     AS apartamento_senha
     FROM limpeza_extra le
     LEFT JOIN apartamentos a ON le.apartamento_id = a.id
-    WHERE YEARWEEK(le.end_data, 1) = YEARWEEK(CURDATE(), 1)`;
+    WHERE YEARWEEK(le.end_data, 1) = YEARWEEK(CURDATE(), 1) AND a.is_active = 1`;
   let params = [];
   if (empresaId) {
     query += ' AND EXISTS (SELECT 1 FROM apartamento_empresa ae WHERE ae.apartamento_id = a.id AND ae.empresa_id = ? AND ae.is_active = 1)';
@@ -180,7 +181,7 @@ const getLimpezasExtrasSemanaQueVem = async (empresaId) => {
            COALESCE(a.senha_porta, '')                          AS apartamento_senha
     FROM limpeza_extra le
     LEFT JOIN apartamentos a ON le.apartamento_id = a.id
-    WHERE YEARWEEK(le.end_data, 1) = YEARWEEK(CURDATE(), 1) + 1`;
+    WHERE YEARWEEK(le.end_data, 1) = YEARWEEK(CURDATE(), 1) + 1 AND a.is_active = 1`;
   let params = [];
   if (empresaId) {
     query += ' AND EXISTS (SELECT 1 FROM apartamento_empresa ae WHERE ae.apartamento_id = a.id AND ae.empresa_id = ? AND ae.is_active = 1)';

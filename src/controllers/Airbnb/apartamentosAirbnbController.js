@@ -114,6 +114,32 @@ const deleteApartamento = async (request, response) => {
   }
 };
 
+// Altera o status (ativo/inativo) do apartamento.
+// Body: { is_active: 0 | 1 }. is_active=1 reativa, is_active=0 inativa (com cascade nos vínculos de empresa).
+const setApartamentoStatus = async (request, response) => {
+  try {
+    const { id } = request.params;
+    const { is_active } = request.body;
+
+    if (is_active === undefined || is_active === null) {
+      return response.status(400).json({ error: 'Campo is_active é obrigatório (0 ou 1).' });
+    }
+
+    const ativo = Number(is_active) === 1;
+    const ok = ativo
+      ? await apartamentoModel.reativarApartamento(id)
+      : await apartamentoModel.deleteApartamento(id);
+
+    if (ok) {
+      return response.status(200).json({ message: ativo ? 'Apartamento reativado com sucesso' : 'Apartamento inativado com sucesso' });
+    }
+    return response.status(404).json({ message: 'Apartamento não encontrado' });
+  } catch (error) {
+    console.error('Erro ao alterar status do apartamento:', error);
+    return response.status(500).json({ error: 'Erro ao alterar status do apartamento' });
+  }
+};
+
 const getVagaSelfieTemGaragem = async (request, response) => {
   try {
     const cod_reserva = request.query.cod_reserva || request.params.cod_reserva || request.body?.cod_reserva;
@@ -183,6 +209,7 @@ module.exports = {
   getApartamentoByCodProprietario,
   updateApartamento,
   deleteApartamento,
+  setApartamentoStatus,
   getVagaSelfieTemGaragem,
   getApartamentoByReserva,
   getApartamentosInativosByEmpresa
