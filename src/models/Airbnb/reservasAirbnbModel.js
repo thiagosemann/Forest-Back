@@ -476,13 +476,14 @@ async function getReservasPorPeriodoByApartamentoID(apartamentoId, startDate, en
 
 const getFaxinasPorPeriodo = async (inicio_end_data, fim_end_date, empresaId) => {
   let query = `
-    SELECT 
-      r.*, 
+    SELECT
+      r.*,
       a.nome AS apartamento_nome,
       a.senha_porta AS apartamento_senha,
       a.endereco AS apartamento_endereco,
       a.bairro AS apartamento_bairro,
       a.valor_limpeza,
+      a.is_active AS apartamento_ativo,
       EXISTS (
         SELECT 1 FROM reservas r2
         WHERE r2.apartamento_id = r.apartamento_id
@@ -494,7 +495,8 @@ const getFaxinasPorPeriodo = async (inicio_end_data, fim_end_date, empresaId) =>
     FROM reservas r
     LEFT JOIN apartamentos a ON r.apartamento_id = a.id
     WHERE r.description = 'Reserved'
-      AND r.end_data BETWEEN ? AND ?`;
+      AND r.end_data BETWEEN ? AND ?
+      AND a.is_active = 1`;
   let params = [inicio_end_data, fim_end_date];
   if (empresaId) {
     query += ' AND EXISTS (SELECT 1 FROM apartamento_empresa ae WHERE ae.apartamento_id = a.id AND ae.empresa_id = ? AND ae.is_active = 1)';
