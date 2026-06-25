@@ -44,12 +44,15 @@ const ticketReembolsoController = require('./src/controllers/Airbnb/ticketReembo
 const apartamentosProprietarioController = require('./src/controllers/Airbnb/apartamentosProprietarioController');
 const apartamentoEmpresaController = require('./src/controllers/Airbnb/apartamentoEmpresaController');
 const empresaController = require('./src/controllers/Airbnb/empresaController');
+
 const nodemcuPrediosController = require('./src/controllers/Airbnb/nodemcuPrediosController');
 const aberturaNodeMcuController = require('./src/controllers/Airbnb/aberturaNodeMcuController');
 const mensagemCadastroViaLinkController = require('./src/controllers/Airbnb/mensagemCadastroViaLinkController');
 const credenciaisReservaController = require('./src/controllers/Airbnb/credenciaisReservaController');
 const scripts = require('./src/Scripts/sincronizacaoReservas');
 const geradorIcal = require('./src/Scripts/geradorIcal');
+const limpezaUserFiles = require('./src/Scripts/limpezaUserFiles');
+
 const npsLimpezasController = require('./src/controllers/Airbnb/npsLimpezasController');
 const tercerizadoControleDiasController = require('./src/controllers/Airbnb/tercerizadoControleDiasController');
 const demandasController = require('./src/controllers/Airbnb/demandasController');
