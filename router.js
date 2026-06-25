@@ -43,6 +43,7 @@ const mercadoPagoApi = require('./src/controllers/Airbnb/mercadoPagoController')
 const ticketReembolsoController = require('./src/controllers/Airbnb/ticketReembolsoController');
 const apartamentosProprietarioController = require('./src/controllers/Airbnb/apartamentosProprietarioController');
 const apartamentoEmpresaController = require('./src/controllers/Airbnb/apartamentoEmpresaController');
+const empresaController = require('./src/controllers/Airbnb/empresaController');
 const nodemcuPrediosController = require('./src/controllers/Airbnb/nodemcuPrediosController');
 const aberturaNodeMcuController = require('./src/controllers/Airbnb/aberturaNodeMcuController');
 const mensagemCadastroViaLinkController = require('./src/controllers/Airbnb/mensagemCadastroViaLinkController');
@@ -401,6 +402,11 @@ router.get('/apartamentos-proprietario/sem-vinculo', verifyToken, empresaMiddlew
 router.post('/apartamentos-empresa', verifyToken, empresaMiddleware, apartamentoEmpresaController.vincularEmpresa); // Vincula apartamento a uma empresa
 router.delete('/apartamentos-empresa', verifyToken, empresaMiddleware, apartamentoEmpresaController.desvincularEmpresa); // Remove vínculo apartamento-empresa
 router.get('/apartamentos-empresa/empresas/:apartamento_id', verifyToken, empresaMiddleware, apartamentoEmpresaController.getEmpresasByApartamento); // Lista empresas de um apartamento
+router.get('/apartamentos-empresa/vinculos', verifyToken, empresaMiddleware, apartamentoEmpresaController.getVinculosVisiveis); // Lista vínculos apartamento-empresa visíveis (com nome da empresa)
+router.get('/apartamentos-empresa/terceirizados', verifyToken, empresaMiddleware, apartamentoEmpresaController.getTerceirizadosVisiveis); // Lista terceirizados das empresas vinculadas aos apartamentos visíveis
+
+// Rota para listar empresas (seleção de empresa no cadastro de usuários)
+router.get('/empresas', verifyToken, empresaController.getAllEmpresas); // Lista empresas ativas
 
 // Rotas para NodeMCU-Prédio
 router.get('/nodemcu-predios', verifyToken, empresaMiddleware, nodemcuPrediosController.getAllNodemcuPredios);

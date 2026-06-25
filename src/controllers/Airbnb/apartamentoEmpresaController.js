@@ -45,8 +45,34 @@ const getEmpresasByApartamento = async (request, response) => {
   }
 };
 
+// Lista os vínculos apartamento-empresa visíveis para a empresa logada
+const getVinculosVisiveis = async (request, response) => {
+  try {
+    const { empresaId } = request;
+    const vinculos = await apartamentoEmpresaModel.getVinculosVisiveis(empresaId);
+    return response.status(200).json(vinculos);
+  } catch (error) {
+    console.error('Erro ao listar vínculos apartamento-empresa:', error);
+    return response.status(500).json({ error: 'Erro ao listar vínculos apartamento-empresa.' });
+  }
+};
+
+// Lista os terceirizados das empresas vinculadas aos apartamentos da empresa logada
+const getTerceirizadosVisiveis = async (request, response) => {
+  try {
+    const { empresaId } = request;
+    const terceirizados = await apartamentoEmpresaModel.getTerceirizadosVisiveis(empresaId);
+    return response.status(200).json(terceirizados);
+  } catch (error) {
+    console.error('Erro ao listar terceirizados das empresas vinculadas:', error);
+    return response.status(500).json({ error: 'Erro ao listar terceirizados das empresas vinculadas.' });
+  }
+};
+
 module.exports = {
   vincularEmpresa,
   desvincularEmpresa,
-  getEmpresasByApartamento
+  getEmpresasByApartamento,
+  getVinculosVisiveis,
+  getTerceirizadosVisiveis
 };

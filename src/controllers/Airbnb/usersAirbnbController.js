@@ -3,8 +3,11 @@ const usersModel = require('../../models/Airbnb/usersAirbnbModel');
 const getAllUsers = async (request, response) => {
   try {
     const { empresaId } = request;
-    const users = await usersModel.getAllUsers(empresaId);
-    return response.status(200).json(users);
+    const page  = parseInt(request.query.page)  || 1;
+    const limit = parseInt(request.query.limit) || 20;
+    const role  = request.query.role || null;
+    const result = await usersModel.getAllUsers(empresaId, { page, limit, role });
+    return response.status(200).json(result);
   } catch (error) {
     console.error('Erro ao obter usuários:', error);
     return response.status(500).json({ error: 'Erro ao obter usuários' });

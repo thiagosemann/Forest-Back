@@ -15,15 +15,41 @@ const getUserFiles = async (userId) => {
   return rows[0] || { imagemBase64: null, documentBase64: null };
 };
 
-const getAllUsers = async (empresaId) => {
-  let query = `SELECT u.* FROM users u`;
-  let params = [];
+const getAllUsers = async (empresaId, { page = 1, limit = 20, role = null } = {}) => {
+  const pageInt   = parseInt(page, 10)   || 1;
+  const limitInt  = parseInt(limit, 10)  || 20;
+  const offsetInt = (pageInt - 1) * limitInt;
+
+  const conditions = [];
+  const params = [];
+
   if (empresaId && empresaId !== 1) {
-    query += ' WHERE u.role = ? AND u.empresa_id = ?';
+    // Empresa não-master: só vê seus próprios terceirizados
+    conditions.push('u.role = ?');
+    conditions.push('u.empresa_id = ?');
     params.push('terceirizado', empresaId);
+  } else if (role && role !== 'all') {
+    conditions.push('u.role = ?');
+    params.push(role);
+    // Terceirizados sempre filtrados pela empresa do usuário logado (inclusive master)
+    if (role === 'terceirizado' && empresaId) {
+      conditions.push('u.empresa_id = ?');
+      params.push(empresaId);
+    }
   }
-  const [users] = await connection.execute(query, params);
-  return users;
+
+  const where = conditions.length ? ' WHERE ' + conditions.join(' AND ') : '';
+
+  // LIMIT e OFFSET precisam ser passados como valores literais na query (mysql2 prepared stmt)
+  const dataQuery = `SELECT u.* FROM users u${where} ORDER BY u.first_name, u.last_name LIMIT ${limitInt} OFFSET ${offsetInt}`;
+  const [users] = await connection.execute(dataQuery, params);
+
+  const [[countRow]] = await connection.execute(
+    `SELECT COUNT(*) AS total FROM users u${where}`,
+    params
+  );
+
+  return { data: users, total: Number(countRow.total), page: pageInt, limit: limitInt };
 };
 
 const createUser = async (user) => {
@@ -37,12 +63,16 @@ const createUser = async (user) => {
     documentBase64,
     Telefone,
     role,
-    grupo_whats // <-- Adicionado aqui
+    grupo_whats, // <-- Adicionado aqui
+    empresa_id
   } = user;
 
   if (role === 'admin') {
     role = 'guest';
   }
+
+  // Empresa só se aplica a terceirizados (limpeza); demais papéis ficam sem empresa
+  const empresaIdFinal = role === 'terceirizado' && empresa_id ? empresa_id : null;
 
   // Hash password if provided
   const hashedPassword = password
@@ -60,8 +90,8 @@ const createUser = async (user) => {
   // Insert into users table (agora inclui grupo_whats)
   const insertUserQuery = `
     INSERT INTO users
-      (first_name, last_name, cpf, email, password, role, Telefone, grupo_whats)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      (first_name, last_name, cpf, email, password, role, Telefone, grupo_whats, empresa_id)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
   const values = [
     first_name,
@@ -71,7 +101,8 @@ const createUser = async (user) => {
     hashedPassword,
     role,
     Telefone || null,
-    grupo_whats || null // <-- Adicionado aqui
+    grupo_whats || null, // <-- Adicionado aqui
+    empresaIdFinal
   ];
 
   try {
@@ -136,12 +167,16 @@ const updateUser = async (id, userData) => {
     Telefone,
     imagemBase64,
     documentBase64,
-    grupo_whats // <-- Adicionado aqui
+    grupo_whats, // <-- Adicionado aqui
+    empresa_id
   } = merged;
 
   if (role === 'admin') {
     role = 'guest';
   }
+
+  // Empresa só se aplica a terceirizados (limpeza); demais papéis ficam sem empresa
+  const empresaIdFinal = role === 'terceirizado' && empresa_id ? empresa_id : null;
 
   // Hash password if updated
   let hashedPassword = null;
@@ -158,7 +193,8 @@ const updateUser = async (id, userData) => {
       email = ?,
       role = ?,
       Telefone = ?,
-      grupo_whats = ?
+      grupo_whats = ?,
+      empresa_id = ?
       ${hashedPassword ? ', password = ?' : ''}
     WHERE id = ?
   `;
@@ -170,6 +206,7 @@ const updateUser = async (id, userData) => {
     role,
     Telefone,
     grupo_whats || null, // <-- Adicionado aqui
+    empresaIdFinal,
     ...(hashedPassword ? [hashedPassword] : []),
     id
   ];

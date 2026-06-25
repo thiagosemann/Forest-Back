@@ -30,8 +30,57 @@ const getEmpresasByApartamento = async (apartamento_id) => {
   return rows;
 };
 
+// Lista os vínculos apartamento-empresa visíveis para a empresa logada.
+// Para cada apartamento vinculado à empresa atual, retorna TODAS as empresas
+// vinculadas a ele — assim apartamentos compartilhados entre empresas trazem
+// o conjunto completo de empresas que atuam neles.
+const getVinculosVisiveis = async (empresaId) => {
+  const query = `
+    SELECT ae.apartamento_id, ae.empresa_id, e.nome AS empresa_nome
+    FROM apartamento_empresa ae
+    INNER JOIN empresas e ON e.id = ae.empresa_id
+    WHERE ae.is_active = 1
+      AND EXISTS (
+        SELECT 1 FROM apartamento_empresa ae2
+        WHERE ae2.apartamento_id = ae.apartamento_id
+          AND ae2.empresa_id = ?
+          AND ae2.is_active = 1
+      )
+  `;
+  const [rows] = await connection.execute(query, [empresaId]);
+  return rows;
+};
+
+// Lista os terceirizados de todas as empresas que compartilham apartamentos
+// com a empresa logada (incluindo a própria empresa). Usado na escala de
+// faxina para permitir atribuir limpadores das empresas vinculadas ao apto.
+const getTerceirizadosVisiveis = async (empresaId) => {
+  const query = `
+    SELECT u.id, u.first_name, u.last_name, u.role, u.empresa_id, e.nome AS empresa_nome
+    FROM users u
+    INNER JOIN empresas e ON e.id = u.empresa_id
+    WHERE u.role = 'terceirizado'
+      AND u.empresa_id IN (
+        SELECT DISTINCT ae.empresa_id
+        FROM apartamento_empresa ae
+        WHERE ae.is_active = 1
+          AND EXISTS (
+            SELECT 1 FROM apartamento_empresa ae2
+            WHERE ae2.apartamento_id = ae.apartamento_id
+              AND ae2.empresa_id = ?
+              AND ae2.is_active = 1
+          )
+      )
+    ORDER BY e.nome, u.first_name
+  `;
+  const [rows] = await connection.execute(query, [empresaId]);
+  return rows;
+};
+
 module.exports = {
   vincularEmpresa,
   desvincularEmpresa,
-  getEmpresasByApartamento
+  getEmpresasByApartamento,
+  getVinculosVisiveis,
+  getTerceirizadosVisiveis
 };
