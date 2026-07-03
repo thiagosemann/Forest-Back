@@ -56,6 +56,7 @@ const limpezaUserFiles = require('./src/Scripts/limpezaUserFiles');
 const npsLimpezasController = require('./src/controllers/Airbnb/npsLimpezasController');
 const tercerizadoControleDiasController = require('./src/controllers/Airbnb/tercerizadoControleDiasController');
 const demandasController = require('./src/controllers/Airbnb/demandasController');
+const provisionamentoController = require('./src/controllers/Airbnb/provisionamentoController');
 const email = require('./src/email');
 const scrapperController = require('./src/controllers/Airbnb/scrapperController');
 
@@ -385,6 +386,14 @@ router.get('/demandas/:id', verifyToken, empresaMiddleware, demandasController.g
 router.post('/demandas', verifyToken, empresaMiddleware, demandasController.createDemanda);
 router.put('/demandas/:id', verifyToken, empresaMiddleware, demandasController.updateDemanda);
 router.delete('/demandas/:id', verifyToken, empresaMiddleware, demandasController.deleteDemanda);
+
+// Rotas para Provisionamentos (financeiro)
+router.get('/provisionamentos/resumo', verifyToken, empresaMiddleware, provisionamentoController.getResumo);
+router.get('/provisionamentos', verifyToken, empresaMiddleware, provisionamentoController.getAll);
+router.get('/provisionamentos/:id', verifyToken, empresaMiddleware, provisionamentoController.getById);
+router.post('/provisionamentos', verifyToken, empresaMiddleware, provisionamentoController.create);
+router.put('/provisionamentos/:id', verifyToken, empresaMiddleware, provisionamentoController.update);
+router.delete('/provisionamentos/:id', verifyToken, empresaMiddleware, provisionamentoController.remove);
 
 // Filtros
 router.get('/demandas/responsavel/:user_id', verifyToken, empresaMiddleware, demandasController.getDemandasByResponsavel);

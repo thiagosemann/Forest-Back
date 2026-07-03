@@ -379,4 +379,10 @@ module.exports = {
   validarIcalRoute
 };
 
-startAutoSync();
+// Sincronização automática de reservas roda somente em produção.
+// Em desenvolvimento (NODE_ENV !== 'production') o loop fica desligado.
+if (process.env.NODE_ENV === 'production') {
+  startAutoSync();
+} else {
+  console.log('[Airbnb Sync] Desativado (NODE_ENV != production).');
+}

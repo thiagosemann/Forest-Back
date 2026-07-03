@@ -47,9 +47,14 @@ async function executarLimpeza() {
   console.log(`[limpezaUserFiles] ${candidatos.length} registros limpos, ~${totalMB} MB liberados (corte: ${dataCorteStr})`);
 }
 
-console.log('[limpezaUserFiles] Agendado para todo dia às 03:00 (America/Sao_Paulo)');
+// Limpeza agendada roda somente em produção.
+if (process.env.NODE_ENV === 'production') {
+  console.log('[limpezaUserFiles] Agendado para todo dia às 03:00 (America/Sao_Paulo)');
 
-cron.schedule('0 3 * * *', () => {
-  console.log('[limpezaUserFiles] Iniciando limpeza...');
-  executarLimpeza().catch(err => console.error('[limpezaUserFiles] Erro:', err.message));
-}, { timezone: 'America/Sao_Paulo' });
+  cron.schedule('0 3 * * *', () => {
+    console.log('[limpezaUserFiles] Iniciando limpeza...');
+    executarLimpeza().catch(err => console.error('[limpezaUserFiles] Erro:', err.message));
+  }, { timezone: 'America/Sao_Paulo' });
+} else {
+  console.log('[limpezaUserFiles] Desativado (NODE_ENV != production).');
+}
