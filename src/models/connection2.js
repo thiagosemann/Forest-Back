@@ -10,8 +10,11 @@ const connection = mysql.createPool({
   user: process.env.MYSQL_USER2,
   password: process.env.MYSQL_PASSWORD2,
   database: process.env.MYSQL_DB2,
-  ssl: { rejectUnauthorized: true }
-
+  ssl: { rejectUnauthorized: true },
+  waitForConnections: true,
+  connectionLimit: 10,
+  enableKeepAlive: true,          // envia keep-alive TCP para manter a conexão viva
+  keepAliveInitialDelay: 10000,   // evita que o servidor derrube conexões ociosas
 });
 
 module.exports = connection;

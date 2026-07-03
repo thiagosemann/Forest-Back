@@ -314,7 +314,13 @@ async function syncAirbnbReservations() {
 
 async function startAutoSync() {
   while (true) {
-    await syncAirbnbReservations();
+    try {
+      await syncAirbnbReservations();
+    } catch (e) {
+      // Um erro transitório (ex.: ECONNRESET numa conexão ociosa do pool)
+      // não pode derrubar o servidor: apenas loga e tenta no próximo ciclo.
+      console.error('[Airbnb Sync] Ciclo falhou, tentando no próximo:', e.message);
+    }
     console.log(` Aguardando ${DELAY_BETWEEN_CYCLES_MS / 60000} minutos para próximo ciclo...`);
     await sleep(DELAY_BETWEEN_CYCLES_MS);
   }
