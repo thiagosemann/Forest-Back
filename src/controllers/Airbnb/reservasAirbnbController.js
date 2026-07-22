@@ -5,7 +5,8 @@ const apartamentoModel = require('../../models/Airbnb/apartamentosAirbnbModel');
 const getAllReservas = async (request, response) => {
   try {
     const { empresaId } = request;
-    const reservas = await reservaModel.getAllReservas(empresaId);
+    const incluirInativos = request.query?.incluirInativos === 'true' || request.query?.incluirInativos === '1';
+    const reservas = await reservaModel.getAllReservas(empresaId, incluirInativos);
     return response.status(200).json(reservas);
   } catch (error) {
     console.error('Erro ao obter reservas:', error);

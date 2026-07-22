@@ -2,15 +2,20 @@ const connection = require('../connection2');
 const moment = require('moment-timezone');
 
 // Função para buscar todas as reservas com o nome do apartamento
-const getAllReservas = async (empresaId) => {
+// incluirInativos: quando true, também retorna reservas de apartamentos com is_active = 0
+const getAllReservas = async (empresaId, incluirInativos = false) => {
   let query = `
-    SELECT r.*, 
+    SELECT r.*,
            COALESCE(a.nome, 'Apartamento não encontrado') AS apartamento_nome,
+           a.is_active AS apartamento_ativo,
            EXISTS (SELECT 1 FROM checkin c WHERE c.reserva_id = r.id) AS documentosEnviados
     FROM reservas r
     LEFT JOIN apartamentos a ON r.apartamento_id = a.id
-    WHERE a.is_active = 1
+    WHERE 1 = 1
   `;
+  if (!incluirInativos) {
+    query += ' AND a.is_active = 1';
+  }
   let params = [];
   if (empresaId) {
     query += ' AND EXISTS (SELECT 1 FROM apartamento_empresa ae WHERE ae.apartamento_id = a.id AND ae.empresa_id = ? AND ae.is_active = 1)';
