@@ -43,6 +43,66 @@ const getReembolsoById = async (id, empresaId) => {
   return ticket;
 };
 
+// Monta o WHERE do resumo: empresa (via apartamento_empresa), status e período (created_at)
+const buildResumoWhere = (empresaId, filtros) => {
+  const clauses = ['EXISTS (SELECT 1 FROM apartamento_empresa ae WHERE ae.apartamento_id = a.id AND ae.empresa_id = ?)'];
+  const params = [empresaId];
+
+  if (filtros.status && filtros.status.length) {
+    clauses.push(`tr.status IN (${filtros.status.map(() => '?').join(',')})`);
+    params.push(...filtros.status);
+  }
+  if (filtros.periodo === '15d') {
+    clauses.push('tr.created_at >= DATE_SUB(CURDATE(), INTERVAL 15 DAY)');
+  } else if (filtros.periodo === '30d') {
+    clauses.push('tr.created_at >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)');
+  } else if (filtros.periodo === 'mes' && filtros.mes) {
+    clauses.push("DATE_FORMAT(tr.created_at, '%Y-%m') = ?");
+    params.push(filtros.mes);
+  }
+  return { where: `WHERE ${clauses.join(' AND ')}`, params };
+};
+
+// Resumo agregado de reembolsos por apartamento ou por proprietário, para o fechamento mensal
+const getResumo = async (empresaId, filtros = {}) => {
+  const { where, params } = buildResumoWhere(empresaId, filtros);
+  const valorExpr = 'COALESCE(SUM(COALESCE(tr.valor_material,0) + COALESCE(tr.valor_mao_obra,0)), 0)';
+
+  const query = filtros.agrupamento === 'proprietario'
+    ? `SELECT u.id AS proprietario_id,
+              NULLIF(TRIM(CONCAT(COALESCE(u.first_name,''), ' ', COALESCE(u.last_name,''))), '') AS proprietario_nome,
+              a.id AS apartamento_id, a.nome AS apartamento_nome,
+              tr.status, COUNT(*) AS quantidade, ${valorExpr} AS total
+       FROM ticket_reembolso tr
+       LEFT JOIN apartamentos a ON tr.apartamento_id = a.id
+       LEFT JOIN apartamento_proprietario ap ON ap.apartamento_id = a.id
+       LEFT JOIN users u ON u.id = ap.user_id
+       ${where}
+       GROUP BY u.id, proprietario_nome, a.id, a.nome, tr.status
+       ORDER BY proprietario_nome IS NULL, proprietario_nome, a.nome`
+    : `SELECT a.id AS apartamento_id, a.nome AS apartamento_nome,
+              tr.status, COUNT(*) AS quantidade, ${valorExpr} AS total
+       FROM ticket_reembolso tr
+       LEFT JOIN apartamentos a ON tr.apartamento_id = a.id
+       ${where}
+       GROUP BY a.id, a.nome, tr.status
+       ORDER BY a.nome`;
+
+  const [rows] = await connection.execute(query, params);
+  return rows;
+};
+
+// Primeiro mês (YYYY-MM) com ticket de reembolso registrado para a empresa
+const getPeriodoDisponivel = async (empresaId) => {
+  const query = `SELECT MIN(tr.created_at) AS primeira_data
+     FROM ticket_reembolso tr
+     LEFT JOIN apartamentos a ON tr.apartamento_id = a.id
+     WHERE EXISTS (SELECT 1 FROM apartamento_empresa ae WHERE ae.apartamento_id = a.id AND ae.empresa_id = ?)`;
+  const [rows] = await connection.execute(query, [empresaId]);
+  const primeiraData = rows[0]?.primeira_data;
+  return { primeiroMes: primeiraData ? new Date(primeiraData).toISOString().slice(0, 7) : null };
+};
+
 // Create a new reimbursement ticket and optional files
 const createReembolso = async (data, arquivos = []) => {
   const {
@@ -246,6 +306,8 @@ const deleteArquivoReembolso = async (id) => {
 module.exports = {
   getReembolsoFiles,
   getAllReembolsos,
+  getResumo,
+  getPeriodoDisponivel,
   getReembolsoById,
   createReembolso,
   updateReembolso,

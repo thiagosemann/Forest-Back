@@ -13,6 +13,40 @@ const getAllReembolsos = async (_req, res) => {
   }
 };
 
+// Extrai filtros de query string para o resumo/fechamento
+const extractResumoFiltros = (req) => ({
+  periodo: req.query.periodo || 'mes', // '15d' | '30d' | 'mes'
+  mes: req.query.mes || null, // 'YYYY-MM'
+  status: req.query.status ? req.query.status.split(',').map(s => s.trim()) : ['PENDENTE', 'PAGO'],
+  agrupamento: req.query.agrupamento === 'proprietario' ? 'proprietario' : 'apartamento',
+});
+
+// Resumo agregado de reembolsos (fechamento mensal), por apartamento ou por proprietário
+const getResumo = async (req, res) => {
+  try {
+    const filtros = extractResumoFiltros(req);
+    if (filtros.periodo === 'mes' && !filtros.mes) {
+      return res.status(400).json({ error: 'Parâmetro mes é obrigatório quando periodo=mes' });
+    }
+    const resumo = await ticketModel.getResumo(req.empresaId, filtros);
+    return res.status(200).json(resumo);
+  } catch (error) {
+    console.error('Erro ao obter resumo de reembolsos:', error);
+    return res.status(500).json({ error: 'Erro ao obter resumo de reembolsos' });
+  }
+};
+
+// Primeiro mês com ticket de reembolso registrado, para popular o filtro de mês
+const getPeriodoDisponivel = async (req, res) => {
+  try {
+    const periodo = await ticketModel.getPeriodoDisponivel(req.empresaId);
+    return res.status(200).json(periodo);
+  } catch (error) {
+    console.error('Erro ao obter período disponível de reembolsos:', error);
+    return res.status(500).json({ error: 'Erro ao obter período disponível de reembolsos' });
+  }
+};
+
 // Buscar um ticket por ID
 const getReembolsoById = async (req, res) => {
   try {
@@ -174,6 +208,8 @@ const deleteArquivoReembolso = async (req, res) => {
 
 module.exports = {
   getAllReembolsos,
+  getResumo,
+  getPeriodoDisponivel,
   getReembolsoById,
   createReembolso,
   updateReembolso,

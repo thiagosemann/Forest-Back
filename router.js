@@ -369,6 +369,8 @@ router.get('/pagamentos/apartamento/:apartamento_id', verifyToken, empresaMiddle
 
 // Rotas para Ticket de Reembolso
 router.get('/ticket-reembolso', verifyToken, empresaMiddleware, ticketReembolsoController.getAllReembolsos);
+router.get('/ticket-reembolso/resumo', verifyToken, empresaMiddleware, ticketReembolsoController.getResumo);
+router.get('/ticket-reembolso/periodo-disponivel', verifyToken, empresaMiddleware, ticketReembolsoController.getPeriodoDisponivel);
 router.get('/ticket-reembolso/:id', verifyToken, empresaMiddleware, ticketReembolsoController.getReembolsoById);
 router.post('/ticket-reembolso', verifyToken, empresaMiddleware, ticketReembolsoController.createReembolso);
 router.put('/ticket-reembolso/:id', verifyToken, empresaMiddleware, ticketReembolsoController.updateReembolso);
