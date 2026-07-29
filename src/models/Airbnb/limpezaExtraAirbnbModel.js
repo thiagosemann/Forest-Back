@@ -123,7 +123,7 @@ const getLimpezasExtrasPorPeriodo = async (startDate, endDate, empresaId) => {
 
     FROM limpeza_extra le
     LEFT JOIN apartamentos a ON le.apartamento_id = a.id
-    WHERE le.end_data BETWEEN ? AND ? AND a.is_active = 1`;
+    WHERE DATE(le.end_data) BETWEEN ? AND ? AND a.is_active = 1`;
   let params = [startDate, endDate];
   if (empresaId) {
     query += ' AND EXISTS (SELECT 1 FROM apartamento_empresa ae WHERE ae.apartamento_id = a.id AND ae.empresa_id = ? AND ae.is_active = 1)';

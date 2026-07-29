@@ -500,7 +500,7 @@ const getFaxinasPorPeriodo = async (inicio_end_data, fim_end_date, empresaId) =>
     FROM reservas r
     LEFT JOIN apartamentos a ON r.apartamento_id = a.id
     WHERE r.description = 'Reserved'
-      AND r.end_data BETWEEN ? AND ?
+      AND DATE(r.end_data) BETWEEN ? AND ?
       AND a.is_active = 1`;
   let params = [inicio_end_data, fim_end_date];
   if (empresaId) {
