@@ -379,7 +379,34 @@ async function getReservasPorPeriodo(startDate, endDate, empresaId) {
         )
         FROM pagamento_por_reserva_extra p
         WHERE p.reserva_id = r.id
-      ) AS pagamentos
+      ) AS pagamentos,
+      (
+        SELECT o.texto
+        FROM reserva_observacoes o
+        WHERE o.reserva_id = r.id AND o.deleted_at IS NULL
+        ORDER BY o.created_at DESC, o.id DESC
+        LIMIT 1
+      ) AS ultima_observacao,
+      (
+        SELECT o.created_at
+        FROM reserva_observacoes o
+        WHERE o.reserva_id = r.id AND o.deleted_at IS NULL
+        ORDER BY o.created_at DESC, o.id DESC
+        LIMIT 1
+      ) AS ultima_observacao_data,
+      (
+        SELECT COALESCE(NULLIF(TRIM(CONCAT(COALESCE(uo.first_name, ''), ' ', COALESCE(uo.last_name, ''))), ''), o.user_nome, 'Usuário removido')
+        FROM reserva_observacoes o
+        LEFT JOIN users uo ON uo.id = o.user_id
+        WHERE o.reserva_id = r.id AND o.deleted_at IS NULL
+        ORDER BY o.created_at DESC, o.id DESC
+        LIMIT 1
+      ) AS ultima_observacao_user,
+      (
+        SELECT COUNT(*)
+        FROM reserva_observacoes o
+        WHERE o.reserva_id = r.id AND o.deleted_at IS NULL
+      ) AS total_observacoes
     FROM reservas r
     LEFT JOIN apartamentos a ON a.id = r.apartamento_id
     WHERE DATE(r.start_date) BETWEEN ? AND ?`;

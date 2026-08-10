@@ -49,6 +49,7 @@ const nodemcuPrediosController = require('./src/controllers/Airbnb/nodemcuPredio
 const aberturaNodeMcuController = require('./src/controllers/Airbnb/aberturaNodeMcuController');
 const mensagemCadastroViaLinkController = require('./src/controllers/Airbnb/mensagemCadastroViaLinkController');
 const credenciaisReservaController = require('./src/controllers/Airbnb/credenciaisReservaController');
+const observacoesReservaController = require('./src/controllers/Airbnb/observacoesReservaController');
 const scripts = require('./src/Scripts/sincronizacaoReservas');
 const geradorIcal = require('./src/Scripts/geradorIcal');
 const limpezaUserFiles = require('./src/Scripts/limpezaUserFiles');
@@ -267,6 +268,14 @@ router.get('/credenciais-reserva/reserva/:reservaId', verifyToken, empresaMiddle
 router.get('/credenciais-reserva/cod/:cod_reserva', verifyToken, empresaMiddleware, credenciaisReservaController.getCredenciaisByCodReserva);
 router.delete('/credenciais-reserva/:id', verifyToken, empresaMiddleware, credenciaisReservaController.deleteCredencial);
 router.delete('/credenciais-reserva/reserva/:reservaId', verifyToken, empresaMiddleware, credenciaisReservaController.deleteCredenciaisByReserva);
+
+// Timeline de observações da reserva
+router.post('/observacoes-reserva', verifyToken, empresaMiddleware, observacoesReservaController.createObservacao);
+router.get('/observacoes-reserva/reserva/:reservaId', verifyToken, empresaMiddleware, observacoesReservaController.getObservacoesByReservaId);
+router.get('/observacoes-reserva/reserva/:reservaId/ultima', verifyToken, empresaMiddleware, observacoesReservaController.getUltimaObservacao);
+router.get('/observacoes-reserva/cod/:cod_reserva', verifyToken, empresaMiddleware, observacoesReservaController.getObservacoesByCodReserva);
+router.put('/observacoes-reserva/:id', verifyToken, empresaMiddleware, observacoesReservaController.updateObservacao);
+router.delete('/observacoes-reserva/:id', verifyToken, empresaMiddleware, observacoesReservaController.deleteObservacao);
 
 // ReservasAirbnb routes
 router.get('/reservas-airbnb', verifyToken, empresaMiddleware, reservasAirbnbController.getAllReservas);
