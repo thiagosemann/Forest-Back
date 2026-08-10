@@ -18,13 +18,34 @@ const desvincularEmpresa = async (apartamento_id, empresa_id) => {
   return result.affectedRows > 0;
 };
 
+// Retorna { id, empresa_id } do apartamento — empresa_id é a empresa que o
+// cadastrou, e é ela quem controla o acesso das demais. Null quando não existe.
+// (empresa_id pode vir nulo em cadastros antigos)
+const getApartamentoDono = async (apartamento_id) => {
+  const query = `SELECT id, empresa_id FROM apartamentos WHERE id = ?`;
+  const [rows] = await connection.execute(query, [apartamento_id]);
+  return rows.length > 0 ? rows[0] : null;
+};
+
+// Indica se a empresa possui vínculo ativo com o apartamento
+const temVinculoAtivo = async (apartamento_id, empresa_id) => {
+  const query = `
+    SELECT 1 FROM apartamento_empresa
+    WHERE apartamento_id = ? AND empresa_id = ? AND is_active = 1
+    LIMIT 1
+  `;
+  const [rows] = await connection.execute(query, [apartamento_id, empresa_id]);
+  return rows.length > 0;
+};
+
 // Lista as empresas vinculadas a um apartamento
 const getEmpresasByApartamento = async (apartamento_id) => {
   const query = `
-    SELECT e.*
+    SELECT e.id, e.nome
     FROM empresas e
     INNER JOIN apartamento_empresa ae ON e.id = ae.empresa_id
     WHERE ae.apartamento_id = ? AND ae.is_active = 1
+    ORDER BY e.nome
   `;
   const [rows] = await connection.execute(query, [apartamento_id]);
   return rows;
@@ -80,6 +101,8 @@ const getTerceirizadosVisiveis = async (empresaId) => {
 module.exports = {
   vincularEmpresa,
   desvincularEmpresa,
+  getApartamentoDono,
+  temVinculoAtivo,
   getEmpresasByApartamento,
   getVinculosVisiveis,
   getTerceirizadosVisiveis
