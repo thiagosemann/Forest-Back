@@ -114,8 +114,29 @@ const deleteObservacao = async (id) => {
   return result.affectedRows > 0;
 };
 
+// Backfill preguiçoso: reservas antigas guardavam a nota no campo único
+// `reservas.Observacoes`. Na primeira leitura da timeline, esse texto vira o
+// primeiro registro do histórico. O NOT EXISTS no próprio INSERT garante que
+// dois usuários abrindo o modal ao mesmo tempo não criem registros duplicados.
+const migrarObservacaoLegado = async (reserva_id) => {
+  const query = `
+    INSERT INTO reserva_observacoes (reserva_id, cod_reserva, user_id, user_nome, texto)
+    SELECT r.id, r.cod_reserva, NULL, 'Migração', TRIM(r.Observacoes)
+    FROM reservas r
+    WHERE r.id = ?
+      AND r.Observacoes IS NOT NULL
+      AND TRIM(r.Observacoes) <> ''
+      AND NOT EXISTS (
+        SELECT 1 FROM reserva_observacoes o WHERE o.reserva_id = r.id
+      )
+  `;
+  const [result] = await connection.execute(query, [reserva_id]);
+  return result.affectedRows > 0;
+};
+
 module.exports = {
   createObservacao,
+  migrarObservacaoLegado,
   getById,
   getRawById,
   getByReservaId,

@@ -27,6 +27,9 @@ const createObservacao = async (request, response) => {
 const getObservacoesByReservaId = async (request, response) => {
   try {
     const { reservaId } = request.params;
+    // Reservas anteriores à timeline guardavam a nota em `reservas.Observacoes`.
+    // Na primeira abertura do modal esse texto é convertido no primeiro registro.
+    await observacoesModel.migrarObservacaoLegado(reservaId);
     const rows = await observacoesModel.getByReservaId(reservaId);
     return response.status(200).json(rows);
   } catch (error) {
@@ -70,8 +73,9 @@ const updateObservacao = async (request, response) => {
     if (!atual) {
       return response.status(404).json({ message: 'Observação não encontrada' });
     }
-    // Só o autor pode alterar o próprio registro — a timeline é histórico
-    if (atual.user_id !== request.userId) {
+    // Só o autor pode alterar o próprio registro — a timeline é histórico.
+    // Exceção: registros migrados do campo antigo não têm autor (user_id NULL).
+    if (atual.user_id !== null && atual.user_id !== request.userId) {
       return response.status(403).json({ error: 'Apenas o autor pode editar esta observação' });
     }
 
@@ -91,7 +95,7 @@ const deleteObservacao = async (request, response) => {
     if (!atual) {
       return response.status(404).json({ message: 'Observação não encontrada' });
     }
-    if (atual.user_id !== request.userId) {
+    if (atual.user_id !== null && atual.user_id !== request.userId) {
       return response.status(403).json({ error: 'Apenas o autor pode excluir esta observação' });
     }
 
