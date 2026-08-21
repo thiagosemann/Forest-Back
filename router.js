@@ -50,6 +50,7 @@ const aberturaNodeMcuController = require('./src/controllers/Airbnb/aberturaNode
 const mensagemCadastroViaLinkController = require('./src/controllers/Airbnb/mensagemCadastroViaLinkController');
 const credenciaisReservaController = require('./src/controllers/Airbnb/credenciaisReservaController');
 const observacoesReservaController = require('./src/controllers/Airbnb/observacoesReservaController');
+const observacoesProprietarioController = require('./src/controllers/Airbnb/observacoesProprietarioController');
 const scripts = require('./src/Scripts/sincronizacaoReservas');
 const geradorIcal = require('./src/Scripts/geradorIcal');
 const limpezaUserFiles = require('./src/Scripts/limpezaUserFiles');
@@ -276,6 +277,15 @@ router.get('/observacoes-reserva/reserva/:reservaId/ultima', verifyToken, empres
 router.get('/observacoes-reserva/cod/:cod_reserva', verifyToken, empresaMiddleware, observacoesReservaController.getObservacoesByCodReserva);
 router.put('/observacoes-reserva/:id', verifyToken, empresaMiddleware, observacoesReservaController.updateObservacao);
 router.delete('/observacoes-reserva/:id', verifyToken, empresaMiddleware, observacoesReservaController.deleteObservacao);
+
+// Timeline de observações do proprietário (compartilhada com a tela de apartamentos)
+router.post('/observacoes-proprietario', verifyToken, empresaMiddleware, observacoesProprietarioController.createObservacao);
+router.get('/observacoes-proprietario/proprietario/:proprietarioId', verifyToken, empresaMiddleware, observacoesProprietarioController.getObservacoesByProprietarioId);
+router.get('/observacoes-proprietario/proprietario/:proprietarioId/ultima', verifyToken, empresaMiddleware, observacoesProprietarioController.getUltimaObservacao);
+router.get('/observacoes-proprietario/apartamento/:apartamentoId', verifyToken, empresaMiddleware, observacoesProprietarioController.getObservacoesByApartamentoId);
+router.get('/observacoes-proprietario/apartamento/:apartamentoId/proprietarios', verifyToken, empresaMiddleware, observacoesProprietarioController.getProprietariosDoApartamento);
+router.put('/observacoes-proprietario/:id', verifyToken, empresaMiddleware, observacoesProprietarioController.updateObservacao);
+router.delete('/observacoes-proprietario/:id', verifyToken, empresaMiddleware, observacoesProprietarioController.deleteObservacao);
 
 // ReservasAirbnb routes
 router.get('/reservas-airbnb', verifyToken, empresaMiddleware, reservasAirbnbController.getAllReservas);
