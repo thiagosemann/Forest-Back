@@ -6,6 +6,7 @@ const ical = require('ical.js');
 const moment = require('moment-timezone');
 const whatsControle = require('../WhatsApp/whats_Controle');
 const connection = require('../models/connection2');
+const alocacaoModel = require('../models/Airbnb/limpezaAlocacaoModel');
 
 // 1) Recupera e filtra apartamentos com link de calendário
 async function getApartamentosComLink() {
@@ -163,8 +164,22 @@ async function processarEventos(vevents, apartamento, hoje, dataLimite, parserFn
     );
     if (existing.length === 0) {
       const faxina_userId = await determinarFaxineiro(apartamento, end);
-      await reservasModel.createReserva({ apartamento_id: apartamento.id, description: summary, start_date: start, end_data: end, Observacoes: '', cod_reserva, link_reserva, limpeza_realizada: false, credencial_made: false, informed: false, check_in: '15:00', check_out: '11:00', faxina_userId, origem });
+      const { insertId } = await reservasModel.createReserva({ apartamento_id: apartamento.id, description: summary, start_date: start, end_data: end, Observacoes: '', cod_reserva, link_reserva, limpeza_realizada: false, credencial_made: false, informed: false, check_in: '15:00', check_out: '11:00', faxina_userId, origem });
       criadas++;
+      // Primeira linha da planilha de alocações: a escala mostra essa limpeza
+      // como alocada pelo Sistema, não por um usuário.
+      if (faxina_userId) {
+        await alocacaoModel.registrarAlocacao({
+          tipo: alocacaoModel.TIPO_RESERVA,
+          referencia_id: insertId,
+          apartamento_id: apartamento.id,
+          faxina_userId_novo: faxina_userId,
+          user_id: null,
+          user_nome: 'Sistema',
+          origem: 'SISTEMA',
+          motivo: alocacaoModel.MOTIVO_SISTEMA
+        });
+      }
       if (start === hoje) {
         const limpezasHoje = await reservasModel.getFaxinasPorPeriodo(obj.start, obj.start);
         if (limpezasHoje.length > 0) {

@@ -2,6 +2,8 @@ const limpezaExtraModel = require('../../models/Airbnb/limpezaExtraAirbnbModel')
 const usersModel = require('../../models/Airbnb/usersAirbnbModel');
 const reservaModel = require('../../models/Airbnb/reservasAirbnbModel');
 const whatsControle = require('../../WhatsApp/whats_Controle');
+const alocacaoModel = require('../../models/Airbnb/limpezaAlocacaoModel');
+const alocacaoController = require('./limpezaAlocacaoController');
 
 const getAllLimpezasExtras = async (request, response) => {
   try {
@@ -34,6 +36,20 @@ const getLimpezaExtraById = async (request, response) => {
 const createLimpezaExtra = async (request, response) => {
   try {
     const created = await limpezaExtraModel.createLimpezaExtra(request.body);
+
+    // Limpeza já nasce com responsável: primeira linha da planilha de alocações
+    if (request.body.faxina_userId) {
+      await alocacaoModel.registrarAlocacao({
+        tipo: alocacaoModel.TIPO_LIMPEZA_EXTRA,
+        referencia_id: created.insertId,
+        apartamento_id: request.body.apartamento_id,
+        faxina_userId_novo: request.body.faxina_userId,
+        user_id: request.userId,
+        origem: 'MANUAL',
+        motivo: (request.body.motivo_alteracao && String(request.body.motivo_alteracao).trim())
+          || 'Responsável definido no cadastro da limpeza'
+      });
+    }
 
     // Enviar mensagem se faxina_userId estiver presente E end_data for hoje
     if (request.body.faxina_userId != null) {
@@ -71,9 +87,22 @@ const createLimpezaExtra = async (request, response) => {
 const updateLimpezaExtra = async (request, response) => {
   try {
     const { id } = request.params;
-    const limpeza = { ...request.body, id };
+    const { motivo_alteracao, ...corpo } = request.body;
+    const limpeza = { ...corpo, id };
+
+    // Mesma regra da escala: limpeza de hoje ou anterior que já tem responsável
+    // só troca com justificativa, e toda troca é registrada.
+    const { erro, registrar } = await alocacaoController.prepararRegistroDeAlocacao({
+      tipo: alocacaoController.TIPO_LIMPEZA_EXTRA,
+      referencia_id: id,
+      novoUserId: limpeza.faxina_userId,
+      motivo: motivo_alteracao,
+      userId: request.userId
+    });
+    if (erro) return response.status(erro.status).json({ error: erro.error });
 
     const wasUpdated = await limpezaExtraModel.updateLimpezaExtra(limpeza);
+    if (wasUpdated && registrar) await registrar();
 
     // Enviar mensagem se faxina_userId estiver presente E end_data for hoje
     if (request.body.faxina_userId != null) {

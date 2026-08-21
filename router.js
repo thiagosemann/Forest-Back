@@ -51,6 +51,7 @@ const mensagemCadastroViaLinkController = require('./src/controllers/Airbnb/mens
 const credenciaisReservaController = require('./src/controllers/Airbnb/credenciaisReservaController');
 const observacoesReservaController = require('./src/controllers/Airbnb/observacoesReservaController');
 const observacoesProprietarioController = require('./src/controllers/Airbnb/observacoesProprietarioController');
+const limpezaAlocacaoController = require('./src/controllers/Airbnb/limpezaAlocacaoController');
 const scripts = require('./src/Scripts/sincronizacaoReservas');
 const geradorIcal = require('./src/Scripts/geradorIcal');
 const limpezaUserFiles = require('./src/Scripts/limpezaUserFiles');
@@ -286,6 +287,12 @@ router.get('/observacoes-proprietario/apartamento/:apartamentoId', verifyToken, 
 router.get('/observacoes-proprietario/apartamento/:apartamentoId/proprietarios', verifyToken, empresaMiddleware, observacoesProprietarioController.getProprietariosDoApartamento);
 router.put('/observacoes-proprietario/:id', verifyToken, empresaMiddleware, observacoesProprietarioController.updateObservacao);
 router.delete('/observacoes-proprietario/:id', verifyToken, empresaMiddleware, observacoesProprietarioController.deleteObservacao);
+
+// Planilha de alocações de limpeza: quem alocou/trocou a faxineira, quando e por quê.
+// `tipo` é RESERVA ou LIMPEZA_EXTRA; `referenciaId` é o id na tabela correspondente.
+router.get('/limpeza-alocacoes/ultimas', verifyToken, empresaMiddleware, limpezaAlocacaoController.getUltimasPorPeriodo);
+router.get('/limpeza-alocacoes/:tipo/:referenciaId', verifyToken, empresaMiddleware, limpezaAlocacaoController.getTimeline);
+router.get('/limpeza-alocacoes/:tipo/:referenciaId/ultima', verifyToken, empresaMiddleware, limpezaAlocacaoController.getUltima);
 
 // ReservasAirbnb routes
 router.get('/reservas-airbnb', verifyToken, empresaMiddleware, reservasAirbnbController.getAllReservas);

@@ -2,6 +2,7 @@ const reservaModel = require('../../models/Airbnb/reservasAirbnbModel');
 const usersModel = require('../../models/Airbnb/usersAirbnbModel');
 const whatsControle = require('../../WhatsApp/whats_Controle');
 const apartamentoModel = require('../../models/Airbnb/apartamentosAirbnbModel');
+const alocacaoController = require('./limpezaAlocacaoController');
 const getAllReservas = async (request, response) => {
   try {
     const { empresaId } = request;
@@ -66,8 +67,22 @@ const getReservasByApartamentoId = async (request, response) => {
 const updateReserva = async (request, response) => {
   try {
     const { id } = request.params;
-    const reserva = { ...request.body, id };
+    const { motivo_alteracao, ...corpo } = request.body;
+    const reserva = { ...corpo, id };
+
+    // Troca de faxineira em limpeza de hoje ou anterior exige justificativa;
+    // toda troca vira uma linha na planilha de alocações.
+    const { erro, registrar } = await alocacaoController.prepararRegistroDeAlocacao({
+      tipo: alocacaoController.TIPO_RESERVA,
+      referencia_id: id,
+      novoUserId: reserva.faxina_userId,
+      motivo: motivo_alteracao,
+      userId: request.userId
+    });
+    if (erro) return response.status(erro.status).json({ error: erro.error });
+
     const wasUpdated = await reservaModel.updateReserva(reserva);
+    if (wasUpdated && registrar) await registrar();
 
     // Só envia mensagem se faxina_userId existir E end_data for hoje
     if (reserva.faxina_userId != null) {
