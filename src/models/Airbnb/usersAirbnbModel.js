@@ -5,6 +5,7 @@ require('dotenv').config();
 
 const SECRET_KEY = process.env.SECRET_KEY;
 const saltRounds = 10;
+const TOKEN_TTL = process.env.TOKEN_TTL || '7d';
 
 // Helper to fetch files for a user
 const getUserFiles = async (userId) => {
@@ -124,15 +125,28 @@ const createUser = async (user) => {
 };
 
 const loginUser = async (email, password) => {
-  const query = 'SELECT * FROM users WHERE email = ?';
+  const query = `
+    SELECT u.*, e.status AS empresa_status
+    FROM users u
+    LEFT JOIN empresas e ON e.id = u.empresa_id
+    WHERE u.email = ?
+  `;
   const [users] = await connection.execute(query, [email]);
   if (!users.length) return;
 
   const user = users[0];
+  if (!user.password) return;
+
   const match = await bcrypt.compare(password, user.password);
   if (!match) return;
 
-  const token = jwt.sign({ id: user.id, email: user.email }, SECRET_KEY);
+  // Empresa suspensa: credencial continua valida, mas o acesso esta bloqueado.
+  if (user.empresa_id && user.empresa_status !== 'ativa') {
+    return { blocked: true };
+  }
+
+  delete user.empresa_status;
+  const token = jwt.sign({ id: user.id, email: user.email }, SECRET_KEY, { expiresIn: TOKEN_TTL });
   return { user, token };
 };
 
@@ -337,10 +351,18 @@ const getUserByTelefone = async (telefone, empresaId) => {
   return users[0] || null;
 };
 
-const getEmpresaIdByUserId = async (userId) => {
-  const query = 'SELECT empresa_id FROM users WHERE id = ?';
+// Contexto de autorizacao do usuario: vinculo de empresa + situacao da empresa.
+// Usado pelo authMiddleware a cada request, para que a suspensao de uma empresa
+// tenha efeito imediato, inclusive em tokens ja emitidos.
+const getAuthContextByUserId = async (userId) => {
+  const query = `
+    SELECT u.id, u.email, u.role, u.empresa_id, e.status AS empresa_status
+    FROM users u
+    LEFT JOIN empresas e ON e.id = u.empresa_id
+    WHERE u.id = ?
+  `;
   const [rows] = await connection.execute(query, [userId]);
-  return rows[0]?.empresa_id || null;
+  return rows[0] || null;
 };
 
 // Other methods (batch inserts, get by CPF/role) left unchanged
@@ -355,5 +377,5 @@ module.exports = {
   getUsersByRole,
   getUserFiles,
   getUserByTelefone,
-  getEmpresaIdByUserId
+  getAuthContextByUserId
 };

@@ -29,6 +29,13 @@ const loginUser = async (request, response) => {
     const { email, password } = request.body;
 
     const result = await usersModel.loginUser(email, password);
+    if (result?.blocked) {
+      // Credencial correta, mas a empresa do usuário está suspensa.
+      return response.status(403).json({
+        code: 'EMPRESA_INATIVA',
+        message: 'Acesso suspenso. Entre em contato com o suporte.'
+      });
+    }
     if (result) {
       // Autenticação bem-sucedida
       return response.status(200).json({ user: result.user, token: result.token });
