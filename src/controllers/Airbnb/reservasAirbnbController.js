@@ -167,7 +167,10 @@ const getFaxinasPorPeriodo = async (request, response) => {
       });
     }
 
-    const faxinas = await reservaModel.getFaxinasPorPeriodo(start, end, empresaId);
+    // A folha de pagamento pede incluirInativos=true: faxina feita continua devida
+    // mesmo que o apartamento tenha sido desativado depois.
+    const incluirInativos = request.query?.incluirInativos === 'true' || request.query?.incluirInativos === '1';
+    const faxinas = await reservaModel.getFaxinasPorPeriodo(start, end, empresaId, incluirInativos);
 
     return response.status(200).json(faxinas);
 

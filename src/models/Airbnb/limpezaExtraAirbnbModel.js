@@ -111,19 +111,26 @@ const deleteLimpezaExtra = async (id) => {
   return result.affectedRows > 0;
 };
 
-// Buscar limpezas extras por período
-const getLimpezasExtrasPorPeriodo = async (startDate, endDate, empresaId) => {
+// Buscar limpezas extras por período.
+// `incluirInativos`: ver a nota em reservasAirbnbModel.getFaxinasPorPeriodo — a folha
+// de pagamento precisa das limpezas de apartamento desativado depois do serviço.
+const getLimpezasExtrasPorPeriodo = async (startDate, endDate, empresaId, incluirInativos = false) => {
   let query = `
     SELECT le.*,
            COALESCE(a.nome, 'Apartamento não encontrado')       AS apartamento_nome,
            COALESCE(a.valor_limpeza, 0)                        AS valor_limpeza,
            COALESCE(a.senha_porta, '')                          AS apartamento_senha,
            COALESCE(a.endereco, '')                          AS apartamento_endereco,
-           COALESCE(a.bairro, '')                          AS apartamento_bairro
-
+           COALESCE(a.bairro, '')                          AS apartamento_bairro,
+           uf.first_name                                        AS faxina_first_name,
+           uf.last_name                                         AS faxina_last_name
     FROM limpeza_extra le
     LEFT JOIN apartamentos a ON le.apartamento_id = a.id
-    WHERE DATE(le.end_data) BETWEEN ? AND ? AND a.is_active = 1`;
+    LEFT JOIN users uf ON uf.id = le.faxina_userId
+    WHERE DATE(le.end_data) BETWEEN ? AND ?`;
+  if (!incluirInativos) {
+    query += ' AND a.is_active = 1';
+  }
   let params = [startDate, endDate];
   if (empresaId) {
     query += ' AND EXISTS (SELECT 1 FROM apartamento_empresa ae WHERE ae.apartamento_id = a.id AND ae.empresa_id = ? AND ae.is_active = 1)';

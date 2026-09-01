@@ -197,7 +197,8 @@ const getLimpezasExtrasPorPeriodo = async (request, response) => {
       return response.status(400).json({ error: 'Informe startDate e endDate no formato YYYY-MM-DD' });
     }
 
-    const limpezas = await limpezaExtraModel.getLimpezasExtrasPorPeriodo(startDate, endDate, empresaId);
+    const incluirInativos = request.query?.incluirInativos === 'true' || request.query?.incluirInativos === '1';
+    const limpezas = await limpezaExtraModel.getLimpezasExtrasPorPeriodo(startDate, endDate, empresaId, incluirInativos);
     return response.status(200).json(limpezas);
   } catch (error) {
     console.error('Erro ao obter limpezas extras por período:', error);

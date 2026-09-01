@@ -335,34 +335,40 @@ async function getReservasPorPeriodo(startDate, endDate, empresaId) {
         FROM checkin c2
         WHERE c2.reserva_id = r.id
       ) AS horarioPrevistoChegada,
+      -- Ultima limpeza do apartamento antes desta reserva.
+      -- Data, responsavel e nome saem numa string unica ("AAAA-MM-DD|id|nome",
+      -- desmontada no map abaixo) porque tres subqueries separadas podiam escolher
+      -- linhas diferentes no empate de data e misturar a data de uma limpeza com
+      -- o nome de outra. Como a chave de ordenacao comeca pela data ISO, a ordem
+      -- alfabetica DESC e a ordem cronologica.
+      -- Regras: so reserva 'Reserved' conta (CANCELADA nunca virou faxina e ainda
+      -- guarda o faxina_userId antigo), limpeza avulsa tambem conta, e o <= inclui
+      -- a limpeza feita no proprio dia do check-in (saida de manha, entrada a tarde).
       (
-        SELECT rprev.end_data
-        FROM reservas rprev
-        WHERE rprev.apartamento_id = r.apartamento_id
-          AND rprev.id <> r.id
-          AND rprev.end_data < r.start_date
-        ORDER BY rprev.end_data DESC
-        LIMIT 1
-      ) AS previous_end_data,
-      (
-        SELECT rprev.faxina_userId
-        FROM reservas rprev
-        WHERE rprev.apartamento_id = r.apartamento_id
-          AND rprev.id <> r.id
-          AND rprev.end_data < r.start_date
-        ORDER BY rprev.end_data DESC
-        LIMIT 1
-      ) AS previous_faxina_userId,
-      (
-        SELECT u.first_name
+        SELECT CONCAT(
+                 DATE_FORMAT(rprev.end_data, '%Y-%m-%d'), '|',
+                 COALESCE(rprev.faxina_userId, ''), '|',
+                 COALESCE(u.first_name, '')
+               )
         FROM reservas rprev
         LEFT JOIN users u ON u.id = rprev.faxina_userId
         WHERE rprev.apartamento_id = r.apartamento_id
           AND rprev.id <> r.id
-          AND rprev.end_data < r.start_date
-        ORDER BY rprev.end_data DESC
+          AND rprev.description = 'Reserved'
+          AND rprev.end_data <= r.start_date
+        UNION ALL
+        SELECT CONCAT(
+                 DATE_FORMAT(le.end_data, '%Y-%m-%d'), '|',
+                 COALESCE(le.faxina_userId, ''), '|',
+                 COALESCE(ue.first_name, '')
+               )
+        FROM limpeza_extra le
+        LEFT JOIN users ue ON ue.id = le.faxina_userId
+        WHERE le.apartamento_id = r.apartamento_id
+          AND le.end_data <= r.start_date
+        ORDER BY 1 DESC
         LIMIT 1
-      ) AS previous_faxina_first_name,
+      ) AS previous_faxina,
       (
         SELECT JSON_ARRAYAGG(
           JSON_OBJECT(
@@ -436,6 +442,14 @@ async function getReservasPorPeriodo(startDate, endDate, empresaId) {
     }
     if (!reservasObj.pagamentos) reservasObj.pagamentos = [];
 
+    // Desmonta a chave da ultima limpeza. A data segue como 'AAAA-MM-DD' (data de
+    // calendario pura): devolve-la como DATETIME faria o front deslocar o dia pelo fuso.
+    const [dataAnterior, userIdAnterior, ...nomeAnterior] = String(reservasObj.previous_faxina || '').split('|');
+    reservasObj.previous_end_data = dataAnterior || null;
+    reservasObj.previous_faxina_userId = userIdAnterior ? Number(userIdAnterior) : null;
+    reservasObj.previous_faxina_first_name = nomeAnterior.join('|') || null;
+    delete reservasObj.previous_faxina;
+
     return reservasObj;
   });
 }
@@ -506,7 +520,10 @@ async function getReservasPorPeriodoByApartamentoID(apartamentoId, startDate, en
 }
 
 
-const getFaxinasPorPeriodo = async (inicio_end_data, fim_end_date, empresaId) => {
+// `incluirInativos` existe para a folha de pagamento: apartamento desativado depois
+// da faxina nao pode sumir com o servico ja prestado, senao a terceirizada deixa de
+// receber por trabalho feito. A escala continua chamando sem a flag (so ativos).
+const getFaxinasPorPeriodo = async (inicio_end_data, fim_end_date, empresaId, incluirInativos = false) => {
   let query = `
     SELECT
       r.*,
@@ -523,12 +540,20 @@ const getFaxinasPorPeriodo = async (inicio_end_data, fim_end_date, empresaId) =>
           AND r2.start_date < DATE(r.end_data) + INTERVAL 1 DAY
           AND r2.description = 'Reserved'
       ) AS check_in_mesmo_dia,
-      EXISTS (SELECT 1 FROM checkin c WHERE c.reserva_id = r.id) AS documentosEnviados
+      EXISTS (SELECT 1 FROM checkin c WHERE c.reserva_id = r.id) AS documentosEnviados,
+      -- Nome vem junto da faxina: quem paga nao pode depender de cruzar com uma
+      -- lista de usuarios carregada a parte, que pode nao conter a terceirizada
+      -- (ela pode ser de uma empresa parceira que divide o apartamento).
+      uf.first_name AS faxina_first_name,
+      uf.last_name AS faxina_last_name
     FROM reservas r
     LEFT JOIN apartamentos a ON r.apartamento_id = a.id
+    LEFT JOIN users uf ON uf.id = r.faxina_userId
     WHERE r.description = 'Reserved'
-      AND DATE(r.end_data) BETWEEN ? AND ?
-      AND a.is_active = 1`;
+      AND DATE(r.end_data) BETWEEN ? AND ?`;
+  if (!incluirInativos) {
+    query += ' AND a.is_active = 1';
+  }
   let params = [inicio_end_data, fim_end_date];
   if (empresaId) {
     query += ' AND EXISTS (SELECT 1 FROM apartamento_empresa ae WHERE ae.apartamento_id = a.id AND ae.empresa_id = ? AND ae.is_active = 1)';
