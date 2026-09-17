@@ -336,6 +336,18 @@ async function getReservasPorPeriodo(startDate, endDate, empresaId) {
         FROM checkin c2
         WHERE c2.reserva_id = r.id
       ) AS horarioPrevistoChegada,
+      -- Telefones dos hóspedes cadastrados via formulário de checkin (users.Telefone),
+      -- para permitir buscar a reserva pelo telefone de qualquer hóspede no Diário.
+      -- JSON_ARRAYAGG não aceita DISTINCT diretamente, por isso a deduplicação é feita
+      -- numa subquery antes de agregar.
+      (
+        SELECT JSON_ARRAYAGG(tel) FROM (
+          SELECT DISTINCT u2.Telefone AS tel
+          FROM checkin c3
+          JOIN users u2 ON u2.id = c3.user_id
+          WHERE c3.reserva_id = r.id AND u2.Telefone IS NOT NULL AND u2.Telefone <> ''
+        ) telefones_distintos
+      ) AS telefones_hospedes,
       -- Ultima limpeza do apartamento antes desta reserva.
       -- Data, responsavel e nome saem numa string unica ("AAAA-MM-DD|id|nome",
       -- desmontada no map abaixo) porque tres subqueries separadas podiam escolher
@@ -435,6 +447,13 @@ async function getReservasPorPeriodo(startDate, endDate, empresaId) {
       catch (e) { console.warn('Erro parse horarioPrevistoChegada:', e); reservasObj.horarioPrevistoChegada = []; }
     }
     if (!reservasObj.horarioPrevistoChegada) reservasObj.horarioPrevistoChegada = [];
+
+    // Telefones dos hóspedes
+    if (!Array.isArray(reservasObj.telefones_hospedes) && typeof reservasObj.telefones_hospedes === 'string') {
+      try { reservasObj.telefones_hospedes = JSON.parse(reservasObj.telefones_hospedes); }
+      catch (e) { console.warn('Erro parse telefones_hospedes:', e); reservasObj.telefones_hospedes = []; }
+    }
+    if (!reservasObj.telefones_hospedes) reservasObj.telefones_hospedes = [];
 
     // Pagamentos
     if (!Array.isArray(reservasObj.pagamentos) && typeof reservasObj.pagamentos === 'string') {
