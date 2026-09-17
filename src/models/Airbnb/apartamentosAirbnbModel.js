@@ -84,6 +84,7 @@ const createApartamento = async (apartamento) => {
     aquecedor,
     vaga_garagem,
     tem_garagem, // NOVO
+    aceita_early_late = null,
     itens_limpeza,
     air_fryer,
     modificado_user_id,
@@ -163,6 +164,7 @@ const createApartamento = async (apartamento) => {
     aquecedor = ?,
     vaga_garagem = ?,
     tem_garagem = ?,
+    aceita_early_late = ?,
     itens_limpeza = ?,
     air_fryer = ?,
     modificado_user_id = ?,
@@ -247,6 +249,7 @@ const createApartamento = async (apartamento) => {
     aquecedor ?? null,
     vaga_garagem ?? null,
     tem_garagem ?? null, // NOVO
+    aceita_early_late ?? null,
     itens_limpeza ?? null,
     air_fryer ?? null,
     modificado_user_id ?? null,
@@ -361,6 +364,7 @@ const updateApartamento = async (apartamento) => {
     aquecedor = null,
     vaga_garagem = null,
     tem_garagem = null, // NOVO
+    aceita_early_late = null,
     itens_limpeza = null,
     air_fryer = null,
     modificado_user_id = null,
@@ -438,6 +442,7 @@ const updateApartamento = async (apartamento) => {
       aquecedor = ?,
       vaga_garagem = ?,
       tem_garagem = ?,
+      aceita_early_late = ?,
       itens_limpeza = ?,
       air_fryer = ?,
       modificado_user_id = ?,
@@ -521,6 +526,7 @@ const updateApartamento = async (apartamento) => {
     aquecedor,
     vaga_garagem,
     tem_garagem,
+    aceita_early_late ?? null,
     itens_limpeza,
     air_fryer,
     modificado_user_id,
@@ -582,6 +588,21 @@ const getApartamentoByCodProprietario = async (cod_link_proprietario) => {
     WHERE a.cod_link_proprietario = ? AND a.is_active = 1
   `;
   const [apartamentos] = await connection.execute(query, [cod_link_proprietario]);
+
+  return apartamentos.length > 0 ? apartamentos[0] : null;
+};
+
+// Busca um apartamento pelo nome (substitui o uso de cod_link_proprietario, que está sendo descontinuado)
+const getApartamentoByNome = async (nome) => {
+  const query = `
+    SELECT a.*,
+      (SELECT u.id FROM users u INNER JOIN apartamento_proprietario ap ON u.id = ap.user_id WHERE ap.apartamento_id = a.id LIMIT 1) AS proprietario_id,
+      (SELECT u.first_name FROM users u INNER JOIN apartamento_proprietario ap ON u.id = ap.user_id WHERE ap.apartamento_id = a.id LIMIT 1) AS user_proprietario_nome
+    FROM apartamentos a
+    WHERE a.nome = ? AND a.is_active = 1
+    LIMIT 1
+  `;
+  const [apartamentos] = await connection.execute(query, [nome]);
 
   return apartamentos.length > 0 ? apartamentos[0] : null;
 };
@@ -724,6 +745,7 @@ module.exports = {
   createApartamento,
   getApartamentoById,
   getApartamentoByCodProprietario,
+  getApartamentoByNome,
   getApartamentosByPredioId,
   updateApartamento,
   deleteApartamento,

@@ -55,6 +55,22 @@ const getApartamentoByCodProprietario = async (request, response) => {
   }
 };
 
+// Busca um apartamento pelo nome (substitui o uso de cod_link_proprietario, que está sendo descontinuado)
+const getApartamentoByNome = async (request, response) => {
+  try {
+    const { nome } = request.params;
+    const apartamento = await apartamentoModel.getApartamentoByNome(nome);
+    if (apartamento) {
+      return response.status(200).json(apartamento);
+    } else {
+      return response.status(404).json({ message: 'Apartamento não encontrado' });
+    }
+  } catch (error) {
+    console.error('Erro ao obter apartamento por nome:', error);
+    return response.status(500).json({ error: 'Erro ao obter apartamento' });
+  }
+};
+
 const getApartamentosByPredioId = async (request, response) => {
   try {
     const { predioId } = request.params;
@@ -207,6 +223,7 @@ module.exports = {
   getApartamentoById,
   getApartamentosByPredioId,
   getApartamentoByCodProprietario,
+  getApartamentoByNome,
   updateApartamento,
   deleteApartamento,
   setApartamentoStatus,

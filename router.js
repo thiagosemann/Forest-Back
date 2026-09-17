@@ -246,6 +246,7 @@ router.get('/prestacaoCobrancaBoletos/building/:predio_id/month/:month/year/:yea
 router.post('/login-airbnb', usersAirbnbController.loginUser);
 router.post('/users-airbnb', usersAirbnbController.createUser);
 router.get('/apartamentos-airbnb/codigo-proprietario/:cod', apartamentosAirbnbController.getApartamentoByCodProprietario);
+router.get('/apartamentos-airbnb/nome/:nome', apartamentosAirbnbController.getApartamentoByNome);
 router.post('/checkins', checkinFormController.createCheckin); // Criar um novo check-in
 // MercadoPago routes
 router.post('/mercadoPago/processar-webhook', mercadoPagoApi.processarWebhookMercadoPago);

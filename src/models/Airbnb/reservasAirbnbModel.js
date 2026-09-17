@@ -322,6 +322,7 @@ async function getReservasPorPeriodo(startDate, endDate, empresaId) {
       r.*,
       COALESCE(a.nome, 'Apartamento não encontrado') AS apartamento_nome,
       a.is_active AS apartamento_ativo,
+      a.aceita_early_late AS apartamento_aceita_early_late,
       EXISTS(
         SELECT 1 FROM checkin c WHERE c.reserva_id = r.id
       ) AS documentosEnviados,
