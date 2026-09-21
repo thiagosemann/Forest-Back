@@ -6,18 +6,57 @@ const getCurrentDateTimeString = () => {
   return now.toISOString().slice(0, 19).replace('T', ' '); // Formato: YYYY-MM-DD HH:MM:SS
 };
 
+// Busca todos os proprietários vinculados aos apartamentos informados (1 apartamento
+// ou lista) e anexa como array `proprietarios` em cada item. Ordenado por u.id ASC,
+// então proprietarios[0] é sempre o primeiro proprietário cadastrado (mesma regra
+// usada em ticketReembolsoModel.getResumo para desambiguar apartamentos com múltiplos donos).
+const attachProprietarios = async (target) => {
+  if (!target) return target;
+  const itens = Array.isArray(target) ? target : [target];
+  if (itens.length === 0) return target;
+
+  const ids = [...new Set(itens.map(a => a.id))];
+  const placeholders = ids.map(() => '?').join(',');
+  const [rows] = await connection.execute(
+    `SELECT ap.apartamento_id, u.id, u.first_name, u.last_name, u.tipo_proprietario
+     FROM apartamento_proprietario ap
+     INNER JOIN users u ON u.id = ap.user_id
+     WHERE ap.apartamento_id IN (${placeholders})
+     ORDER BY u.id ASC`,
+    ids
+  );
+
+  const porApartamento = new Map();
+  for (const row of rows) {
+    const donos = porApartamento.get(row.apartamento_id) || [];
+    donos.push({
+      id: row.id,
+      first_name: row.first_name,
+      last_name: row.last_name,
+      tipo_proprietario: row.tipo_proprietario
+    });
+    porApartamento.set(row.apartamento_id, donos);
+  }
+
+  for (const item of itens) {
+    item.proprietarios = porApartamento.get(item.id) || [];
+  }
+
+  return target;
+};
+
 // Função para buscar todos os apartamentos
 const getAllApartamentos = async () => {
   const query = `
     SELECT a.*, p.nome AS predio_name,
-      (SELECT u.id FROM users u INNER JOIN apartamento_proprietario ap ON u.id = ap.user_id WHERE ap.apartamento_id = a.id LIMIT 1) AS proprietario_id,
-      (SELECT u.first_name FROM users u INNER JOIN apartamento_proprietario ap ON u.id = ap.user_id WHERE ap.apartamento_id = a.id LIMIT 1) AS user_proprietario_nome
+      (SELECT u.id FROM users u INNER JOIN apartamento_proprietario ap ON u.id = ap.user_id WHERE ap.apartamento_id = a.id ORDER BY u.id ASC LIMIT 1) AS proprietario_id,
+      (SELECT u.first_name FROM users u INNER JOIN apartamento_proprietario ap ON u.id = ap.user_id WHERE ap.apartamento_id = a.id ORDER BY u.id ASC LIMIT 1) AS user_proprietario_nome
     FROM apartamentos a
     LEFT JOIN predios p ON a.predio_id = p.id
     WHERE a.is_active = 1
   `;
   const [apartamentos] = await connection.execute(query);
-  return apartamentos;
+  return attachProprietarios(apartamentos);
 };
 
 const createApartamento = async (apartamento) => {
@@ -569,14 +608,14 @@ const updateApartamento = async (apartamento) => {
 const getApartamentoById = async (id) => {
   const query = `
     SELECT a.*,
-      (SELECT u.id FROM users u INNER JOIN apartamento_proprietario ap ON u.id = ap.user_id WHERE ap.apartamento_id = a.id LIMIT 1) AS proprietario_id,
-      (SELECT u.first_name FROM users u INNER JOIN apartamento_proprietario ap ON u.id = ap.user_id WHERE ap.apartamento_id = a.id LIMIT 1) AS user_proprietario_nome
+      (SELECT u.id FROM users u INNER JOIN apartamento_proprietario ap ON u.id = ap.user_id WHERE ap.apartamento_id = a.id ORDER BY u.id ASC LIMIT 1) AS proprietario_id,
+      (SELECT u.first_name FROM users u INNER JOIN apartamento_proprietario ap ON u.id = ap.user_id WHERE ap.apartamento_id = a.id ORDER BY u.id ASC LIMIT 1) AS user_proprietario_nome
     FROM apartamentos a
     WHERE a.id = ? AND a.is_active = 1
   `;
   const [apartamentos] = await connection.execute(query, [id]);
 
-  return apartamentos.length > 0 ? apartamentos[0] : null;
+  return attachProprietarios(apartamentos.length > 0 ? apartamentos[0] : null);
 };
 
 const getApartamentoByCodProprietario = async (cod_link_proprietario) => {
@@ -596,28 +635,28 @@ const getApartamentoByCodProprietario = async (cod_link_proprietario) => {
 const getApartamentoByNome = async (nome) => {
   const query = `
     SELECT a.*,
-      (SELECT u.id FROM users u INNER JOIN apartamento_proprietario ap ON u.id = ap.user_id WHERE ap.apartamento_id = a.id LIMIT 1) AS proprietario_id,
-      (SELECT u.first_name FROM users u INNER JOIN apartamento_proprietario ap ON u.id = ap.user_id WHERE ap.apartamento_id = a.id LIMIT 1) AS user_proprietario_nome
+      (SELECT u.id FROM users u INNER JOIN apartamento_proprietario ap ON u.id = ap.user_id WHERE ap.apartamento_id = a.id ORDER BY u.id ASC LIMIT 1) AS proprietario_id,
+      (SELECT u.first_name FROM users u INNER JOIN apartamento_proprietario ap ON u.id = ap.user_id WHERE ap.apartamento_id = a.id ORDER BY u.id ASC LIMIT 1) AS user_proprietario_nome
     FROM apartamentos a
     WHERE a.nome = ? AND a.is_active = 1
     LIMIT 1
   `;
   const [apartamentos] = await connection.execute(query, [nome]);
 
-  return apartamentos.length > 0 ? apartamentos[0] : null;
+  return attachProprietarios(apartamentos.length > 0 ? apartamentos[0] : null);
 };
 
 // Função para buscar apartamentos pelo ID do prédio
 const getApartamentosByPredioId = async (predioId) => {
   const query = `
     SELECT a.*,
-      (SELECT u.id FROM users u INNER JOIN apartamento_proprietario ap ON u.id = ap.user_id WHERE ap.apartamento_id = a.id LIMIT 1) AS proprietario_id,
-      (SELECT u.first_name FROM users u INNER JOIN apartamento_proprietario ap ON u.id = ap.user_id WHERE ap.apartamento_id = a.id LIMIT 1) AS user_proprietario_nome
+      (SELECT u.id FROM users u INNER JOIN apartamento_proprietario ap ON u.id = ap.user_id WHERE ap.apartamento_id = a.id ORDER BY u.id ASC LIMIT 1) AS proprietario_id,
+      (SELECT u.first_name FROM users u INNER JOIN apartamento_proprietario ap ON u.id = ap.user_id WHERE ap.apartamento_id = a.id ORDER BY u.id ASC LIMIT 1) AS user_proprietario_nome
     FROM apartamentos a
     WHERE a.predio_id = ? AND a.is_active = 1
   `;
   const [apartamentos] = await connection.execute(query, [predioId]);
-  return apartamentos;
+  return attachProprietarios(apartamentos);
 };
 
 // Função para inativar um apartamento pelo ID (soft delete).
@@ -676,56 +715,56 @@ const reativarApartamento = async (id) => {
 const getAllApartamentosByEmpresa = async (empresaId) => {
   const query = `
     SELECT a.*, p.nome AS predio_name, u.first_name AS modificado_user_nome,
-      (SELECT up.id FROM users up INNER JOIN apartamento_proprietario ap ON up.id = ap.user_id WHERE ap.apartamento_id = a.id LIMIT 1) AS proprietario_id,
-      (SELECT up.first_name FROM users up INNER JOIN apartamento_proprietario ap ON up.id = ap.user_id WHERE ap.apartamento_id = a.id LIMIT 1) AS user_proprietario_nome
+      (SELECT up.id FROM users up INNER JOIN apartamento_proprietario ap ON up.id = ap.user_id WHERE ap.apartamento_id = a.id ORDER BY up.id ASC LIMIT 1) AS proprietario_id,
+      (SELECT up.first_name FROM users up INNER JOIN apartamento_proprietario ap ON up.id = ap.user_id WHERE ap.apartamento_id = a.id ORDER BY up.id ASC LIMIT 1) AS user_proprietario_nome
     FROM apartamentos a
     LEFT JOIN predios p ON a.predio_id = p.id
     LEFT JOIN users u ON a.modificado_user_id = u.id
     WHERE EXISTS (SELECT 1 FROM apartamento_empresa ae WHERE ae.apartamento_id = a.id AND ae.empresa_id = ? AND ae.is_active = 1) AND a.is_active = 1
   `;
   const [apartamentos] = await connection.execute(query, [empresaId]);
-  return apartamentos;
+  return attachProprietarios(apartamentos);
 };
 
 // Buscar todos os apartamentos INATIVOS (is_active = 0) de uma empresa
 const getApartamentosInativosByEmpresa = async (empresaId) => {
   const query = `
     SELECT a.*, p.nome AS predio_name, u.first_name AS modificado_user_nome,
-      (SELECT up.id FROM users up INNER JOIN apartamento_proprietario ap ON up.id = ap.user_id WHERE ap.apartamento_id = a.id LIMIT 1) AS proprietario_id,
-      (SELECT up.first_name FROM users up INNER JOIN apartamento_proprietario ap ON up.id = ap.user_id WHERE ap.apartamento_id = a.id LIMIT 1) AS user_proprietario_nome
+      (SELECT up.id FROM users up INNER JOIN apartamento_proprietario ap ON up.id = ap.user_id WHERE ap.apartamento_id = a.id ORDER BY up.id ASC LIMIT 1) AS proprietario_id,
+      (SELECT up.first_name FROM users up INNER JOIN apartamento_proprietario ap ON up.id = ap.user_id WHERE ap.apartamento_id = a.id ORDER BY up.id ASC LIMIT 1) AS user_proprietario_nome
     FROM apartamentos a
     LEFT JOIN predios p ON a.predio_id = p.id
     LEFT JOIN users u ON a.modificado_user_id = u.id
     WHERE EXISTS (SELECT 1 FROM apartamento_empresa ae WHERE ae.apartamento_id = a.id AND ae.empresa_id = ? AND ae.is_active = 1) AND a.is_active = 0
   `;
   const [apartamentos] = await connection.execute(query, [empresaId]);
-  return apartamentos;
+  return attachProprietarios(apartamentos);
 };
 
 // Buscar apartamento por id e empresa
 const getApartamentoByIdAndEmpresa = async (id, empresaId) => {
   const query = `
     SELECT a.*,
-      (SELECT u.id FROM users u INNER JOIN apartamento_proprietario ap ON u.id = ap.user_id WHERE ap.apartamento_id = a.id LIMIT 1) AS proprietario_id,
-      (SELECT u.first_name FROM users u INNER JOIN apartamento_proprietario ap ON u.id = ap.user_id WHERE ap.apartamento_id = a.id LIMIT 1) AS user_proprietario_nome
+      (SELECT u.id FROM users u INNER JOIN apartamento_proprietario ap ON u.id = ap.user_id WHERE ap.apartamento_id = a.id ORDER BY u.id ASC LIMIT 1) AS proprietario_id,
+      (SELECT u.first_name FROM users u INNER JOIN apartamento_proprietario ap ON u.id = ap.user_id WHERE ap.apartamento_id = a.id ORDER BY u.id ASC LIMIT 1) AS user_proprietario_nome
     FROM apartamentos a
     WHERE a.id = ? AND EXISTS (SELECT 1 FROM apartamento_empresa ae WHERE ae.apartamento_id = a.id AND ae.empresa_id = ? AND ae.is_active = 1) AND a.is_active = 1
   `;
   const [apartamentos] = await connection.execute(query, [id, empresaId]);
-  return apartamentos.length > 0 ? apartamentos[0] : null;
+  return attachProprietarios(apartamentos.length > 0 ? apartamentos[0] : null);
 };
 
 // Buscar apartamentos por prédio e empresa
 const getApartamentosByPredioIdAndEmpresa = async (predioId, empresaId) => {
   const query = `
     SELECT a.*,
-      (SELECT u.id FROM users u INNER JOIN apartamento_proprietario ap ON u.id = ap.user_id WHERE ap.apartamento_id = a.id LIMIT 1) AS proprietario_id,
-      (SELECT u.first_name FROM users u INNER JOIN apartamento_proprietario ap ON u.id = ap.user_id WHERE ap.apartamento_id = a.id LIMIT 1) AS user_proprietario_nome
+      (SELECT u.id FROM users u INNER JOIN apartamento_proprietario ap ON u.id = ap.user_id WHERE ap.apartamento_id = a.id ORDER BY u.id ASC LIMIT 1) AS proprietario_id,
+      (SELECT u.first_name FROM users u INNER JOIN apartamento_proprietario ap ON u.id = ap.user_id WHERE ap.apartamento_id = a.id ORDER BY u.id ASC LIMIT 1) AS user_proprietario_nome
     FROM apartamentos a
     WHERE a.predio_id = ? AND EXISTS (SELECT 1 FROM apartamento_empresa ae WHERE ae.apartamento_id = a.id AND ae.empresa_id = ? AND ae.is_active = 1) AND a.is_active = 1
   `;
   const [apartamentos] = await connection.execute(query, [predioId, empresaId]);
-  return apartamentos;
+  return attachProprietarios(apartamentos);
 };
 
 // Nova função: retorna vaga_garagem, pedir_selfie, tem_garagem e telefone da empresa por apartamento_id

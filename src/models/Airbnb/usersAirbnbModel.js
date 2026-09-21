@@ -65,7 +65,8 @@ const createUser = async (user) => {
     Telefone,
     role,
     grupo_whats, // <-- Adicionado aqui
-    empresa_id
+    empresa_id,
+    tipo_proprietario
   } = user;
 
   if (role === 'admin') {
@@ -88,11 +89,11 @@ const createUser = async (user) => {
     throw new Error(`Usuário com esse ${conflictField} já existe.`);
   }
 
-  // Insert into users table (agora inclui grupo_whats)
+  // Insert into users table (agora inclui grupo_whats e tipo_proprietario)
   const insertUserQuery = `
     INSERT INTO users
-      (first_name, last_name, cpf, email, password, role, Telefone, grupo_whats, empresa_id)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      (first_name, last_name, cpf, email, password, role, Telefone, grupo_whats, empresa_id, tipo_proprietario)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
   const values = [
     first_name,
@@ -103,7 +104,8 @@ const createUser = async (user) => {
     role,
     Telefone || null,
     grupo_whats || null, // <-- Adicionado aqui
-    empresaIdFinal
+    empresaIdFinal,
+    role === 'proprietario' ? (tipo_proprietario || null) : null
   ];
 
   try {
@@ -182,7 +184,8 @@ const updateUser = async (id, userData) => {
     imagemBase64,
     documentBase64,
     grupo_whats, // <-- Adicionado aqui
-    empresa_id
+    empresa_id,
+    tipo_proprietario
   } = merged;
 
   if (role === 'admin') {
@@ -191,6 +194,7 @@ const updateUser = async (id, userData) => {
 
   // Empresa só se aplica a terceirizados (limpeza); demais papéis ficam sem empresa
   const empresaIdFinal = role === 'terceirizado' && empresa_id ? empresa_id : null;
+  const tipoProprietarioFinal = role === 'proprietario' ? (tipo_proprietario || null) : null;
 
   // Hash password if updated
   let hashedPassword = null;
@@ -198,7 +202,7 @@ const updateUser = async (id, userData) => {
     hashedPassword = await bcrypt.hash(password, saltRounds);
   }
 
-  // Update users table (agora inclui grupo_whats)
+  // Update users table (agora inclui grupo_whats e tipo_proprietario)
   const updateUserQuery = `
     UPDATE users SET
       first_name = ?,
@@ -208,7 +212,8 @@ const updateUser = async (id, userData) => {
       role = ?,
       Telefone = ?,
       grupo_whats = ?,
-      empresa_id = ?
+      empresa_id = ?,
+      tipo_proprietario = ?
       ${hashedPassword ? ', password = ?' : ''}
     WHERE id = ?
   `;
@@ -221,6 +226,7 @@ const updateUser = async (id, userData) => {
     Telefone,
     grupo_whats || null, // <-- Adicionado aqui
     empresaIdFinal,
+    tipoProprietarioFinal,
     ...(hashedPassword ? [hashedPassword] : []),
     id
   ];

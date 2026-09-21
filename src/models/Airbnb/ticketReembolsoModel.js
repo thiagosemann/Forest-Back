@@ -75,7 +75,11 @@ const getResumo = async (empresaId, filtros = {}) => {
               tr.status, COUNT(*) AS quantidade, ${valorExpr} AS total
        FROM ticket_reembolso tr
        LEFT JOIN apartamentos a ON tr.apartamento_id = a.id
-       LEFT JOIN apartamento_proprietario ap ON ap.apartamento_id = a.id
+       LEFT JOIN (
+         SELECT apartamento_id, MIN(user_id) AS user_id
+         FROM apartamento_proprietario
+         GROUP BY apartamento_id
+       ) ap ON ap.apartamento_id = a.id
        LEFT JOIN users u ON u.id = ap.user_id
        ${where}
        GROUP BY u.id, proprietario_nome, a.id, a.nome, tr.status
