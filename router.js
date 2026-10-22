@@ -485,7 +485,7 @@ router.put('/nps-limpezas/:id', verifyToken, empresaMiddleware, npsLimpezasContr
 router.delete('/nps-limpezas/:id', verifyToken, empresaMiddleware, npsLimpezasController.deleteNps);
 
 // Valida um arquivo ICS enviado pelo frontend
-router.post('/validar-ical', require('./src/Scripts/sincronizacaoReservas').validarIcalRoute);
+router.post('/validar-ical', verifyToken, require('./src/Scripts/sincronizacaoReservas').validarIcalRoute);
 
 // Scrapper Airbnb
 router.get('/scrapper/apartamento/:id', verifyToken, scrapperController.scrapeByApartamentoId);
