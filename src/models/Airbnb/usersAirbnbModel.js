@@ -97,7 +97,7 @@ const createUser = async (user) => {
   `;
   const values = [
     first_name,
-    last_name,
+    last_name || '', // coluna NOT NULL; sobrenome é opcional (ex.: PJ/imobiliária)
     cpf,
     email || '',
     hashedPassword,
