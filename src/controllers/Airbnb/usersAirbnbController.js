@@ -1,4 +1,13 @@
 const usersModel = require('../../models/Airbnb/usersAirbnbModel');
+const { envioEmailRedefinicaoSenha } = require('../../email');
+
+const FRONT_URL = process.env.FRONT_URL || 'https://www.apartamentosforest.com.br';
+
+// Intervalo mínimo entre e-mails de redefinição para o mesmo endereço. A rota é
+// pública e o envio sai da conta Gmail da Forest (que também manda os e-mails de
+// check-in), então isso evita que ela seja usada para disparar spam.
+const RESET_EMAIL_COOLDOWN_MS = 60 * 1000;
+const resetEmailsRecentes = new Set();
 
 const getAllUsers = async (request, response) => {
   try {
@@ -49,6 +58,58 @@ const loginUser = async (request, response) => {
   }
 };
  
+const forgotPassword = async (request, response) => {
+  const email = String(request.body?.email || '').trim();
+  if (!email) {
+    return response.status(400).json({ message: 'Informe o e-mail.' });
+  }
+
+  // Resposta sempre igual (e antes do envio), para não revelar se o e-mail tem conta
+  response.status(200).json({
+    message: 'Se houver uma conta com esse e-mail, enviaremos um link para redefinir a senha.'
+  });
+
+  const chave = email.toLowerCase();
+  if (resetEmailsRecentes.has(chave)) return;
+  resetEmailsRecentes.add(chave);
+  setTimeout(() => resetEmailsRecentes.delete(chave), RESET_EMAIL_COOLDOWN_MS).unref();
+
+  try {
+    const result = await usersModel.createPasswordResetToken(email);
+    if (!result) return;
+
+    const link = `${FRONT_URL}/resetPassword?token=${encodeURIComponent(result.token)}`;
+    await envioEmailRedefinicaoSenha(result.user.email, result.user.first_name, link);
+  } catch (error) {
+    console.error('Erro ao enviar e-mail de redefinição de senha:', error);
+  }
+};
+
+const resetPassword = async (request, response) => {
+  try {
+    const { token, password } = request.body || {};
+    if (!token || !password) {
+      return response.status(400).json({ message: 'Token e nova senha são obrigatórios.' });
+    }
+    if (String(password).length < 4) {
+      return response.status(400).json({ message: 'A senha deve ter pelo menos 4 caracteres.' });
+    }
+
+    const ok = await usersModel.resetPassword(token, String(password));
+    if (!ok) {
+      // 400 (e não 401) para o interceptor do front não tratar como sessão expirada
+      return response.status(400).json({
+        code: 'TOKEN_RESET_INVALIDO',
+        message: 'Link inválido ou expirado. Solicite um novo.'
+      });
+    }
+    return response.status(200).json({ message: 'Senha redefinida com sucesso.' });
+  } catch (error) {
+    console.error('Erro ao redefinir senha:', error);
+    return response.status(500).json({ error: 'Erro ao redefinir senha' });
+  }
+};
+
 const getUser = async (request, response) => {
   try {
     const { id } = request.params;
@@ -147,6 +208,8 @@ module.exports = {
   getAllUsers,
   createUser,
   loginUser,
+  forgotPassword,
+  resetPassword,
   getUser,
   updateUser,
   deleteUser,

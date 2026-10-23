@@ -244,6 +244,8 @@ router.get('/prestacaoCobrancaBoletos/building/:predio_id/month/:month/year/:yea
 //------------------------------Rotas Airbnb----------------------------------------------------------------------------------//
 
 router.post('/login-airbnb', usersAirbnbController.loginUser);
+router.post('/forgot-password-airbnb', usersAirbnbController.forgotPassword); // Envia link de redefinição de senha
+router.post('/reset-password-airbnb', usersAirbnbController.resetPassword); // Define nova senha a partir do link
 router.post('/users-airbnb', usersAirbnbController.createUser);
 router.get('/apartamentos-airbnb/codigo-proprietario/:cod', apartamentosAirbnbController.getApartamentoByCodProprietario);
 router.get('/apartamentos-airbnb/nome/:nome', apartamentosAirbnbController.getApartamentoByNome);

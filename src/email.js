@@ -183,8 +183,69 @@ async function envioEmailForest(listaHospedes) {
   }
 }
 
+// O nome vem do cadastro (público), então é escapado antes de entrar no HTML
+function escaparHtml(texto) {
+  return String(texto)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// HTML do e-mail de redefinição de senha
+function criarCorpoEmailRedefinicaoSenha(nome, link) {
+  const saudacao = nome ? `Olá, ${escaparHtml(nome)}!` : 'Olá!';
+
+  return `
+  <div style="background-color: #F5F5F0; padding: 30px 0; font-family: 'Segoe UI', Arial, Helvetica, sans-serif;">
+    <table align="center" width="560" cellpadding="0" cellspacing="0" style="background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(8,33,25,0.08); max-width: 560px; width: 100%;">
+
+      <!-- Header -->
+      <tr>
+        <td style="background-color: #0F392B; padding: 28px 30px; text-align: center;">
+          <h1 style="margin: 0; color: #ffffff; font-size: 26px; font-weight: 700; letter-spacing: 2px;">FOREST</h1>
+          <p style="margin: 8px 0 0; color: #e9d177; font-size: 13px; letter-spacing: 0.5px;">Redefinição de senha</p>
+        </td>
+      </tr>
+
+      <!-- Corpo -->
+      <tr>
+        <td style="padding: 28px 30px; color: #16221c; font-size: 15px; line-height: 1.6;">
+          <p style="margin: 0 0 14px;">${saudacao}</p>
+          <p style="margin: 0 0 22px;">Recebemos um pedido para redefinir a senha da sua conta. Clique no botão abaixo para criar uma nova senha. O link vale por <strong>1 hora</strong> e só pode ser usado uma vez.</p>
+          <p style="margin: 0 0 22px; text-align: center;">
+            <a href="${link}" style="display: inline-block; background-color: #0F392B; color: #ffffff; text-decoration: none; font-weight: 600; padding: 12px 28px; border-radius: 8px;">Redefinir senha</a>
+          </p>
+          <p style="margin: 0 0 8px; font-size: 13px; color: #4b5750;">Se o botão não funcionar, copie e cole este endereço no navegador:</p>
+          <p style="margin: 0 0 22px; font-size: 12px; word-break: break-all;"><a href="${link}" style="color: #1e4c40;">${link}</a></p>
+          <p style="margin: 0; font-size: 13px; color: #4b5750;">Se você não pediu a redefinição, ignore este e-mail: sua senha continua a mesma.</p>
+        </td>
+      </tr>
+
+      <!-- Footer -->
+      <tr>
+        <td style="padding: 18px 30px; text-align: center; border-top: 1px solid #edf1ea; background-color: #f6f9f6;">
+          <p style="margin: 0; font-size: 11px; color: #7b8279; letter-spacing: 0.3px;">E-mail gerado automaticamente pelo sistema Forest</p>
+        </td>
+      </tr>
+    </table>
+  </div>`;
+}
+
+// Envia o link de redefinição de senha. Lança erro se o envio falhar.
+async function envioEmailRedefinicaoSenha(destinatario, nome, link) {
+  await transporter.sendMail({
+    from: process.env.EMAIL_USER,
+    to: destinatario,
+    subject: 'Forest - Redefinição de senha',
+    html: criarCorpoEmailRedefinicaoSenha(nome, link),
+  });
+}
+
 module.exports = {
   criarCorpoEmailLigar,
   criarCorpoEmailForest,
-  envioEmailForest
+  envioEmailForest,
+  envioEmailRedefinicaoSenha
 };

@@ -371,6 +371,56 @@ const getAuthContextByUserId = async (userId) => {
   return rows[0] || null;
 };
 
+// Redefinição de senha ---------------------------------------------------------
+// O token é um JWT assinado com SECRET_KEY + hash atual da senha: quando a senha
+// muda, o hash muda e todo link emitido antes deixa de valer (uso único), sem
+// precisar de tabela de tokens.
+const RESET_TOKEN_TTL = '1h';
+const RESET_PURPOSE = 'password-reset';
+
+const resetSecret = (user) => SECRET_KEY + (user.password || '');
+
+const createPasswordResetToken = async (email) => {
+  if (!email) return null;
+  // Mesma busca do login, para redefinir a senha da conta que o login usa
+  const [users] = await connection.execute(
+    'SELECT id, first_name, email, password FROM users WHERE email = ?',
+    [email]
+  );
+  if (!users.length) return null;
+
+  const user = users[0];
+  const token = jwt.sign(
+    { id: user.id, purpose: RESET_PURPOSE },
+    resetSecret(user),
+    { expiresIn: RESET_TOKEN_TTL }
+  );
+  return { user, token };
+};
+
+// Retorna true se a senha foi trocada; false se o token é inválido, expirado
+// ou já foi usado.
+const resetPassword = async (token, newPassword) => {
+  const decoded = jwt.decode(token);
+  if (!decoded || decoded.purpose !== RESET_PURPOSE || !decoded.id) return false;
+
+  const [users] = await connection.execute(
+    'SELECT id, password FROM users WHERE id = ?',
+    [decoded.id]
+  );
+  if (!users.length) return false;
+
+  try {
+    jwt.verify(token, resetSecret(users[0]));
+  } catch (error) {
+    return false;
+  }
+
+  const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+  await connection.execute('UPDATE users SET password = ? WHERE id = ?', [hashedPassword, decoded.id]);
+  return true;
+};
+
 // Other methods (batch inserts, get by CPF/role) left unchanged
 module.exports = {
   getAllUsers,
@@ -383,5 +433,7 @@ module.exports = {
   getUsersByRole,
   getUserFiles,
   getUserByTelefone,
-  getAuthContextByUserId
+  getAuthContextByUserId,
+  createPasswordResetToken,
+  resetPassword
 };
